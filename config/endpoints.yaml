@@ -1,0 +1,173 @@
+# Repository of discovered official data endpoints (Step 1/2 discovery, verified live).
+# Statuses:
+#   ok           = fetched successfully with a plain HTTP client on <date verified>
+#   session-api  = works via cookie-bootstrap session on www.nseindia.com API surface (verified once)
+#   blocked      = automated access denied by the publisher (manual inbox import supported)
+#   pending      = endpoint exists / known page; not yet verified (verify at first sync / later step)
+# Refresh cadence notes tell the scheduler when each job runs (IST).
+# NOTE: URLs were discovered from the exchanges'/publishers' own pages and circulars (see DATA_SOURCES.md).
+
+common_defaults:
+  user_agent: "ScreenerDesk/0.1 (local offline screener; personal use)"
+  min_interval_seconds_per_host: 4
+  retries: 4
+  retry_backoff_seconds: [5, 15, 45, 90]
+  # 2026-10-25 (Linux box): nsearchives.nseindia.com read-timed out at 60s on EVERY
+  # NSE file while AMFI/BSE hosts responded -> raise the ceiling once; if it still
+  # times out the designed path is the manual inbox drop (data/inbox), not evasion.
+  timeout_seconds: 120
+
+sources:
+
+  # ---------------- PRICES (daily, EOD) ----------------
+  nse_cm_bhavcopy:
+    status: ok                       # verified 2026-10-25, HTTP 200 for trade date 2026-10-23
+    kind: prices-daily
+    cadence: daily_eod
+    url_pattern: "https://nsearchives.nseindia.com/content/cm/BhavCopy_NSE_CM_0_0_0_{yyyymmdd}_F_0000.csv.zip"
+    format: zip csv (UDiFF, 34 columns)
+    tos_note: >
+      No robots.txt is served by nsearchives.nseindia.com (request returns an HTML error page).
+      NSE publishes daily reports openly ("All Reports" page) without login; NSE's Terms of Use
+      require data to be used for personal/internal purposes and not redistributed. We: fetch once
+      per exchange-day, cache locally, display locally only, identify ourselves in User-Agent, and
+      stop/rate-limit on 403/429.
+    refresh_note: "published after market close; delivered same evening (content last-modified observed ~14:06 IST)"
+
+  nse_fo_bhavcopy:
+    status: ok                       # verified 2026-10-25, HTTP 200 for 2026-10-23
+    kind: fno-daily
+    cadence: daily_eod
+    url_pattern: "https://nsearchives.nseindia.com/content/fo/BhavCopy_NSE_FO_0_0_0_{yyyymmdd}_F_0000.csv.zip"
+    format: zip csv (UDiFF, same 34-column layout; STF/STO, expiry, strike, option type)
+    tos_note: "same as nse_cm_bhavcopy"
+    refresh_note: "published after market close (observed last-modified 14:06 GMT ~ 19:36 IST zone drift; we poll at 06:30 IST"
+
+  bse_cm_bhavcopy:
+    status: ok                       # verified 2026-10-25, HTTP 200 881,927 bytes CSV for 2026-10-23
+    kind: prices-daily
+    cadence: daily_eod
+    url_pattern: "https://www.bseindia.com/download/BhavCopy/Equity/BhavCopy_BSE_CM_0_0_0_{yyyymmdd}_F_0000.CSV"
+    format: plain CSV (UDiFF, same 34-column layout)
+    tos_note: >
+      BSE bhavcopy page states the file "will be made available for download after 4.45 p.m." and
+      download is "subject to acceptance of Disclaimer". No robots.txt is published at
+      bseindia.com (the URL serves the SPA HTML). We follow the same single-fetch-per-day,
+      cache-and-display-locally policy as for NSE.
+    refresh_note: "published after 16:45 IST"
+
+  # ---------------- MASTERS (weekly) ----------------
+  nse_equity_master:
+    status: ok                       # verified 2026-10-25 with live symbols
+    kind: security-master
+    cadence: weekly
+    url: "https://nsearchives.nseindia.com/content/equities/EQUITY_L.csv"
+    columns: "SYMBOL,NAME OF COMPANY, SERIES, DATE OF LISTING, PAID UP VALUE, MARKET LOT, ISIN NUMBER, FACE VALUE  (note: spaces after commas in header)"
+    tos_note: "same as nse_cm_bhavcopy"
+
+  nse_sme_equity_master:
+    status: pending                  # same host/pattern as EQUITY_L; verify at first weekly sync
+    kind: security-master-sme
+    cadence: weekly
+    url: "https://nsearchives.nseindia.com/content/equities/SME_EQUITY_L.csv"
+    tos_note: "same as nse_cm_bhavcopy"
+
+  nse_etf_master:
+    status: ok                       # verified 2026-10-25
+    kind: security-master-etf
+    cadence: weekly
+    url: "https://nsearchives.nseindia.com/content/equities/eq_etfseclist.csv"
+    tos_note: "same as nse_cm_bhavcopy"
+
+  nse_fno_lots:
+    status: ok                       # verified 2026-10-25
+    kind: fno-lot-sizes
+    cadence: weekly
+    url: "https://nsearchives.nseindia.com/content/fo/fo_mktlots.csv"
+    tos_note: "same as nse_cm_bhavcopy"
+
+  nse_index_constituents:
+    status: ok                       # verified: nifty50, 500, midcap100, smallcap100 (2026-10-25)
+    kind: index-constituents         # covers Nifty 50/100/Next50/200/500, Midcap 100/150/50, Smallcap 100/250/50, sectoral
+    cadence: weekly
+    url_pattern: "https://nsearchives.nseindia.com/content/indices/ind_{slug}list.csv"
+    slugs_needed: [nifty50, niftynext50, nifty100, nifty200, nifty500, niftymidcap100, niftysmallcap100]
+    tos_note: "same as nse_cm_bhavcopy (official NSE indices list files; also mirrored on niftyindices.com)"
+
+  bse_scrip_master:
+    status: blocked                  # api.bseindia.com ListofScripData returns 403 "Access Denied" even with Referer (verified 2026-10-25)
+    kind: security-master-bse
+    cadence: weekly
+    url: "https://api.bseindia.com/BseIndiaAPI/api/ListofScripData/w?Group=&Industry=&Sector=&Scripcode=&export=CSV"
+    fallback: >
+      Build a partial BSE master from the BSE UDiFF bhavcopy (it contains ISIN, BSE numeric scrip
+      code=FinInstrmId, and instrument name=FinInstrmNm; no face value/shares-outstanding).
+      Also supported: user drops an official BSE "List of Scrips" CSV export into data/inbox/.
+    tos_note: "access denied for automation; do not evade; use manual import"
+
+  # ---------------- MARKET-CAP CLASSIFICATION (half-yearly) ----------------
+  amfi_categorisation:
+    status: ok                       # verified 2026-10-25: page resolves to AverageMarketCapitalization30Jun2026.xlsx (HTTP 200, 582 KB)
+    kind: mc-classification
+    cadence: half_yearly_check_weekly
+    page: "https://www.amfiindia.com/otherdata/categorisation-of-stocks"
+    url_pattern: "https://portal.amfiindia.com/spages/AverageMarketCapitalization{dmy}.xlsx"
+    discovery_note: >
+      The categorisation page links the current list as AverageMarketCapitalization<DDMonYYYY>.xlsx
+      (h1 = June period, h2 = December period). The ingest job fetches the page and regex-resolves
+      the latest .xlsx link, so we never hardcode the period filename.
+    tos_note: >
+      AMFI publishes this list publicly for the industry and public use; data is free. We keep
+      attribution to AMFI in tooltips (source name + as-of period date) per AMFI's data policy.
+
+  # ---------------- CONTROLLED RATES ----------------
+  fbil_mibor:
+    status: blocked-automated        # Angular SPA + reCAPTCHA + "Access key" download portal (verified 2026-10-25)
+    kind: benchmark-rate
+    tenor: 3M MIBOR (Term MIBOR)
+    url: "https://www.fbil.org.in/"
+    automated_access: "none provided; FBIL licenses benchmark downloads (alphanumeric access key) and fronts the site with reCAPTCHA"
+    fallback: >
+      The user (or the app UI, on request) reads the officially published daily FBIL rate from
+      fbil.org.in and pastes/enters it into the app (config/manual_rates.yaml, tenor=mibor_3m).
+      The rate is stored with as-of date and badged "manual (official FBIL display)". If absent,
+      fair-value filters show "Not available from official sources" instead of a made-up rate.
+    tos_note: >
+      FBIL benchmark licensing: individual display is public; bulk/machine consumption is a paid
+      subscription. We will not automate it; manual entry of a public display value is the only path.
+
+  # ---------------- NSE www.nseindia.com API surface (session bootstrapped) ----------------
+  nse_api_session:
+    status: session-api              # verified once 2026-10-25 (api/corporates-corporateActions -> 200 JSON)
+    base: "https://www.nseindia.com"
+    bootstrap: >
+      GET https://www.nseindia.com/ to obtain cookies, then call APIs with the same session,
+      a desktop User-Agent, Referer of the hosting page, and X-Requested-With=XMLHttpRequest.
+      Homepage sometimes answers 403 to plain clients while API still accepts the cookie jar.
+    min_interval_seconds_per_host: 5
+    endpoints:
+      corporate_actions:
+        path: "/api/corporates-corporateActions?index=equities&from_date={dd-mm-yyyy}&to_date={dd-mm-yyyy}"
+        cadence: daily
+        kind: corporate-actions      # ex-date, record date, purpose, face value (dividend/split/bonus-sec)
+      bulk_deals:
+        path: "TBD-at-step7 (page: report-detail/display-bulk-and-block-deals)"
+        cadence: daily
+        kind: bulk-deals
+      shareholding:
+        path: "TBD-at-step7 (company page APIs)"
+        cadence: quarterly
+        kind: ownership
+      financial_results:
+        path: "TBD-at-step7 (companies-listing/corporate-filings XBRL downloads)"
+        cadence: quarterly
+        kind: filings
+    tos_note: "same as nse_cm_bhavcopy; we additionally keep 1 request / 5 s on this host and never parallelise"
+
+  # ---------------- B derivs (pending) ----------------
+  bse_fo_bhavcopy:
+    status: pending                  # BSE bhavcopy page lists "Equity Derivatives (UDiFF)"; URL path to confirm at first sync
+    kind: fno-daily
+    cadence: daily_eod
+    url_pattern: "https://www.bseindia.com/download/BhavCopy/Derivatives/BhavCopy_BSE_FO_0_0_0_{yyyymmdd}_F_0000.CSV"
+    tos_note: "same as bse_cm_bhavcopy"

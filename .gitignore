@@ -1,0 +1,28 @@
+# Python
+__pycache__/
+*.pyc
+.venv/
+.pytest_cache/
+*.egg-info/
+
+# Data (raw downloads, parquet cache, database) - never commit market data
+data/raw/
+data/cache/
+data/processed/
+data/inbox/*
+!data/inbox/README.txt
+*.db
+*.duckdb
+*.duckdb.wal
+
+# Reference material kept untracked until the owner decides (spec screenshots + saved reference page)
+Images/
+screener.html
+
+# Session-local config
+.claude/
+
+# OS / editor
+.DS_Store
+.idea/
+.vscode/
