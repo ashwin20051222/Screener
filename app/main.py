@@ -10,6 +10,7 @@ from fastapi.responses import HTMLResponse
 import duckdb
 
 from app import db, scheduler
+from app.api.routes import router as screener_router
 from app.config import settings
 from ingest import sources
 
@@ -31,6 +32,7 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(title=settings()["app"]["name"], lifespan=lifespan)
+app.include_router(screener_router)
 
 
 @app.get("/health")
