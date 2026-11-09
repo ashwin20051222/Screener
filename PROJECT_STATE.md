@@ -1,7 +1,7 @@
 # PROJECT_STATE.md — Continuity File
 
-> **Current Phase:** Phase 2 (Registry, Metrics Engine, Query Engine) complete. Stopped at STOP GATE 2 awaiting user review and approval to proceed to Phase 3.
-> **Last Updated:** 2026-11-09T23:12:00+05:30
+> **Current Phase:** Phase 3 (Excel Universe) complete. Stopped at STOP GATE 3 awaiting user review and approval to proceed to Phase 4.
+> **Last Updated:** 2026-11-09T23:40:00+05:30
 > **Tags:** `baseline-prototype` (at commit 0d3b083), `ui-replica-v1` (at commit eb6772b).
 
 ---
@@ -23,86 +23,63 @@
 - Tagged `ui-replica-v1`.
 
 ### Phase 2: Registry, Metrics Engine, Query Engine (Complete)
-- **Enriched `registry/filters.yaml` (255/255 filters):**
-  - Full versioned metadata: inputs, null rules, direction-of-goodness, and original glossary text.
-  - Synchronized directly to `apps/web/src/data/filters.json` and documented in `METRICS.md`.
-- **Pure Math & Financial Ratios (`app/metrics/formulas.py`):**
-  - Profitability (ROE, ROA, ROI, ROCE, Margins), Growth (CAGR, 1Y growth), Valuation (PE, PB, PS, Div Yield, EV, EV multiples, Price/CFO, Price/FCF).
-  - Banking ratios (Net Loans = Gross Loans - NPA Provisions).
-  - Balance sheet integrity validator (`Assets == Liabilities + Equity`).
-- **Technical Indicators (`app/metrics/technicals.py`):**
-  - SMA, EMA (with $2/(n+1)$ multiplier and SMA seeding), % above SMA/EMA.
-  - RSI 14D (simple & Wilder), ADX, MACD, Bollinger Bands, Parabolic SAR, Williams %R, Stochastic %K/%D.
-  - OBV running series with volume accumulation/distribution.
-  - 1Y Max Drawdown, Annualized Volatility, Beta & Alpha (104 weekly closes), Sharpe Ratio.
-- **Benchmark Engine (`app/metrics/benchmarks.py`):**
-  - Group medians, trimmed means, aggregates for sectors and subsectors.
-  - Relative multiple premiums vs sector/subsector, dividend yield spread.
-  - Configurable `benchmark_scope = market | universe` (default `market`).
-- **Safe AST Custom Filter Parser (`app/metrics/parser.py`):**
-  - Safe mathematical expression compiler using Python's AST module (no `eval`).
-  - Strict whitelist: `+`, `-`, `*`, `/`, `(`, `)`, numeric constants, and registered metric identifiers.
-  - Enforces 2 to 5 metric constraints and provides zero-division / NaN safety.
-- **Query Engine (`app/query/engine.py` & `app/query/presets.py`):**
-  - Multi-filter AND combination across numeric ranges, enum sets, boolean flags, and custom expressions.
-  - Deterministic sorting with `NULLS LAST` guarantee for both ascending and descending sorts.
-  - Offset/limit pagination (`default_page_size: 20`).
-  - Dynamic tertile boundaries (Low/Mid/High) computed on non-null values of the active universe.
-  - AMFI Market Cap categorization (Largecap, Midcap, Smallcap).
-  - Live sector and subsector stock counts.
-- **FastAPI Endpoints (`app/api/routes.py` & `app/main.py`):**
-  - `GET /api/filters`: Full registry metadata.
-  - `POST /api/query`: Screener query engine endpoint.
-  - `POST /api/custom-filter/validate`: Custom filter AST validation endpoint.
-- **Golden Tests Suite (`tests/test_golden_metrics.py`):**
-  - 100% pass on all 19 Section 12 Golden Tests:
-    1. CAGR: 700 to 960 over 5 years = 6.5%.
-    2. PE: 300 / 30 = 10.0.
-    3. PE premium: 22.0 vs 17.6 = +25.0%; 12.3 vs 17.6 = -30.1%.
-    4. PB premium: 3.8 vs 2.7 = +40.7%; 1.3 vs 2.7 = -51.9%.
-    5. PS premium: 4.7 vs 3.1 = +51.6%.
-    6. Dividend yield: 16 / 250 = 6.4%.
-    7. EMA multiplier: n=20 -> 0.0952.
-    8. % above 1M SMA: 30 vs 28 = 7.14%; above 12M SMA: 30 vs 22.7 = 32.2%.
-    9. Interest coverage: 120 / 50 = 2.4.
-    10. Quick ratio: (250 - 50) / 300 = 0.67.
-    11. Cash conversion cycle: 28 + 13 - 32 = 9.
-    12. Rollover cost: 95.45 / 94.35 - 1 = 1.2%.
-    13. Percentage rollover: 3,430,000 / (55,083,000 + 3,430,000 + 28,000) = 5.9%.
-    14. Put call ratio: 120 / 100 = 1.2.
-    15. 1D OI change: 120 vs 100 = +20.0%.
-    16. OBV series test: exact matching vector output `[-385730, -1062120, -733522, -244756, -566052, -233128]`.
-    17. Sharpe ratio: (42.5% - 5%) / 28% = 1.34.
-    18. Bank net loans: 100000 - 2000 = 98000.
-    19. Williams %R (-28.57) and Stochastic %K (71.43) hand-computed tests.
-- **Full Test Suite Status:** 75 passed in 1.95s across all test modules.
+- Enriched all 255 filters in `registry/filters.yaml` with inputs, null rules, direction of goodness, and glossary text.
+- Implemented core mathematical formulas in `app/metrics/formulas.py` and technical indicators in `app/metrics/technicals.py`.
+- Implemented benchmark calculations in `app/metrics/benchmarks.py` with dual scope (`market` vs `universe`).
+- Implemented safe AST custom filter compiler in `app/metrics/parser.py`.
+- Implemented query engine (`app/query/engine.py`) with multi-filter AND logic, nulls-last sorting, pagination, and dynamic presets.
+- Passed 100% of all 19 Section 12 Golden Tests in `tests/test_golden_metrics.py`.
+
+### Phase 3: Excel Universe (Complete)
+- **5-Tier Matcher Cascade (`app/universe/matcher.py` & `app/universe/master.py`):**
+  - Tier 1: ISIN 12-character exact match.
+  - Tier 2: NSE Symbol exact uppercase match.
+  - Tier 3: BSE Code exact numeric match.
+  - Tier 4: Exact normalized company name match.
+  - Tier 5: Fuzzy name matching using RapidFuzz (`token_set_ratio` with config threshold 88).
+  - Categorizes rows into `matched`, `ambiguous` (multiple close candidates), and `unmatched` with zero silent drops.
+- **Spreadsheet Importer (`app/universe/importer.py` & `apps/web/src/utils/excelParser.ts`):**
+  - Multi-sheet workbook detection and sheet selector (.xlsx, .xls, .csv).
+  - Auto-detection of identifier columns and custom user columns (Quantity, Buy Price, Notes, Date).
+  - Template headers generator ("Copy template headers").
+- **Portfolio P&L Calculator (`app/universe/pnl.py` & `apps/web/src/utils/matcherClient.ts`):**
+  - Computes Invested Value, Current Value, Net P&L Amount (Rs), and P&L % from user quantity and buy price.
+- **Golden 30-Row End-to-End Test Fixture (`tests/fixtures/universe_30rows.xlsx` & `.csv`):**
+  - 25 matched rows across ISIN, symbol, code, and name.
+  - 2 ambiguous rows: Tata Motors (Ordinary vs DVR) and L&T (L&T Tech vs L&T Finance).
+  - 3 unmatched rows: fictional entity, invalid ISIN, non-existent firm.
+  - 100% pass across all 7 test cases in `tests/test_universe_matcher.py`.
+- **Frontend Match Report & Universe Management (`apps/web`):**
+  - `ExcelUploadModal.tsx`: Drag & drop upload, sheet selector, ID column picker, template helpers.
+  - `MatchReportModal.tsx`: Summary metric chips (Matched 25, Ambiguous 2, Unmatched 3), candidate selection dropdown for ambiguous rows, manual resolution for unmatched rows, and Portfolio P&L summary.
+  - `UniverseSelector` in left panel: Custom tab with "+ Create", list of custom universes, rename, delete, and multi-universe union selection.
+  - Custom user columns (Quantity, Buy Price, P&L Amount, P&L %) integrated into Column Picker (`⊕`) and rendered in table.
+- **Visual Verification:**
+  - Captured `phase3_upload_modal.png` and `phase3_match_report.png` at 1750x925.
 
 ---
 
-## 2. Next Up (Phase 3: Excel Universe)
+## 2. Next Up (Phase 4: Official Data Connectors)
 
-Upon receiving approval at STOP GATE 2:
-1. Drag-and-drop Excel/CSV upload (.xlsx, .xls, .csv) with multi-sheet selector.
-2. Security Master Matcher cascade: ISIN -> NSE symbol -> BSE code -> exact normalized name -> fuzzy name (RapidFuzz threshold 88).
-3. Match Report UI: matched / ambiguous / unmatched breakdown with inline correction dropdowns.
-4. Multi-Universe Management (Default + Custom union).
-5. Optional user custom columns and P&L calculation.
-6. 30-row end-to-end test fixture (3 unmatched, 2 ambiguous).
-7. Stop at STOP GATE 3.
+Upon receiving approval at STOP GATE 3:
+- **Sub-step 4.1: Security master + daily EOD prices (bhavcopy) + corporate actions:**
+  - Write `DATA_SOURCES.md` first (URL, format, ToS/robots note, refresh rate, as discovered with REA).
+  - Implement connector with retries, exponential backoff, rate limits, raw-file cache, schema validation, idempotent upsert into DuckDB, and reconciliation check against exchange files for 10 stocks.
+  - **STOP and pause at STOP GATE 4.1.**
 
 ---
 
 ## 3. Decisions & Assumptions Recorded
 
-1. **AST Whitelist Security:** The custom filter compiler forbids all function calls, imports, comprehensions, and attribute accesses (`__class__`, etc.), evaluating bytecode with an empty `__builtins__` dictionary.
-2. **Deterministic Nulls-Last:** Custom comparators ensure that `null` / `NaN` values always sort to the bottom of the table whether sorting in ascending or descending direction.
-3. **Dual Benchmark Scope:** Supported through `benchmark_scope = market | universe` in both engine configuration and query API requests, defaulting to `market`.
-4. **All Golden Tests Passed:** All 19 exact numbers from Prompt Section 12 pass with 100% precision.
+1. **Dual Share Classes Ambiguity:** Indian dual-class equity (e.g. Tata Motors Ordinary `TATAMOTORS` vs DVR `TATAMTRDVR`) sharing the same company name is accurately classified as Ambiguous, allowing user selection rather than arbitrary guessing.
+2. **Multi-Universe Union:** Users can select any combination of default and custom universes simultaneously; the active universe is the deduplicated union of all matching securities.
+3. **P&L Column Auto-Enable:** When a custom universe with Quantity and Buy Price is saved, the screener automatically registers and enables Quantity, Buy Price, and P&L columns in the table picker.
+4. **Offline Parity:** Client-side matching in TypeScript provides identical 5-tier matching behavior when operating offline without backend connectivity.
 
 ---
 
 ## 4. Verification Check
 
-- Full pytest suite: 75/75 passed (`.venv/bin/pytest tests/`).
+- Full pytest suite: 84/84 passed (`.venv/bin/pytest tests/`).
 - Frontend build: `npm run build` passed cleanly in `apps/web`.
-- Ready for user review at **STOP GATE 2**.
+- Ready for user review at **STOP GATE 3**.
