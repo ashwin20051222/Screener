@@ -1,0 +1,2810 @@
+version: '1.0'
+filters:
+  return_on_equity:
+    id: return_on_equity
+    name: Return on Equity
+    category: Profitability
+    unit: '%'
+    in_screenshot: true
+    locked_in_original: false
+    needs_official_source: true
+    availability: Computed-from-official
+    formula: Net profit / avg2(common equity)
+    frequency: Annual/TTM
+  return_on_assets:
+    id: return_on_assets
+    name: Return on Assets
+    category: Profitability
+    unit: '%'
+    in_screenshot: true
+    locked_in_original: false
+    needs_official_source: true
+    availability: Computed-from-official
+    formula: Net profit / avg2(total assets)
+    frequency: Annual/TTM
+  return_on_investment:
+    id: return_on_investment
+    name: Return on Investment
+    category: Profitability
+    unit: '%'
+    in_screenshot: true
+    locked_in_original: false
+    needs_official_source: true
+    availability: Computed-from-official
+    formula: Net income / avg2(equity + long-term debt + other long-term liabilities)
+    frequency: Annual/TTM
+  roce:
+    id: roce
+    name: ROCE
+    category: Profitability
+    unit: '%'
+    in_screenshot: true
+    locked_in_original: false
+    needs_official_source: true
+    availability: Computed-from-official
+    formula: EBIT / (total assets - current liabilities)
+    frequency: Annual/TTM
+  net_profit_margin:
+    id: net_profit_margin
+    name: Net Profit Margin
+    category: Profitability
+    unit: '%'
+    in_screenshot: true
+    locked_in_original: false
+    needs_official_source: true
+    availability: Computed-from-official
+    formula: Net profit / revenue
+    frequency: Annual/Quarterly
+  ebitda_margin:
+    id: ebitda_margin
+    name: EBITDA Margin
+    category: Profitability
+    unit: '%'
+    in_screenshot: true
+    locked_in_original: false
+    needs_official_source: true
+    availability: Computed-from-official
+    formula: EBITDA / revenue
+    frequency: Annual/Quarterly
+  operating_profit_margin:
+    id: operating_profit_margin
+    name: Operating Profit Margin
+    category: Profitability
+    unit: '%'
+    in_screenshot: false
+    locked_in_original: false
+    needs_official_source: true
+    availability: Computed-from-official
+    formula: Operating profit / revenue
+    frequency: Annual/Quarterly
+  cash_flow_margin:
+    id: cash_flow_margin
+    name: Cash Flow Margin
+    category: Profitability
+    unit: '%'
+    in_screenshot: true
+    locked_in_original: false
+    needs_official_source: true
+    availability: Computed-from-official
+    formula: Operating cash flow / revenue
+    frequency: Annual
+  cost_of_goods_sold:
+    id: cost_of_goods_sold
+    name: Cost of Goods Sold
+    category: Profitability
+    unit: Rs Cr
+    in_screenshot: true
+    locked_in_original: false
+    needs_official_source: true
+    availability: Official-direct
+    formula: COGS reported in financial statements
+    frequency: Annual
+  5y_avg_ebitda_margin:
+    id: 5y_avg_ebitda_margin
+    name: 5Y Avg EBITDA Margin
+    category: Profitability
+    unit: '%'
+    in_screenshot: true
+    locked_in_original: false
+    needs_official_source: true
+    availability: Computed-from-official
+    formula: avg5(EBITDA margin)
+    frequency: Annual
+  5y_avg_net_profit_margin:
+    id: 5y_avg_net_profit_margin
+    name: 5Y Avg Net Profit Margin
+    category: Profitability
+    unit: '%'
+    in_screenshot: true
+    locked_in_original: false
+    needs_official_source: true
+    availability: Computed-from-official
+    formula: avg5(Net profit margin)
+    frequency: Annual
+  5y_avg_return_on_equity:
+    id: 5y_avg_return_on_equity
+    name: 5Y Avg Return on Equity
+    category: Profitability
+    unit: '%'
+    in_screenshot: true
+    locked_in_original: false
+    needs_official_source: true
+    availability: Computed-from-official
+    formula: avg5(ROE)
+    frequency: Annual
+  5y_avg_return_on_assets:
+    id: 5y_avg_return_on_assets
+    name: 5Y Avg Return on Assets
+    category: Profitability
+    unit: '%'
+    in_screenshot: true
+    locked_in_original: false
+    needs_official_source: true
+    availability: Computed-from-official
+    formula: avg5(ROA)
+    frequency: Annual
+  5y_avg_return_on_investment:
+    id: 5y_avg_return_on_investment
+    name: 5Y Avg Return on Investment
+    category: Profitability
+    unit: '%'
+    in_screenshot: true
+    locked_in_original: false
+    needs_official_source: true
+    availability: Computed-from-official
+    formula: avg5(ROI)
+    frequency: Annual
+  5y_avg_cash_flow_margin:
+    id: 5y_avg_cash_flow_margin
+    name: 5Y Avg Cash Flow Margin
+    category: Profitability
+    unit: '%'
+    in_screenshot: true
+    locked_in_original: false
+    needs_official_source: true
+    availability: Computed-from-official
+    formula: avg5(Cash flow margin)
+    frequency: Annual
+  5y_avg_operating_profit_margin:
+    id: 5y_avg_operating_profit_margin
+    name: 5Y Avg Operating Profit Margin
+    category: Profitability
+    unit: '%'
+    in_screenshot: false
+    locked_in_original: false
+    needs_official_source: true
+    availability: Computed-from-official
+    formula: avg5(Operating margin)
+    frequency: Annual
+  1y_forward_revenue_growth:
+    id: 1y_forward_revenue_growth
+    name: 1Y Forward Revenue Growth
+    category: Growth
+    unit: '%'
+    in_screenshot: true
+    locked_in_original: true
+    needs_official_source: false
+    availability: Unavailable
+    formula: (consensus estimate current FY / actual FY0) - 1
+    frequency: Annual
+  1y_hist_op_cash_flow_growth:
+    id: 1y_hist_op_cash_flow_growth
+    name: 1Y Hist Op. Cash Flow Growth
+    category: Growth
+    unit: '%'
+    in_screenshot: true
+    locked_in_original: false
+    needs_official_source: true
+    availability: Computed-from-official
+    formula: CFO[FY0] / CFO[FY-1] - 1
+    frequency: Annual
+  1y_forward_ebitda_growth:
+    id: 1y_forward_ebitda_growth
+    name: 1Y Forward EBITDA Growth
+    category: Growth
+    unit: '%'
+    in_screenshot: true
+    locked_in_original: true
+    needs_official_source: false
+    availability: Unavailable
+    formula: (consensus EBITDA / actual EBITDA) - 1
+    frequency: Annual
+  1y_historical_eps_growth:
+    id: 1y_historical_eps_growth
+    name: 1Y Historical EPS Growth
+    category: Growth
+    unit: '%'
+    in_screenshot: true
+    locked_in_original: false
+    needs_official_source: true
+    availability: Computed-from-official
+    formula: EPS[FY0] / EPS[FY-1] - 1
+    frequency: Annual
+  1y_historical_revenue_growth:
+    id: 1y_historical_revenue_growth
+    name: 1Y Historical Revenue Growth
+    category: Growth
+    unit: '%'
+    in_screenshot: true
+    locked_in_original: false
+    needs_official_source: true
+    availability: Computed-from-official
+    formula: Revenue[FY0] / Revenue[FY-1] - 1
+    frequency: Annual
+  1y_fwd_op_cash_flow_growth:
+    id: 1y_fwd_op_cash_flow_growth
+    name: 1Y Fwd Op. Cash Flow Growth
+    category: Growth
+    unit: '%'
+    in_screenshot: true
+    locked_in_original: true
+    needs_official_source: false
+    availability: Unavailable
+    formula: (consensus CFO / actual CFO) - 1
+    frequency: Annual
+  5y_historical_ebitda_growth:
+    id: 5y_historical_ebitda_growth
+    name: 5Y Historical EBITDA Growth
+    category: Growth
+    unit: '%'
+    in_screenshot: true
+    locked_in_original: false
+    needs_official_source: true
+    availability: Computed-from-official
+    formula: CAGR_5(EBITDA)
+    frequency: Annual
+  5y_hist_op_cash_flow_growth:
+    id: 5y_hist_op_cash_flow_growth
+    name: 5Y Hist Op. Cash Flow Growth
+    category: Growth
+    unit: '%'
+    in_screenshot: true
+    locked_in_original: false
+    needs_official_source: true
+    availability: Computed-from-official
+    formula: CAGR_5(CFO)
+    frequency: Annual
+  3y_historical_dividend_growth:
+    id: 3y_historical_dividend_growth
+    name: 3Y Historical Dividend Growth
+    category: Growth
+    unit: '%'
+    in_screenshot: true
+    locked_in_original: false
+    needs_official_source: true
+    availability: Computed-from-official
+    formula: CAGR_3(DPS)
+    frequency: Annual
+  5y_historical_eps_growth:
+    id: 5y_historical_eps_growth
+    name: 5Y Historical EPS Growth
+    category: Growth
+    unit: '%'
+    in_screenshot: true
+    locked_in_original: false
+    needs_official_source: true
+    availability: Computed-from-official
+    formula: CAGR_5(EPS)
+    frequency: Annual
+  5y_historical_revenue_growth:
+    id: 5y_historical_revenue_growth
+    name: 5Y Historical Revenue Growth
+    category: Growth
+    unit: '%'
+    in_screenshot: true
+    locked_in_original: false
+    needs_official_source: true
+    availability: Computed-from-official
+    formula: CAGR_5(Revenue)
+    frequency: Annual
+  1y_historical_ebitda_growth:
+    id: 1y_historical_ebitda_growth
+    name: 1Y Historical EBITDA Growth
+    category: Growth
+    unit: '%'
+    in_screenshot: true
+    locked_in_original: false
+    needs_official_source: true
+    availability: Computed-from-official
+    formula: EBITDA[FY0] / EBITDA[FY-1] - 1
+    frequency: Annual
+  1y_forward_eps_growth:
+    id: 1y_forward_eps_growth
+    name: 1Y Forward EPS Growth
+    category: Growth
+    unit: '%'
+    in_screenshot: true
+    locked_in_original: true
+    needs_official_source: false
+    availability: Unavailable
+    formula: (consensus EPS / actual EPS) - 1
+    frequency: Annual
+  pe_ratio:
+    id: pe_ratio
+    name: PE Ratio
+    category: Valuation
+    unit: ''
+    in_screenshot: true
+    locked_in_original: false
+    needs_official_source: true
+    availability: Computed-from-official
+    formula: Close / EPS(FY0, before extraordinary items)
+    frequency: Daily
+  ttm_pe_ratio:
+    id: ttm_pe_ratio
+    name: TTM PE Ratio
+    category: Valuation
+    unit: ''
+    in_screenshot: true
+    locked_in_original: false
+    needs_official_source: true
+    availability: Computed-from-official
+    formula: Close / EPS(TTM)
+    frequency: Daily
+  forward_pe_ratio:
+    id: forward_pe_ratio
+    name: Forward PE Ratio
+    category: Valuation
+    unit: ''
+    in_screenshot: true
+    locked_in_original: true
+    needs_official_source: false
+    availability: Unavailable
+    formula: Close / estimated EPS
+    frequency: Daily
+  pb_ratio:
+    id: pb_ratio
+    name: PB Ratio
+    category: Valuation
+    unit: ''
+    in_screenshot: true
+    locked_in_original: false
+    needs_official_source: true
+    availability: Computed-from-official
+    formula: Close / book value per share
+    frequency: Daily
+  ps_ratio:
+    id: ps_ratio
+    name: PS Ratio
+    category: Valuation
+    unit: ''
+    in_screenshot: true
+    locked_in_original: false
+    needs_official_source: true
+    availability: Computed-from-official
+    formula: Close / (revenue(FY0) / shares)
+    frequency: Daily
+  forward_ps_ratio:
+    id: forward_ps_ratio
+    name: Forward PS Ratio
+    category: Valuation
+    unit: ''
+    in_screenshot: true
+    locked_in_original: true
+    needs_official_source: false
+    availability: Unavailable
+    formula: Close / estimated revenue per share
+    frequency: Daily
+  dividend_yield:
+    id: dividend_yield
+    name: Dividend Yield
+    category: Valuation
+    unit: '%'
+    in_screenshot: true
+    locked_in_original: false
+    needs_official_source: true
+    availability: Computed-from-official
+    formula: DPS(FY0) / Close * 100
+    frequency: Daily
+  ev_ebitda_ratio:
+    id: ev_ebitda_ratio
+    name: EV/EBITDA Ratio
+    category: Valuation
+    unit: ''
+    in_screenshot: true
+    locked_in_original: false
+    needs_official_source: true
+    availability: Computed-from-official
+    formula: EV / EBITDA(FY0)
+    frequency: Daily
+  ev_ebit_ratio:
+    id: ev_ebit_ratio
+    name: EV / EBIT Ratio
+    category: Valuation
+    unit: ''
+    in_screenshot: true
+    locked_in_original: false
+    needs_official_source: true
+    availability: Computed-from-official
+    formula: EV / EBIT(FY0)
+    frequency: Daily
+  ev_revenue_ratio:
+    id: ev_revenue_ratio
+    name: EV / Revenue Ratio
+    category: Valuation
+    unit: ''
+    in_screenshot: true
+    locked_in_original: false
+    needs_official_source: true
+    availability: Computed-from-official
+    formula: EV / Revenue(FY0)
+    frequency: Daily
+  ev_free_cash_flow:
+    id: ev_free_cash_flow
+    name: EV / Free Cash Flow
+    category: Valuation
+    unit: ''
+    in_screenshot: true
+    locked_in_original: false
+    needs_official_source: true
+    availability: Computed-from-official
+    formula: EV / FCF
+    frequency: Daily
+  ev_invested_capital:
+    id: ev_invested_capital
+    name: EV / Invested Capital
+    category: Valuation
+    unit: ''
+    in_screenshot: true
+    locked_in_original: false
+    needs_official_source: true
+    availability: Computed-from-official
+    formula: EV / IC (total equity + total debt + minority interest)
+    frequency: Daily
+  enterprise_value:
+    id: enterprise_value
+    name: Enterprise Value
+    category: Valuation
+    unit: Rs Cr
+    in_screenshot: true
+    locked_in_original: false
+    needs_official_source: true
+    availability: Computed-from-official
+    formula: MC + total debt + minority interest - cash & short-term investments
+    frequency: Daily
+  price_free_cash_flow:
+    id: price_free_cash_flow
+    name: Price / Free Cash Flow
+    category: Valuation
+    unit: ''
+    in_screenshot: true
+    locked_in_original: false
+    needs_official_source: true
+    availability: Computed-from-official
+    formula: MC / FCF
+    frequency: Daily
+  price_cfo:
+    id: price_cfo
+    name: Price / CFO
+    category: Valuation
+    unit: ''
+    in_screenshot: true
+    locked_in_original: false
+    needs_official_source: true
+    availability: Computed-from-official
+    formula: MC / Operating Cash Flow
+    frequency: Daily
+  price_sales:
+    id: price_sales
+    name: Price / Sales
+    category: Valuation
+    unit: ''
+    in_screenshot: true
+    locked_in_original: false
+    needs_official_source: true
+    availability: Computed-from-official
+    formula: Alias for PS Ratio
+    frequency: Daily
+  pe_premium_vs_sector:
+    id: pe_premium_vs_sector
+    name: PE Premium vs Sector
+    category: Valuation
+    unit: '%'
+    in_screenshot: true
+    locked_in_original: true
+    needs_official_source: true
+    availability: Computed-from-official
+    formula: (PE / Sector PE - 1) * 100
+    frequency: Daily
+  pb_premium_vs_sector:
+    id: pb_premium_vs_sector
+    name: PB Premium vs Sector
+    category: Valuation
+    unit: '%'
+    in_screenshot: true
+    locked_in_original: true
+    needs_official_source: true
+    availability: Computed-from-official
+    formula: (PB / Sector PB - 1) * 100
+    frequency: Daily
+  ps_premium_vs_sector:
+    id: ps_premium_vs_sector
+    name: PS Premium vs Sector
+    category: Valuation
+    unit: '%'
+    in_screenshot: true
+    locked_in_original: true
+    needs_official_source: true
+    availability: Computed-from-official
+    formula: (PS / Sector PS - 1) * 100
+    frequency: Daily
+  dividend_yield_vs_sector:
+    id: dividend_yield_vs_sector
+    name: Dividend Yield vs Sector
+    category: Valuation
+    unit: '%'
+    in_screenshot: true
+    locked_in_original: true
+    needs_official_source: true
+    availability: Computed-from-official
+    formula: Stock Yield - Sector Yield (pp difference)
+    frequency: Daily
+  pe_premium_vs_sub_sector:
+    id: pe_premium_vs_sub_sector
+    name: PE Premium vs Sub-sector
+    category: Valuation
+    unit: '%'
+    in_screenshot: true
+    locked_in_original: true
+    needs_official_source: true
+    availability: Computed-from-official
+    formula: (PE / Sub-sector PE - 1) * 100
+    frequency: Daily
+  pb_premium_vs_sub_sector:
+    id: pb_premium_vs_sub_sector
+    name: PB Premium vs Sub-sector
+    category: Valuation
+    unit: '%'
+    in_screenshot: true
+    locked_in_original: true
+    needs_official_source: true
+    availability: Computed-from-official
+    formula: (PB / Sub-sector PB - 1) * 100
+    frequency: Daily
+  ps_premium_vs_sub_sector:
+    id: ps_premium_vs_sub_sector
+    name: PS Premium vs Sub-sector
+    category: Valuation
+    unit: '%'
+    in_screenshot: true
+    locked_in_original: true
+    needs_official_source: true
+    availability: Computed-from-official
+    formula: (PS / Sub-sector PS - 1) * 100
+    frequency: Daily
+  dividend_yield_vs_sub_sector:
+    id: dividend_yield_vs_sub_sector
+    name: Dividend Yield vs Sub-sector
+    category: Valuation
+    unit: '%'
+    in_screenshot: true
+    locked_in_original: true
+    needs_official_source: true
+    availability: Computed-from-official
+    formula: Stock Yield - Sub-sector Yield (pp difference)
+    frequency: Daily
+  sector_dividend_yield:
+    id: sector_dividend_yield
+    name: Sector Dividend Yield
+    category: Valuation
+    unit: '%'
+    in_screenshot: true
+    locked_in_original: false
+    needs_official_source: true
+    availability: Computed-from-official
+    formula: Median of positive Dividend Yields across sector
+    frequency: Daily
+  sector_pb:
+    id: sector_pb
+    name: Sector PB
+    category: Valuation
+    unit: ''
+    in_screenshot: true
+    locked_in_original: false
+    needs_official_source: true
+    availability: Computed-from-official
+    formula: Median of positive PB ratios across sector
+    frequency: Daily
+  sector_pe:
+    id: sector_pe
+    name: Sector PE
+    category: Valuation
+    unit: ''
+    in_screenshot: true
+    locked_in_original: false
+    needs_official_source: true
+    availability: Computed-from-official
+    formula: Median of positive PE ratios across sector
+    frequency: Daily
+  mutual_fund_holding:
+    id: mutual_fund_holding
+    name: Mutual Fund Holding
+    category: Ownership
+    unit: '%'
+    in_screenshot: true
+    locked_in_original: false
+    needs_official_source: true
+    availability: Official-direct
+    formula: Official quarterly shareholding pattern
+    frequency: Quarterly
+  domestic_institutional_holding:
+    id: domestic_institutional_holding
+    name: Domestic Institutional Holding
+    category: Ownership
+    unit: '%'
+    in_screenshot: true
+    locked_in_original: false
+    needs_official_source: true
+    availability: Official-direct
+    formula: Official quarterly shareholding pattern (DII)
+    frequency: Quarterly
+  foreign_institutional_holding:
+    id: foreign_institutional_holding
+    name: Foreign Institutional Holding
+    category: Ownership
+    unit: '%'
+    in_screenshot: true
+    locked_in_original: false
+    needs_official_source: true
+    availability: Official-direct
+    formula: Official quarterly shareholding pattern (FII)
+    frequency: Quarterly
+  promoter_holding:
+    id: promoter_holding
+    name: Promoter Holding
+    category: Ownership
+    unit: '%'
+    in_screenshot: true
+    locked_in_original: false
+    needs_official_source: true
+    availability: Official-direct
+    formula: Official quarterly shareholding pattern
+    frequency: Quarterly
+  pledged_promoter_holdings:
+    id: pledged_promoter_holdings
+    name: Pledged Promoter Holdings
+    category: Ownership
+    unit: '%'
+    in_screenshot: true
+    locked_in_original: false
+    needs_official_source: true
+    availability: Official-direct
+    formula: Promoter pledged shares / total promoter shares * 100
+    frequency: Quarterly
+  retail_investor_holding:
+    id: retail_investor_holding
+    name: Retail Investor Holding
+    category: Ownership
+    unit: '%'
+    in_screenshot: true
+    locked_in_original: false
+    needs_official_source: true
+    availability: Official-direct
+    formula: Public individual shareholders holding nominal capital <= Rs 2 lakh
+    frequency: Quarterly
+  insurance_firms_holding:
+    id: insurance_firms_holding
+    name: Insurance Firms Holding
+    category: Ownership
+    unit: '%'
+    in_screenshot: true
+    locked_in_original: false
+    needs_official_source: true
+    availability: Official-direct
+    formula: Official quarterly shareholding pattern
+    frequency: Quarterly
+  no_of_shareholders:
+    id: no_of_shareholders
+    name: No. of Shareholders
+    category: Ownership
+    unit: ''
+    in_screenshot: true
+    locked_in_original: false
+    needs_official_source: true
+    availability: Official-direct
+    formula: Total count from quarterly shareholding pattern
+    frequency: Quarterly
+  mf_holding_change_3m:
+    id: mf_holding_change_3m
+    name: "MF Holding Change \u2013 3M"
+    category: Ownership
+    unit: '%'
+    in_screenshot: true
+    locked_in_original: false
+    needs_official_source: true
+    availability: Computed-from-official
+    formula: MF%[Q0] - MF%[Q-1] (pp difference)
+    frequency: Quarterly
+  mf_holding_change_6m:
+    id: mf_holding_change_6m
+    name: "MF Holding Change \u2013 6M"
+    category: Ownership
+    unit: '%'
+    in_screenshot: true
+    locked_in_original: false
+    needs_official_source: true
+    availability: Computed-from-official
+    formula: MF%[Q0] - MF%[Q-2] (pp difference)
+    frequency: Quarterly
+  dii_holding_change_3m:
+    id: dii_holding_change_3m
+    name: "DII Holding Change \u2013 3M"
+    category: Ownership
+    unit: '%'
+    in_screenshot: true
+    locked_in_original: false
+    needs_official_source: true
+    availability: Computed-from-official
+    formula: DII%[Q0] - DII%[Q-1] (pp difference)
+    frequency: Quarterly
+  dii_holding_change_6m:
+    id: dii_holding_change_6m
+    name: "DII Holding Change \u2013 6M"
+    category: Ownership
+    unit: '%'
+    in_screenshot: true
+    locked_in_original: false
+    needs_official_source: true
+    availability: Computed-from-official
+    formula: DII%[Q0] - DII%[Q-2] (pp difference)
+    frequency: Quarterly
+  fii_holding_change_3m:
+    id: fii_holding_change_3m
+    name: "FII Holding Change \u2013 3M"
+    category: Ownership
+    unit: '%'
+    in_screenshot: true
+    locked_in_original: false
+    needs_official_source: true
+    availability: Computed-from-official
+    formula: FII%[Q0] - FII%[Q-1] (pp difference)
+    frequency: Quarterly
+  fii_holding_change_6m:
+    id: fii_holding_change_6m
+    name: "FII Holding Change \u2013 6M"
+    category: Ownership
+    unit: '%'
+    in_screenshot: true
+    locked_in_original: false
+    needs_official_source: true
+    availability: Computed-from-official
+    formula: FII%[Q0] - FII%[Q-2] (pp difference)
+    frequency: Quarterly
+  promoter_holding_change_3m:
+    id: promoter_holding_change_3m
+    name: "Promoter Holding Change \u2013 3M"
+    category: Ownership
+    unit: '%'
+    in_screenshot: true
+    locked_in_original: false
+    needs_official_source: true
+    availability: Computed-from-official
+    formula: Promoter%[Q0] - Promoter%[Q-1] (pp difference)
+    frequency: Quarterly
+  promoter_holding_change_6m:
+    id: promoter_holding_change_6m
+    name: "Promoter Holding Change \u2013 6M"
+    category: Ownership
+    unit: '%'
+    in_screenshot: true
+    locked_in_original: false
+    needs_official_source: true
+    availability: Computed-from-official
+    formula: Promoter%[Q0] - Promoter%[Q-2] (pp difference)
+    frequency: Quarterly
+  insider_trades_1m_cumulative:
+    id: insider_trades_1m_cumulative
+    name: Insider Trades - 1M Cumulative
+    category: Ownership
+    unit: '%'
+    in_screenshot: true
+    locked_in_original: true
+    needs_official_source: true
+    availability: Computed-from-official
+    formula: Net buy-sell shares in 1M / shares outstanding * 100 (SEBI PIT)
+    frequency: Daily
+  insider_trades_3m_cumulative:
+    id: insider_trades_3m_cumulative
+    name: Insider Trades - 3M Cumulative
+    category: Ownership
+    unit: '%'
+    in_screenshot: true
+    locked_in_original: true
+    needs_official_source: true
+    availability: Computed-from-official
+    formula: Net buy-sell shares in 3M / shares outstanding * 100 (SEBI PIT)
+    frequency: Daily
+  insider_trades_6m_cumulative:
+    id: insider_trades_6m_cumulative
+    name: Insider Trades - 6M Cumulative
+    category: Ownership
+    unit: '%'
+    in_screenshot: true
+    locked_in_original: true
+    needs_official_source: true
+    availability: Computed-from-official
+    formula: Net buy-sell shares in 6M / shares outstanding * 100 (SEBI PIT)
+    frequency: Daily
+  bulk_deals_1m_cumulative:
+    id: bulk_deals_1m_cumulative
+    name: Bulk Deals - 1M Cumulative
+    category: Ownership
+    unit: '%'
+    in_screenshot: true
+    locked_in_original: true
+    needs_official_source: true
+    availability: Computed-from-official
+    formula: Signed shares in bulk deals / shares outstanding * 100
+    frequency: Daily
+  bulk_deals_3m_cumulative:
+    id: bulk_deals_3m_cumulative
+    name: Bulk Deals - 3M Cumulative
+    category: Ownership
+    unit: '%'
+    in_screenshot: true
+    locked_in_original: true
+    needs_official_source: true
+    availability: Computed-from-official
+    formula: Signed shares in bulk deals / shares outstanding * 100
+    frequency: Daily
+  bulk_deals_6m_cumulative:
+    id: bulk_deals_6m_cumulative
+    name: Bulk Deals - 6M Cumulative
+    category: Ownership
+    unit: '%'
+    in_screenshot: true
+    locked_in_original: true
+    needs_official_source: true
+    availability: Computed-from-official
+    formula: Signed shares in bulk deals / shares outstanding * 100
+    frequency: Daily
+  lot_size:
+    id: lot_size
+    name: Lot Size
+    category: Futures & Options
+    unit: ''
+    in_screenshot: true
+    locked_in_original: false
+    needs_official_source: true
+    availability: Official-direct
+    formula: NSE official contract lot size
+    frequency: Monthly
+  future_close_price:
+    id: future_close_price
+    name: Future Close Price
+    category: Futures & Options
+    unit: Rs
+    in_screenshot: true
+    locked_in_original: false
+    needs_official_source: true
+    availability: Official-direct
+    formula: Near-month futures settlement price
+    frequency: Daily
+  future_volume:
+    id: future_volume
+    name: Future Volume
+    category: Futures & Options
+    unit: ''
+    in_screenshot: true
+    locked_in_original: false
+    needs_official_source: true
+    availability: Official-direct
+    formula: Traded contracts in near-month future
+    frequency: Daily
+  future_open_interest:
+    id: future_open_interest
+    name: Future Open Interest
+    category: Futures & Options
+    unit: ''
+    in_screenshot: true
+    locked_in_original: false
+    needs_official_source: true
+    availability: Official-direct
+    formula: Near-month futures open interest
+    frequency: Daily
+  fair_value:
+    id: fair_value
+    name: Fair Value
+    category: Futures & Options
+    unit: Rs
+    in_screenshot: true
+    locked_in_original: true
+    needs_official_source: true
+    availability: Computed-from-official
+    formula: Spot * (1 + r * days_to_expiry / 365), r = 3M MIBOR
+    frequency: Daily
+  fair_value_spread:
+    id: fair_value_spread
+    name: Fair Value Spread
+    category: Futures & Options
+    unit: Rs
+    in_screenshot: true
+    locked_in_original: true
+    needs_official_source: true
+    availability: Computed-from-official
+    formula: Fair value - futures price
+    frequency: Daily
+  basis:
+    id: basis
+    name: Basis
+    category: Futures & Options
+    unit: Rs
+    in_screenshot: true
+    locked_in_original: false
+    needs_official_source: true
+    availability: Computed-from-official
+    formula: Futures price - spot price
+    frequency: Daily
+  rollover_cost:
+    id: rollover_cost
+    name: Rollover Cost
+    category: Futures & Options
+    unit: '%'
+    in_screenshot: true
+    locked_in_original: true
+    needs_official_source: true
+    availability: Computed-from-official
+    formula: Next-month futures / near-month futures - 1
+    frequency: Daily
+  percentage_rollover:
+    id: percentage_rollover
+    name: Percentage Rollover
+    category: Futures & Options
+    unit: '%'
+    in_screenshot: true
+    locked_in_original: true
+    needs_official_source: true
+    availability: Computed-from-official
+    formula: OI(next) / OI(near + next + far) * 100
+    frequency: Daily
+  calendar_spread:
+    id: calendar_spread
+    name: Calendar Spread
+    category: Futures & Options
+    unit: Rs
+    in_screenshot: true
+    locked_in_original: true
+    needs_official_source: true
+    availability: Computed-from-official
+    formula: Mid-month futures - near-month futures
+    frequency: Daily
+  cash_carry_profit:
+    id: cash_carry_profit
+    name: Cash & Carry Profit
+    category: Futures & Options
+    unit: Rs
+    in_screenshot: true
+    locked_in_original: true
+    needs_official_source: true
+    availability: Computed-from-official
+    formula: Futures price - fair value
+    frequency: Daily
+  put_call_ratio:
+    id: put_call_ratio
+    name: Put Call Ratio
+    category: Futures & Options
+    unit: ''
+    in_screenshot: true
+    locked_in_original: true
+    needs_official_source: true
+    availability: Computed-from-official
+    formula: Total Put OI / Total Call OI
+    frequency: Daily
+  call_open_interest:
+    id: call_open_interest
+    name: Call Open Interest
+    category: Futures & Options
+    unit: ''
+    in_screenshot: true
+    locked_in_original: false
+    needs_official_source: true
+    availability: Official-direct
+    formula: Sum of OI across all CE strikes and expiries
+    frequency: Daily
+  put_open_interest:
+    id: put_open_interest
+    name: Put Open Interest
+    category: Futures & Options
+    unit: ''
+    in_screenshot: true
+    locked_in_original: false
+    needs_official_source: true
+    availability: Official-direct
+    formula: Sum of OI across all PE strikes and expiries
+    frequency: Daily
+  1d_change_in_future_oi:
+    id: 1d_change_in_future_oi
+    name: 1D Change in Future OI
+    category: Futures & Options
+    unit: '%'
+    in_screenshot: true
+    locked_in_original: true
+    needs_official_source: true
+    availability: Computed-from-official
+    formula: Future OI / Future OI[-1] - 1
+    frequency: Daily
+  1w_change_in_future_oi:
+    id: 1w_change_in_future_oi
+    name: 1W Change in Future OI
+    category: Futures & Options
+    unit: '%'
+    in_screenshot: true
+    locked_in_original: true
+    needs_official_source: true
+    availability: Computed-from-official
+    formula: Future OI / Future OI[-5] - 1
+    frequency: Daily
+  1d_change_in_future_volume:
+    id: 1d_change_in_future_volume
+    name: 1D Change in Future Volume
+    category: Futures & Options
+    unit: '%'
+    in_screenshot: true
+    locked_in_original: true
+    needs_official_source: true
+    availability: Computed-from-official
+    formula: Future Vol / Future Vol[-1] - 1
+    frequency: Daily
+  1w_change_in_future_volume:
+    id: 1w_change_in_future_volume
+    name: 1W Change in Future Volume
+    category: Futures & Options
+    unit: '%'
+    in_screenshot: true
+    locked_in_original: true
+    needs_official_source: true
+    availability: Computed-from-official
+    formula: Future Vol / Future Vol[-5] - 1
+    frequency: Daily
+  1d_change_in_call_oi:
+    id: 1d_change_in_call_oi
+    name: 1D Change in Call OI
+    category: Futures & Options
+    unit: '%'
+    in_screenshot: true
+    locked_in_original: true
+    needs_official_source: true
+    availability: Computed-from-official
+    formula: Call OI / Call OI[-1] - 1
+    frequency: Daily
+  1w_change_in_call_oi:
+    id: 1w_change_in_call_oi
+    name: 1W Change in Call OI
+    category: Futures & Options
+    unit: '%'
+    in_screenshot: true
+    locked_in_original: true
+    needs_official_source: true
+    availability: Computed-from-official
+    formula: Call OI / Call OI[-5] - 1
+    frequency: Daily
+  1d_change_in_put_oi:
+    id: 1d_change_in_put_oi
+    name: 1D Change in Put OI
+    category: Futures & Options
+    unit: '%'
+    in_screenshot: true
+    locked_in_original: true
+    needs_official_source: true
+    availability: Computed-from-official
+    formula: Put OI / Put OI[-1] - 1
+    frequency: Daily
+  1w_change_in_put_oi:
+    id: 1w_change_in_put_oi
+    name: 1W Change in Put OI
+    category: Futures & Options
+    unit: '%'
+    in_screenshot: true
+    locked_in_original: true
+    needs_official_source: true
+    availability: Computed-from-official
+    formula: Put OI / Put OI[-5] - 1
+    frequency: Daily
+  highest_call_oi_strike:
+    id: highest_call_oi_strike
+    name: Highest Call OI Strike
+    category: Futures & Options
+    unit: Rs
+    in_screenshot: true
+    locked_in_original: true
+    needs_official_source: true
+    availability: Computed-from-official
+    formula: Strike price with the maximum CE open interest
+    frequency: Daily
+  highest_put_oi_strike:
+    id: highest_put_oi_strike
+    name: Highest Put OI Strike
+    category: Futures & Options
+    unit: Rs
+    in_screenshot: true
+    locked_in_original: true
+    needs_official_source: true
+    availability: Computed-from-official
+    formula: Strike price with the maximum PE open interest
+    frequency: Daily
+  highest_1d_oi_change_ce_strike:
+    id: highest_1d_oi_change_ce_strike
+    name: Highest 1D OI Change CE Strike
+    category: Futures & Options
+    unit: Rs
+    in_screenshot: true
+    locked_in_original: true
+    needs_official_source: true
+    availability: Computed-from-official
+    formula: Strike with highest % OI increase over 1D among CE contracts
+    frequency: Daily
+  highest_1d_oi_change_pe_strike:
+    id: highest_1d_oi_change_pe_strike
+    name: Highest 1D OI Change PE Strike
+    category: Futures & Options
+    unit: Rs
+    in_screenshot: true
+    locked_in_original: true
+    needs_official_source: true
+    availability: Computed-from-official
+    formula: Strike with highest % OI increase over 1D among PE contracts
+    frequency: Daily
+  highest_1w_oi_change_ce_strike:
+    id: highest_1w_oi_change_ce_strike
+    name: Highest 1W OI Change CE Strike
+    category: Futures & Options
+    unit: Rs
+    in_screenshot: true
+    locked_in_original: true
+    needs_official_source: true
+    availability: Computed-from-official
+    formula: Strike with highest % OI increase over 1W among CE contracts
+    frequency: Daily
+  highest_1w_oi_change_pe_strike:
+    id: highest_1w_oi_change_pe_strike
+    name: Highest 1W OI Change PE Strike
+    category: Futures & Options
+    unit: Rs
+    in_screenshot: true
+    locked_in_original: true
+    needs_official_source: true
+    availability: Computed-from-official
+    formula: Strike with highest % OI increase over 1W among PE contracts
+    frequency: Daily
+  market_cap:
+    id: market_cap
+    name: Market Cap
+    category: Price and Volume
+    unit: Rs Cr
+    in_screenshot: true
+    locked_in_original: false
+    needs_official_source: true
+    availability: Computed-from-official
+    formula: Close * shares outstanding / 1e7
+    frequency: Daily
+  close_price:
+    id: close_price
+    name: Close Price
+    category: Price and Volume
+    unit: Rs
+    in_screenshot: true
+    locked_in_original: false
+    needs_official_source: true
+    availability: Official-direct
+    formula: Official bhavcopy closing price
+    frequency: Daily
+  1d_return:
+    id: 1d_return
+    name: 1D Return
+    category: Price and Volume
+    unit: '%'
+    in_screenshot: true
+    locked_in_original: false
+    needs_official_source: true
+    availability: Computed-from-official
+    formula: P / P[-1] - 1
+    frequency: Daily
+  1w_return:
+    id: 1w_return
+    name: 1W Return
+    category: Price and Volume
+    unit: '%'
+    in_screenshot: true
+    locked_in_original: false
+    needs_official_source: true
+    availability: Computed-from-official
+    formula: P / P[-5] - 1
+    frequency: Daily
+  1m_return:
+    id: 1m_return
+    name: 1M Return
+    category: Price and Volume
+    unit: '%'
+    in_screenshot: true
+    locked_in_original: false
+    needs_official_source: true
+    availability: Computed-from-official
+    formula: P / P[20 days ago] - 1
+    frequency: Daily
+  6m_return:
+    id: 6m_return
+    name: 6M Return
+    category: Price and Volume
+    unit: '%'
+    in_screenshot: true
+    locked_in_original: false
+    needs_official_source: true
+    availability: Computed-from-official
+    formula: P / P[126 days ago] - 1
+    frequency: Daily
+  1y_return:
+    id: 1y_return
+    name: 1Y Return
+    category: Price and Volume
+    unit: '%'
+    in_screenshot: true
+    locked_in_original: false
+    needs_official_source: true
+    availability: Computed-from-official
+    formula: P / P[250 days ago] - 1
+    frequency: Daily
+  5y_cagr:
+    id: 5y_cagr
+    name: 5Y CAGR
+    category: Price and Volume
+    unit: '%'
+    in_screenshot: true
+    locked_in_original: false
+    needs_official_source: true
+    availability: Computed-from-official
+    formula: (P / P[5y ago])^(1/5) - 1 (adjusted for corporate actions)
+    frequency: Daily
+  1w_return_vs_nifty:
+    id: 1w_return_vs_nifty
+    name: 1W Return vs Nifty
+    category: Price and Volume
+    unit: '%'
+    in_screenshot: true
+    locked_in_original: false
+    needs_official_source: true
+    availability: Computed-from-official
+    formula: Stock 1W Return - Nifty 50 1W Return (pp difference)
+    frequency: Daily
+  1m_return_vs_nifty:
+    id: 1m_return_vs_nifty
+    name: 1M Return vs Nifty
+    category: Price and Volume
+    unit: '%'
+    in_screenshot: true
+    locked_in_original: false
+    needs_official_source: true
+    availability: Computed-from-official
+    formula: Stock 1M Return - Nifty 50 1M Return (pp difference)
+    frequency: Daily
+  6m_return_vs_nifty:
+    id: 6m_return_vs_nifty
+    name: 6M Return vs Nifty
+    category: Price and Volume
+    unit: '%'
+    in_screenshot: true
+    locked_in_original: false
+    needs_official_source: true
+    availability: Computed-from-official
+    formula: Stock 6M Return - Nifty 50 6M Return (pp difference)
+    frequency: Daily
+  1y_return_vs_nifty:
+    id: 1y_return_vs_nifty
+    name: 1Y Return vs Nifty
+    category: Price and Volume
+    unit: '%'
+    in_screenshot: true
+    locked_in_original: false
+    needs_official_source: true
+    availability: Computed-from-official
+    formula: Stock 1Y Return - Nifty 50 1Y Return (pp difference)
+    frequency: Daily
+  away_from_52w_high:
+    id: away_from_52w_high
+    name: '% Away From 52W High'
+    category: Price and Volume
+    unit: '%'
+    in_screenshot: true
+    locked_in_original: false
+    needs_official_source: true
+    availability: Computed-from-official
+    formula: (High52 / Close) - 1 (as documented in reference)
+    frequency: Daily
+  away_from_52w_low:
+    id: away_from_52w_low
+    name: '% Away From 52W Low'
+    category: Price and Volume
+    unit: '%'
+    in_screenshot: true
+    locked_in_original: false
+    needs_official_source: true
+    availability: Computed-from-official
+    formula: (Close / Low52) - 1
+    frequency: Daily
+  daily_volume:
+    id: daily_volume
+    name: Daily Volume
+    category: Price and Volume
+    unit: ''
+    in_screenshot: true
+    locked_in_original: false
+    needs_official_source: true
+    availability: Official-direct
+    formula: Total traded quantity from bhavcopy
+    frequency: Daily
+  1m_average_volume:
+    id: 1m_average_volume
+    name: 1M Average Volume
+    category: Price and Volume
+    unit: ''
+    in_screenshot: true
+    locked_in_original: false
+    needs_official_source: true
+    availability: Computed-from-official
+    formula: Mean daily volume over 21 trading days
+    frequency: Daily
+  3m_average_volume:
+    id: 3m_average_volume
+    name: 3M Average Volume
+    category: Price and Volume
+    unit: ''
+    in_screenshot: true
+    locked_in_original: false
+    needs_official_source: true
+    availability: Computed-from-official
+    formula: Mean daily volume over 63 trading days
+    frequency: Daily
+  1d_change_in_volume:
+    id: 1d_change_in_volume
+    name: 1D Change in Volume
+    category: Price and Volume
+    unit: '%'
+    in_screenshot: true
+    locked_in_original: false
+    needs_official_source: true
+    availability: Computed-from-official
+    formula: Volume / Volume[-1] - 1
+    frequency: Daily
+  1w_change_in_volume:
+    id: 1w_change_in_volume
+    name: 1W Change in Volume
+    category: Price and Volume
+    unit: '%'
+    in_screenshot: true
+    locked_in_original: false
+    needs_official_source: true
+    availability: Computed-from-official
+    formula: Volume / Volume[-5] - 1
+    frequency: Daily
+  face_value:
+    id: face_value
+    name: Face value
+    category: Price and Volume
+    unit: Rs
+    in_screenshot: true
+    locked_in_original: false
+    needs_official_source: true
+    availability: Official-direct
+    formula: Official face value per share from security master
+    frequency: Static/Infrequent
+  current_ratio:
+    id: current_ratio
+    name: Current Ratio
+    category: Financial Ratios
+    unit: ''
+    in_screenshot: true
+    locked_in_original: false
+    needs_official_source: true
+    availability: Computed-from-official
+    formula: Current Assets / Current Liabilities
+    frequency: Annual/Quarterly
+  quick_ratio:
+    id: quick_ratio
+    name: Quick Ratio
+    category: Financial Ratios
+    unit: ''
+    in_screenshot: true
+    locked_in_original: false
+    needs_official_source: true
+    availability: Computed-from-official
+    formula: (Current Assets - Inventory) / Current Liabilities
+    frequency: Annual/Quarterly
+  debt_to_equity:
+    id: debt_to_equity
+    name: Debt to Equity
+    category: Financial Ratios
+    unit: ''
+    in_screenshot: true
+    locked_in_original: false
+    needs_official_source: true
+    availability: Computed-from-official
+    formula: Total Debt / Equity
+    frequency: Annual/Quarterly
+  long_term_debt_to_equity:
+    id: long_term_debt_to_equity
+    name: Long Term Debt to Equity
+    category: Financial Ratios
+    unit: ''
+    in_screenshot: true
+    locked_in_original: false
+    needs_official_source: true
+    availability: Computed-from-official
+    formula: Long Term Debt / Equity
+    frequency: Annual
+  interest_coverage_ratio:
+    id: interest_coverage_ratio
+    name: Interest Coverage Ratio
+    category: Financial Ratios
+    unit: ''
+    in_screenshot: true
+    locked_in_original: false
+    needs_official_source: true
+    availability: Computed-from-official
+    formula: EBIT / Interest Expense
+    frequency: Annual/Quarterly
+  cash_conversion_cycle:
+    id: cash_conversion_cycle
+    name: Cash Conversion Cycle
+    category: Financial Ratios
+    unit: days
+    in_screenshot: true
+    locked_in_original: false
+    needs_official_source: true
+    availability: Computed-from-official
+    formula: DIO + DSO - DPO
+    frequency: Annual
+  net_income_liabilities:
+    id: net_income_liabilities
+    name: Net Income / Liabilities
+    category: Financial Ratios
+    unit: ''
+    in_screenshot: true
+    locked_in_original: false
+    needs_official_source: true
+    availability: Computed-from-official
+    formula: Net Income / Total Liabilities
+    frequency: Annual
+  working_capital_turnover_ratio:
+    id: working_capital_turnover_ratio
+    name: Working Capital Turnover Ratio
+    category: Financial Ratios
+    unit: ''
+    in_screenshot: true
+    locked_in_original: false
+    needs_official_source: true
+    availability: Computed-from-official
+    formula: Revenue / avg2(Current Assets - Current Liabilities)
+    frequency: Annual
+  inventory_turnover_ratio:
+    id: inventory_turnover_ratio
+    name: Inventory Turnover Ratio
+    category: Financial Ratios
+    unit: ''
+    in_screenshot: true
+    locked_in_original: false
+    needs_official_source: true
+    availability: Computed-from-official
+    formula: COGS / avg2(Inventory)
+    frequency: Annual
+  asset_turnover_ratio:
+    id: asset_turnover_ratio
+    name: Asset Turnover Ratio
+    category: Financial Ratios
+    unit: ''
+    in_screenshot: true
+    locked_in_original: false
+    needs_official_source: true
+    availability: Computed-from-official
+    formula: Revenue / avg2(Total Assets)
+    frequency: Annual
+  days_of_inventory_outstanding:
+    id: days_of_inventory_outstanding
+    name: Days of Inventory Outstanding
+    category: Financial Ratios
+    unit: days
+    in_screenshot: true
+    locked_in_original: true
+    needs_official_source: true
+    availability: Computed-from-official
+    formula: avg2(Inventory) / COGS * 365
+    frequency: Annual
+  days_of_sales_outstanding:
+    id: days_of_sales_outstanding
+    name: Days of Sales Outstanding
+    category: Financial Ratios
+    unit: days
+    in_screenshot: true
+    locked_in_original: true
+    needs_official_source: true
+    availability: Computed-from-official
+    formula: avg2(Receivables) / Revenue * 365
+    frequency: Annual
+  days_payable_outstanding:
+    id: days_payable_outstanding
+    name: Days Payable Outstanding
+    category: Financial Ratios
+    unit: days
+    in_screenshot: true
+    locked_in_original: true
+    needs_official_source: true
+    availability: Computed-from-official
+    formula: avg2(Payables) / COGS * 365
+    frequency: Annual
+  earning_power:
+    id: earning_power
+    name: Earning Power
+    category: Financial Ratios
+    unit: ''
+    in_screenshot: true
+    locked_in_original: false
+    needs_official_source: true
+    availability: Computed-from-official
+    formula: EBIT / Total Assets
+    frequency: Annual
+  price_momentum_rank:
+    id: price_momentum_rank
+    name: Price Momentum Rank
+    category: Special
+    unit: rank
+    in_screenshot: true
+    locked_in_original: true
+    needs_official_source: true
+    availability: Approximate
+    formula: 0.6 * pct(12M return) + 0.4 * pct(12M return - sub-sector median 12M
+      return)
+    frequency: Daily
+  fundamental_score:
+    id: fundamental_score
+    name: Fundamental Score
+    category: Special
+    unit: score
+    in_screenshot: true
+    locked_in_original: true
+    needs_official_source: true
+    availability: Approximate
+    formula: 1 + 9 * sector percentile of composite (valuation, profitability, growth,
+      financial health)
+    frequency: Quarterly
+  value_momentum_rank:
+    id: value_momentum_rank
+    name: Value Momentum Rank
+    category: Special
+    unit: rank
+    in_screenshot: true
+    locked_in_original: true
+    needs_official_source: true
+    availability: Approximate
+    formula: 0.5 * valuation percentile + 0.5 * Price Momentum Rank
+    frequency: Daily
+  earnings_quality_rank:
+    id: earnings_quality_rank
+    name: Earnings Quality Rank
+    category: Special
+    unit: rank
+    in_screenshot: true
+    locked_in_original: true
+    needs_official_source: true
+    availability: Approximate
+    formula: Equal mix of pct(net margin), pct(asset turnover), pct(CFO / net income)
+    frequency: Annual/Quarterly
+  price_to_intrinsic_value_rank:
+    id: price_to_intrinsic_value_rank
+    name: Price to Intrinsic Value Rank
+    category: Special
+    unit: rank
+    in_screenshot: true
+    locked_in_original: true
+    needs_official_source: true
+    availability: Approximate
+    formula: Percentile rank of P / Intrinsic Value (IV = median of Graham, FCF perpetuity,
+      dividend models)
+    frequency: Daily
+  percentage_upside:
+    id: percentage_upside
+    name: Percentage Upside
+    category: Analyst Ratings
+    unit: '%'
+    in_screenshot: true
+    locked_in_original: true
+    needs_official_source: false
+    availability: Unavailable
+    formula: Mean analyst target price / Close - 1 (proprietary consensus)
+    frequency: Daily
+  percentage_buy_recos:
+    id: percentage_buy_recos
+    name: Percentage Buy Reco's
+    category: Analyst Ratings
+    unit: '%'
+    in_screenshot: true
+    locked_in_original: true
+    needs_official_source: false
+    availability: Unavailable
+    formula: Buy recommendations / total analyst recommendations * 100
+    frequency: Daily
+  percentage_hold_recos:
+    id: percentage_hold_recos
+    name: Percentage Hold Reco's
+    category: Analyst Ratings
+    unit: '%'
+    in_screenshot: true
+    locked_in_original: true
+    needs_official_source: false
+    availability: Unavailable
+    formula: Hold recommendations / total analyst recommendations * 100
+    frequency: Daily
+  percentage_sell_recos:
+    id: percentage_sell_recos
+    name: Percentage Sell Reco's
+    category: Analyst Ratings
+    unit: '%'
+    in_screenshot: true
+    locked_in_original: true
+    needs_official_source: false
+    availability: Unavailable
+    formula: Sell recommendations / total analyst recommendations * 100
+    frequency: Daily
+  no_of_analysts_with_buy_reco:
+    id: no_of_analysts_with_buy_reco
+    name: No. of analysts with buy reco
+    category: Analyst Ratings
+    unit: ''
+    in_screenshot: true
+    locked_in_original: true
+    needs_official_source: false
+    availability: Unavailable
+    formula: Count of analysts with Buy/Strong Buy rating
+    frequency: Daily
+  total_no_of_analysts:
+    id: total_no_of_analysts
+    name: Total no. of analysts
+    category: Analyst Ratings
+    unit: ''
+    in_screenshot: true
+    locked_in_original: true
+    needs_official_source: false
+    availability: Unavailable
+    formula: Total number of analysts covering the stock
+    frequency: Daily
+  1y_max_loss:
+    id: 1y_max_loss
+    name: 1Y Max Loss
+    category: Technical Indicators
+    unit: '%'
+    in_screenshot: false
+    locked_in_original: false
+    needs_official_source: true
+    availability: Computed-from-official
+    formula: Worst peak-to-trough drawdown over trailing 250 trading days
+    frequency: Daily
+  sma_10d:
+    id: sma_10d
+    name: SMA 10D
+    category: Technical Indicators
+    unit: Rs
+    in_screenshot: false
+    locked_in_original: false
+    needs_official_source: true
+    availability: Computed-from-official
+    formula: Simple Moving Average of 10 daily closes
+    frequency: Daily
+  sma_50d:
+    id: sma_50d
+    name: SMA 50D
+    category: Technical Indicators
+    unit: Rs
+    in_screenshot: false
+    locked_in_original: false
+    needs_official_source: true
+    availability: Computed-from-official
+    formula: Simple Moving Average of 50 daily closes
+    frequency: Daily
+  sma_100d:
+    id: sma_100d
+    name: SMA 100D
+    category: Technical Indicators
+    unit: Rs
+    in_screenshot: false
+    locked_in_original: false
+    needs_official_source: true
+    availability: Computed-from-official
+    formula: Simple Moving Average of 100 daily closes
+    frequency: Daily
+  sma_200d:
+    id: sma_200d
+    name: SMA 200D
+    category: Technical Indicators
+    unit: Rs
+    in_screenshot: false
+    locked_in_original: false
+    needs_official_source: true
+    availability: Computed-from-official
+    formula: Simple Moving Average of 200 daily closes
+    frequency: Daily
+  ema_10d:
+    id: ema_10d
+    name: EMA 10D
+    category: Technical Indicators
+    unit: Rs
+    in_screenshot: false
+    locked_in_original: false
+    needs_official_source: true
+    availability: Computed-from-official
+    formula: Exponential Moving Average, multiplier 2/(10+1)
+    frequency: Daily
+  ema_50d:
+    id: ema_50d
+    name: EMA 50D
+    category: Technical Indicators
+    unit: Rs
+    in_screenshot: false
+    locked_in_original: false
+    needs_official_source: true
+    availability: Computed-from-official
+    formula: Exponential Moving Average, multiplier 2/(50+1)
+    frequency: Daily
+  ema_100d:
+    id: ema_100d
+    name: EMA 100D
+    category: Technical Indicators
+    unit: Rs
+    in_screenshot: false
+    locked_in_original: false
+    needs_official_source: true
+    availability: Computed-from-official
+    formula: Exponential Moving Average, multiplier 2/(100+1)
+    frequency: Daily
+  ema_200d:
+    id: ema_200d
+    name: EMA 200D
+    category: Technical Indicators
+    unit: Rs
+    in_screenshot: false
+    locked_in_original: false
+    needs_official_source: true
+    availability: Computed-from-official
+    formula: Exponential Moving Average, multiplier 2/(200+1)
+    frequency: Daily
+  alpha:
+    id: alpha
+    name: Alpha
+    category: Technical Indicators
+    unit: '%'
+    in_screenshot: false
+    locked_in_original: false
+    needs_official_source: true
+    availability: Computed-from-official
+    formula: Stock return - benchmark return over 104 weekly closes
+    frequency: Daily
+  beta:
+    id: beta
+    name: Beta
+    category: Technical Indicators
+    unit: ''
+    in_screenshot: false
+    locked_in_original: false
+    needs_official_source: true
+    availability: Computed-from-official
+    formula: cov(r_stock, r_bench) / var(r_bench) over 104 weekly closes
+    frequency: Daily
+  sharpe_ratio:
+    id: sharpe_ratio
+    name: Sharpe Ratio
+    category: Technical Indicators
+    unit: ''
+    in_screenshot: false
+    locked_in_original: false
+    needs_official_source: true
+    availability: Computed-from-official
+    formula: (Stock return - benchmark return) / stdev(weekly excess returns)
+    frequency: Daily
+  relative_volume:
+    id: relative_volume
+    name: Relative Volume
+    category: Technical Indicators
+    unit: ''
+    in_screenshot: false
+    locked_in_original: false
+    needs_official_source: true
+    availability: Computed-from-official
+    formula: Avg volume (10 days) / Avg volume (~91 days)
+    frequency: Daily
+  volatility:
+    id: volatility
+    name: Volatility
+    category: Technical Indicators
+    unit: '%'
+    in_screenshot: false
+    locked_in_original: false
+    needs_official_source: true
+    availability: Computed-from-official
+    formula: Annualized stdev of daily returns over 200 days * sqrt(252)
+    frequency: Daily
+  volatility_vs_nifty:
+    id: volatility_vs_nifty
+    name: Volatility vs Nifty
+    category: Technical Indicators
+    unit: '%'
+    in_screenshot: false
+    locked_in_original: false
+    needs_official_source: true
+    availability: Computed-from-official
+    formula: Stock volatility - Nifty 50 volatility
+    frequency: Daily
+  vwap:
+    id: vwap
+    name: Volume Weighted Average Price
+    category: Technical Indicators
+    unit: Rs
+    in_screenshot: false
+    locked_in_original: false
+    needs_official_source: true
+    availability: Official-direct
+    formula: Total traded value / total traded quantity from bhavcopy
+    frequency: Daily
+  price_above_1m_sma:
+    id: price_above_1m_sma
+    name: '% Price above 1M SMA'
+    category: Technical Indicators
+    unit: '%'
+    in_screenshot: false
+    locked_in_original: false
+    needs_official_source: true
+    availability: Computed-from-official
+    formula: Close / SMA(20) - 1
+    frequency: Daily
+  price_above_12m_sma:
+    id: price_above_12m_sma
+    name: '% Price above 12M SMA'
+    category: Technical Indicators
+    unit: '%'
+    in_screenshot: false
+    locked_in_original: false
+    needs_official_source: true
+    availability: Computed-from-official
+    formula: Close / SMA(250) - 1
+    frequency: Daily
+  price_above_1m_ema:
+    id: price_above_1m_ema
+    name: '% Price above 1M EMA'
+    category: Technical Indicators
+    unit: '%'
+    in_screenshot: false
+    locked_in_original: false
+    needs_official_source: true
+    availability: Computed-from-official
+    formula: Close / EMA(20) - 1
+    frequency: Daily
+  rsi_14d:
+    id: rsi_14d
+    name: RSI 14D
+    category: Technical Indicators
+    unit: ''
+    in_screenshot: false
+    locked_in_original: false
+    needs_official_source: true
+    availability: Computed-from-official
+    formula: 100 - (100 / (1 + avg_gain / avg_loss)) over 14 days
+    frequency: Daily
+  rsi_exponential_14d:
+    id: rsi_exponential_14d
+    name: RSI Exponential 14D
+    category: Technical Indicators
+    unit: ''
+    in_screenshot: false
+    locked_in_original: false
+    needs_official_source: true
+    availability: Computed-from-official
+    formula: RSI with Wilder smoothing
+    frequency: Daily
+  adx_rating:
+    id: adx_rating
+    name: ADX Rating
+    category: Technical Indicators
+    unit: ''
+    in_screenshot: false
+    locked_in_original: false
+    needs_official_source: true
+    availability: Computed-from-official
+    formula: Average Directional Index (14) with +DI/-DI
+    frequency: Daily
+  macd_line_1:
+    id: macd_line_1
+    name: MACD Line 1
+    category: Technical Indicators
+    unit: ''
+    in_screenshot: false
+    locked_in_original: false
+    needs_official_source: true
+    availability: Computed-from-official
+    formula: EMA(12) - EMA(26)
+    frequency: Daily
+  macd_line_2:
+    id: macd_line_2
+    name: MACD Line 2
+    category: Technical Indicators
+    unit: ''
+    in_screenshot: false
+    locked_in_original: false
+    needs_official_source: true
+    availability: Computed-from-official
+    formula: MACD - EMA(9, MACD) [signal line]
+    frequency: Daily
+  from_upper_bollinger_band:
+    id: from_upper_bollinger_band
+    name: '% From Upper Bollinger Band'
+    category: Technical Indicators
+    unit: '%'
+    in_screenshot: false
+    locked_in_original: false
+    needs_official_source: true
+    availability: Computed-from-official
+    formula: Close / (SMA(20) + 2 * sd(20)) - 1
+    frequency: Daily
+  from_lower_bollinger_band:
+    id: from_lower_bollinger_band
+    name: '% From Lower Bollinger Band'
+    category: Technical Indicators
+    unit: '%'
+    in_screenshot: false
+    locked_in_original: false
+    needs_official_source: true
+    availability: Computed-from-official
+    formula: Close / (SMA(20) - 2 * sd(20)) - 1
+    frequency: Daily
+  from_parabolic_sar:
+    id: from_parabolic_sar
+    name: '% From Parabolic SAR'
+    category: Technical Indicators
+    unit: '%'
+    in_screenshot: false
+    locked_in_original: false
+    needs_official_source: true
+    availability: Computed-from-official
+    formula: Close / SAR - 1 (AF 0.02, step 0.02, max 0.2)
+    frequency: Daily
+  williams_r:
+    id: williams_r
+    name: Williams %R
+    category: Technical Indicators
+    unit: '%'
+    in_screenshot: false
+    locked_in_original: false
+    needs_official_source: true
+    availability: Computed-from-official
+    formula: (HH(14) - Close) / (HH(14) - LL(14)) * (-100)
+    frequency: Daily
+  stochastic_k:
+    id: stochastic_k
+    name: Stochastic %K
+    category: Technical Indicators
+    unit: '%'
+    in_screenshot: false
+    locked_in_original: false
+    needs_official_source: true
+    availability: Computed-from-official
+    formula: (Close - LL(14)) / (HH(14) - LL(14)) * 100
+    frequency: Daily
+  stochastic_d:
+    id: stochastic_d
+    name: Stochastic %D
+    category: Technical Indicators
+    unit: '%'
+    in_screenshot: false
+    locked_in_original: false
+    needs_official_source: true
+    availability: Computed-from-official
+    formula: SMA(3, Stochastic %K)
+    frequency: Daily
+  1w_change_in_obv:
+    id: 1w_change_in_obv
+    name: 1W Change in On Balance Volume
+    category: Technical Indicators
+    unit: '%'
+    in_screenshot: false
+    locked_in_original: false
+    needs_official_source: true
+    availability: Computed-from-official
+    formula: OBV / OBV[-5] - 1
+    frequency: Daily
+  1w_change_in_ad_line:
+    id: 1w_change_in_ad_line
+    name: 1W Change in AD Line
+    category: Technical Indicators
+    unit: '%'
+    in_screenshot: false
+    locked_in_original: false
+    needs_official_source: true
+    availability: Computed-from-official
+    formula: AD / AD[-5] - 1
+    frequency: Daily
+  super_trend:
+    id: super_trend
+    name: Super Trend
+    category: Technical Indicators
+    unit: ''
+    in_screenshot: false
+    locked_in_original: false
+    needs_official_source: true
+    availability: Computed-from-official
+    formula: 'SuperTrend(ATR 10, mult 3): signed distance + buy/sell flag'
+    frequency: Daily
+  book_value:
+    id: book_value
+    name: Book Value
+    category: Balance Sheet & Cash Flow
+    unit: Rs Cr
+    in_screenshot: false
+    locked_in_original: false
+    needs_official_source: true
+    availability: Official-direct
+    formula: Total Equity reported in annual balance sheet
+    frequency: Annual
+  cash_short_term_investments:
+    id: cash_short_term_investments
+    name: Cash and Short-term Investments
+    category: Balance Sheet & Cash Flow
+    unit: Rs Cr
+    in_screenshot: false
+    locked_in_original: false
+    needs_official_source: true
+    availability: Official-direct
+    formula: Cash + cash equivalents + marketable securities
+    frequency: Annual
+  total_receivables:
+    id: total_receivables
+    name: Total Receivables
+    category: Balance Sheet & Cash Flow
+    unit: Rs Cr
+    in_screenshot: false
+    locked_in_original: false
+    needs_official_source: true
+    availability: Official-direct
+    formula: Trade and other receivables
+    frequency: Annual
+  total_inventory:
+    id: total_inventory
+    name: Total Inventory
+    category: Balance Sheet & Cash Flow
+    unit: Rs Cr
+    in_screenshot: false
+    locked_in_original: false
+    needs_official_source: true
+    availability: Official-direct
+    formula: Raw materials + WIP + finished goods
+    frequency: Annual
+  other_current_assets:
+    id: other_current_assets
+    name: Other Current Assets
+    category: Balance Sheet & Cash Flow
+    unit: Rs Cr
+    in_screenshot: false
+    locked_in_original: false
+    needs_official_source: true
+    availability: Official-direct
+    formula: Prepaid expenses, advances, other short-term assets
+    frequency: Annual
+  total_current_assets:
+    id: total_current_assets
+    name: Total Current Assets
+    category: Balance Sheet & Cash Flow
+    unit: Rs Cr
+    in_screenshot: false
+    locked_in_original: false
+    needs_official_source: true
+    availability: Official-direct
+    formula: Sum of all current assets
+    frequency: Annual
+  net_loans:
+    id: net_loans
+    name: Net Loans
+    category: Balance Sheet & Cash Flow
+    unit: Rs Cr
+    in_screenshot: false
+    locked_in_original: false
+    needs_official_source: true
+    availability: Official-direct
+    formula: Gross loans - provisions (banks and NBFCs)
+    frequency: Annual
+  net_ppe:
+    id: net_ppe
+    name: Net Property Plant Equipment
+    category: Balance Sheet & Cash Flow
+    unit: Rs Cr
+    in_screenshot: false
+    locked_in_original: false
+    needs_official_source: true
+    availability: Official-direct
+    formula: Gross PPE - accumulated depreciation
+    frequency: Annual
+  goodwill_intangibles:
+    id: goodwill_intangibles
+    name: Goodwill and Intangibles
+    category: Balance Sheet & Cash Flow
+    unit: Rs Cr
+    in_screenshot: false
+    locked_in_original: false
+    needs_official_source: true
+    availability: Official-direct
+    formula: Goodwill + other intangible assets
+    frequency: Annual
+  long_term_investments:
+    id: long_term_investments
+    name: Long Term Investments
+    category: Balance Sheet & Cash Flow
+    unit: Rs Cr
+    in_screenshot: false
+    locked_in_original: false
+    needs_official_source: true
+    availability: Official-direct
+    formula: Non-current financial investments
+    frequency: Annual
+  other_assets:
+    id: other_assets
+    name: Other Assets
+    category: Balance Sheet & Cash Flow
+    unit: Rs Cr
+    in_screenshot: false
+    locked_in_original: false
+    needs_official_source: true
+    availability: Official-direct
+    formula: Deferred tax assets, long-term advances, other non-current assets
+    frequency: Annual
+  total_assets:
+    id: total_assets
+    name: Total Assets
+    category: Balance Sheet & Cash Flow
+    unit: Rs Cr
+    in_screenshot: false
+    locked_in_original: false
+    needs_official_source: true
+    availability: Official-direct
+    formula: Total Assets reported
+    frequency: Annual
+  accounts_payable:
+    id: accounts_payable
+    name: Accounts Payable
+    category: Balance Sheet & Cash Flow
+    unit: Rs Cr
+    in_screenshot: false
+    locked_in_original: false
+    needs_official_source: true
+    availability: Official-direct
+    formula: Trade payables
+    frequency: Annual
+  total_deposits:
+    id: total_deposits
+    name: Total Deposits
+    category: Balance Sheet & Cash Flow
+    unit: Rs Cr
+    in_screenshot: false
+    locked_in_original: false
+    needs_official_source: true
+    availability: Official-direct
+    formula: Demand + term deposits (banks)
+    frequency: Annual
+  other_current_liabilities:
+    id: other_current_liabilities
+    name: Other Current Liabilities
+    category: Balance Sheet & Cash Flow
+    unit: Rs Cr
+    in_screenshot: false
+    locked_in_original: false
+    needs_official_source: true
+    availability: Official-direct
+    formula: Short-term provisions, accrued expenses, other current liabilities
+    frequency: Annual
+  total_current_liabilities:
+    id: total_current_liabilities
+    name: Total Current Liabilities
+    category: Balance Sheet & Cash Flow
+    unit: Rs Cr
+    in_screenshot: false
+    locked_in_original: false
+    needs_official_source: true
+    availability: Official-direct
+    formula: Sum of all current liabilities
+    frequency: Annual
+  total_long_term_debt:
+    id: total_long_term_debt
+    name: Total Long Term Debt
+    category: Balance Sheet & Cash Flow
+    unit: Rs Cr
+    in_screenshot: false
+    locked_in_original: false
+    needs_official_source: true
+    availability: Official-direct
+    formula: Non-current borrowings
+    frequency: Annual
+  total_debt:
+    id: total_debt
+    name: Total Debt
+    category: Balance Sheet & Cash Flow
+    unit: Rs Cr
+    in_screenshot: false
+    locked_in_original: false
+    needs_official_source: true
+    availability: Official-direct
+    formula: Short-term debt + long-term debt
+    frequency: Annual
+  deferred_income_tax:
+    id: deferred_income_tax
+    name: Deferred Income Tax
+    category: Balance Sheet & Cash Flow
+    unit: Rs Cr
+    in_screenshot: false
+    locked_in_original: false
+    needs_official_source: true
+    availability: Official-direct
+    formula: Deferred tax liabilities (net)
+    frequency: Annual
+  minority_interest:
+    id: minority_interest
+    name: Minority Interest
+    category: Balance Sheet & Cash Flow
+    unit: Rs Cr
+    in_screenshot: false
+    locked_in_original: false
+    needs_official_source: true
+    availability: Official-direct
+    formula: Non-controlling interest in equity
+    frequency: Annual
+  other_liabilities:
+    id: other_liabilities
+    name: Other Liabilities
+    category: Balance Sheet & Cash Flow
+    unit: Rs Cr
+    in_screenshot: false
+    locked_in_original: false
+    needs_official_source: true
+    availability: Official-direct
+    formula: Other non-current liabilities
+    frequency: Annual
+  total_liabilities:
+    id: total_liabilities
+    name: Total Liabilities
+    category: Balance Sheet & Cash Flow
+    unit: Rs Cr
+    in_screenshot: false
+    locked_in_original: false
+    needs_official_source: true
+    availability: Official-direct
+    formula: Total Liabilities reported
+    frequency: Annual
+  common_stock:
+    id: common_stock
+    name: Common Stock
+    category: Balance Sheet & Cash Flow
+    unit: Rs Cr
+    in_screenshot: false
+    locked_in_original: false
+    needs_official_source: true
+    availability: Official-direct
+    formula: Equity share capital
+    frequency: Annual
+  additional_paid_in_capital:
+    id: additional_paid_in_capital
+    name: Additional Paid-in Capital
+    category: Balance Sheet & Cash Flow
+    unit: Rs Cr
+    in_screenshot: false
+    locked_in_original: false
+    needs_official_source: true
+    availability: Official-direct
+    formula: Securities premium reserve
+    frequency: Annual
+  retained_earnings:
+    id: retained_earnings
+    name: Retained Earnings
+    category: Balance Sheet & Cash Flow
+    unit: Rs Cr
+    in_screenshot: false
+    locked_in_original: false
+    needs_official_source: true
+    availability: Official-direct
+    formula: Accumulated surplus in P&L
+    frequency: Annual
+  other_equity:
+    id: other_equity
+    name: Other Equity
+    category: Balance Sheet & Cash Flow
+    unit: Rs Cr
+    in_screenshot: false
+    locked_in_original: false
+    needs_official_source: true
+    availability: Official-direct
+    formula: Other reserves, foreign currency translation reserve, etc.
+    frequency: Annual
+  total_equity:
+    id: total_equity
+    name: Total Equity
+    category: Balance Sheet & Cash Flow
+    unit: Rs Cr
+    in_screenshot: false
+    locked_in_original: false
+    needs_official_source: true
+    availability: Official-direct
+    formula: Total shareholders' funds
+    frequency: Annual
+  total_liabilities_shareholders_equity:
+    id: total_liabilities_shareholders_equity
+    name: Total Liabilities & Shareholders Equity
+    category: Balance Sheet & Cash Flow
+    unit: Rs Cr
+    in_screenshot: false
+    locked_in_original: false
+    needs_official_source: true
+    availability: Official-direct
+    formula: Total Liabilities + Total Equity (must equal Total Assets)
+    frequency: Annual
+  total_common_shares_outstanding:
+    id: total_common_shares_outstanding
+    name: Total Common Shares Outstanding
+    category: Balance Sheet & Cash Flow
+    unit: ''
+    in_screenshot: false
+    locked_in_original: false
+    needs_official_source: true
+    availability: Official-direct
+    formula: Number of equity shares outstanding
+    frequency: Annual/Quarterly
+  total_preferred_shares_outstanding:
+    id: total_preferred_shares_outstanding
+    name: Total Preferred Shares Outstanding
+    category: Balance Sheet & Cash Flow
+    unit: ''
+    in_screenshot: false
+    locked_in_original: false
+    needs_official_source: true
+    availability: Official-direct
+    formula: Number of preference shares outstanding
+    frequency: Annual
+  policy_liabilities:
+    id: policy_liabilities
+    name: Policy Liabilities
+    category: Balance Sheet & Cash Flow
+    unit: Rs Cr
+    in_screenshot: false
+    locked_in_original: false
+    needs_official_source: true
+    availability: Official-direct
+    formula: Mathematical reserves and policyholder liabilities (insurers)
+    frequency: Annual
+  changes_in_working_capital:
+    id: changes_in_working_capital
+    name: Changes in Working Capital
+    category: Balance Sheet & Cash Flow
+    unit: Rs Cr
+    in_screenshot: false
+    locked_in_original: false
+    needs_official_source: true
+    availability: Official-direct
+    formula: Working capital adjustments in operating cash flow
+    frequency: Annual
+  cash_flow_operating_activities:
+    id: cash_flow_operating_activities
+    name: Cash Flow from Operating Activities
+    category: Balance Sheet & Cash Flow
+    unit: Rs Cr
+    in_screenshot: false
+    locked_in_original: false
+    needs_official_source: true
+    availability: Official-direct
+    formula: Net cash generated from operations (CFO)
+    frequency: Annual
+  capital_expenditures:
+    id: capital_expenditures
+    name: Capital Expenditures
+    category: Balance Sheet & Cash Flow
+    unit: Rs Cr
+    in_screenshot: false
+    locked_in_original: false
+    needs_official_source: true
+    availability: Official-direct
+    formula: Purchase of fixed assets / capex from investing cash flow
+    frequency: Annual
+  cash_investing_activities:
+    id: cash_investing_activities
+    name: Cash from Investing Activities
+    category: Balance Sheet & Cash Flow
+    unit: Rs Cr
+    in_screenshot: false
+    locked_in_original: false
+    needs_official_source: true
+    availability: Official-direct
+    formula: Net cash flow from investing activities (CFI)
+    frequency: Annual
+  total_cash_dividends_paid:
+    id: total_cash_dividends_paid
+    name: Total Cash Dividends Paid
+    category: Balance Sheet & Cash Flow
+    unit: Rs Cr
+    in_screenshot: false
+    locked_in_original: false
+    needs_official_source: true
+    availability: Official-direct
+    formula: Dividends paid from financing cash flow
+    frequency: Annual
+  cash_financing_activities:
+    id: cash_financing_activities
+    name: Cash from Financing Activities
+    category: Balance Sheet & Cash Flow
+    unit: Rs Cr
+    in_screenshot: false
+    locked_in_original: false
+    needs_official_source: true
+    availability: Official-direct
+    formula: Net cash flow from financing activities (CFF)
+    frequency: Annual
+  foreign_exchange_effects:
+    id: foreign_exchange_effects
+    name: Foreign Exchange Effects
+    category: Balance Sheet & Cash Flow
+    unit: Rs Cr
+    in_screenshot: false
+    locked_in_original: false
+    needs_official_source: true
+    availability: Official-direct
+    formula: Effect of exchange rate changes on cash
+    frequency: Annual
+  net_change_in_cash:
+    id: net_change_in_cash
+    name: Net Change in Cash
+    category: Balance Sheet & Cash Flow
+    unit: Rs Cr
+    in_screenshot: false
+    locked_in_original: false
+    needs_official_source: true
+    availability: Official-direct
+    formula: CFO + CFI + CFF + FX effects
+    frequency: Annual
+  expense_ratio:
+    id: expense_ratio
+    name: Expense Ratio
+    category: ETFs
+    unit: '%'
+    in_screenshot: true
+    locked_in_original: false
+    needs_official_source: true
+    availability: Official-direct
+    formula: Total Expense Ratio (TER) published by AMFI / AMC
+    frequency: Monthly
+  tracking_error:
+    id: tracking_error
+    name: Tracking Error
+    category: ETFs
+    unit: '%'
+    in_screenshot: true
+    locked_in_original: false
+    needs_official_source: true
+    availability: Computed-from-official
+    formula: Annualized stdev of (daily ETF NAV return - index return) over 1Y
+    frequency: Daily
+  total_revenue:
+    id: total_revenue
+    name: Total Revenue
+    category: Income Statement
+    unit: Rs Cr
+    in_screenshot: true
+    locked_in_original: false
+    needs_official_source: true
+    availability: Official-direct
+    formula: Revenue from operations + other income
+    frequency: Annual
+  cost_of_revenue:
+    id: cost_of_revenue
+    name: Cost of Revenue
+    category: Income Statement
+    unit: Rs Cr
+    in_screenshot: false
+    locked_in_original: false
+    needs_official_source: true
+    availability: Official-direct
+    formula: Direct cost of sales/production
+    frequency: Annual
+  gross_profit:
+    id: gross_profit
+    name: Gross Profit
+    category: Income Statement
+    unit: Rs Cr
+    in_screenshot: false
+    locked_in_original: false
+    needs_official_source: true
+    availability: Computed-from-official
+    formula: Total Revenue - Cost of Revenue
+    frequency: Annual
+  ebitda:
+    id: ebitda
+    name: EBITDA
+    category: Income Statement
+    unit: Rs Cr
+    in_screenshot: true
+    locked_in_original: false
+    needs_official_source: true
+    availability: Computed-from-official
+    formula: Operating profit before D&A
+    frequency: Annual
+  depreciation_amortization:
+    id: depreciation_amortization
+    name: Depreciation & Amortization
+    category: Income Statement
+    unit: Rs Cr
+    in_screenshot: true
+    locked_in_original: false
+    needs_official_source: true
+    availability: Official-direct
+    formula: Depreciation and amortisation expenses
+    frequency: Annual
+  pbit:
+    id: pbit
+    name: PBIT
+    category: Income Statement
+    unit: Rs Cr
+    in_screenshot: true
+    locked_in_original: false
+    needs_official_source: true
+    availability: Computed-from-official
+    formula: EBITDA - D&A (EBIT)
+    frequency: Annual
+  interest_other_items:
+    id: interest_other_items
+    name: Interest & Other Items
+    category: Income Statement
+    unit: Rs Cr
+    in_screenshot: true
+    locked_in_original: false
+    needs_official_source: true
+    availability: Official-direct
+    formula: Finance costs / interest expense
+    frequency: Annual
+  pbt:
+    id: pbt
+    name: PBT
+    category: Income Statement
+    unit: Rs Cr
+    in_screenshot: true
+    locked_in_original: false
+    needs_official_source: true
+    availability: Computed-from-official
+    formula: PBIT - Interest & Other Items
+    frequency: Annual
+  taxes_other_items:
+    id: taxes_other_items
+    name: Taxes & Other Items
+    category: Income Statement
+    unit: Rs Cr
+    in_screenshot: true
+    locked_in_original: false
+    needs_official_source: true
+    availability: Official-direct
+    formula: Current and deferred tax expenses
+    frequency: Annual
+  net_income:
+    id: net_income
+    name: Net Income
+    category: Income Statement
+    unit: Rs Cr
+    in_screenshot: true
+    locked_in_original: false
+    needs_official_source: true
+    availability: Official-direct
+    formula: PBT - Taxes (Profit After Tax)
+    frequency: Annual
+  earnings_per_share:
+    id: earnings_per_share
+    name: Earnings Per Share
+    category: Income Statement
+    unit: Rs
+    in_screenshot: true
+    locked_in_original: false
+    needs_official_source: true
+    availability: Official-direct
+    formula: Net Income / shares outstanding (Diluted)
+    frequency: Annual
+  dividend_per_share:
+    id: dividend_per_share
+    name: Dividend Per Share
+    category: Income Statement
+    unit: Rs
+    in_screenshot: true
+    locked_in_original: false
+    needs_official_source: true
+    availability: Official-direct
+    formula: Total dividends declared / shares outstanding
+    frequency: Annual
+  payout_ratio:
+    id: payout_ratio
+    name: Payout Ratio
+    category: Income Statement
+    unit: '%'
+    in_screenshot: true
+    locked_in_original: false
+    needs_official_source: true
+    availability: Computed-from-official
+    formula: DPS / EPS * 100
+    frequency: Annual
+  power_fuel_cost:
+    id: power_fuel_cost
+    name: Power & Fuel Cost
+    category: Income Statement
+    unit: Rs Cr
+    in_screenshot: true
+    locked_in_original: false
+    needs_official_source: true
+    availability: Official-direct
+    formula: Power and fuel expenses
+    frequency: Annual
+  raw_materials:
+    id: raw_materials
+    name: Raw Materials
+    category: Income Statement
+    unit: Rs Cr
+    in_screenshot: true
+    locked_in_original: false
+    needs_official_source: true
+    availability: Official-direct
+    formula: Cost of materials consumed
+    frequency: Annual
+  operating_other_expenses:
+    id: operating_other_expenses
+    name: Operating & Other expenses
+    category: Income Statement
+    unit: Rs Cr
+    in_screenshot: true
+    locked_in_original: false
+    needs_official_source: true
+    availability: Official-direct
+    formula: Other operating expenses
+    frequency: Annual
+  employee_cost:
+    id: employee_cost
+    name: Employee Cost
+    category: Income Statement
+    unit: Rs Cr
+    in_screenshot: true
+    locked_in_original: false
+    needs_official_source: true
+    availability: Official-direct
+    formula: Employee benefit expenses
+    frequency: Annual
+  selling_administrative_expenses:
+    id: selling_administrative_expenses
+    name: Selling & Administrative Expenses
+    category: Income Statement
+    unit: Rs Cr
+    in_screenshot: true
+    locked_in_original: false
+    needs_official_source: true
+    availability: Official-direct
+    formula: Selling, general, and administrative expenses
+    frequency: Annual
+  research_development:
+    id: research_development
+    name: Research & Development
+    category: Income Statement
+    unit: Rs Cr
+    in_screenshot: false
+    locked_in_original: false
+    needs_official_source: true
+    availability: Official-direct
+    formula: R&D expenditures reported
+    frequency: Annual
+  interest_income:
+    id: interest_income
+    name: Interest Income
+    category: Income Statement
+    unit: Rs Cr
+    in_screenshot: false
+    locked_in_original: false
+    needs_official_source: true
+    availability: Official-direct
+    formula: Interest earned (banks and financial institutions)
+    frequency: Annual/Quarterly
+  total_interest_expense:
+    id: total_interest_expense
+    name: Total Interest Expense
+    category: Income Statement
+    unit: Rs Cr
+    in_screenshot: false
+    locked_in_original: false
+    needs_official_source: true
+    availability: Official-direct
+    formula: Interest expended (banks)
+    frequency: Annual/Quarterly
+  net_interest_income:
+    id: net_interest_income
+    name: Net Interest Income
+    category: Income Statement
+    unit: Rs Cr
+    in_screenshot: false
+    locked_in_original: false
+    needs_official_source: true
+    availability: Computed-from-official
+    formula: Interest Income - Total Interest Expense
+    frequency: Annual/Quarterly
+  loan_loss_provision:
+    id: loan_loss_provision
+    name: Loan Loss Provision
+    category: Income Statement
+    unit: Rs Cr
+    in_screenshot: false
+    locked_in_original: false
+    needs_official_source: true
+    availability: Official-direct
+    formula: Provisions and contingencies for bad loans
+    frequency: Annual/Quarterly
+  total_revenue_q:
+    id: total_revenue_q
+    name: Total revenue (Q)
+    category: Income Statement
+    unit: Rs Cr
+    in_screenshot: true
+    locked_in_original: false
+    needs_official_source: true
+    availability: Official-direct
+    formula: Quarterly total revenue
+    frequency: Quarterly
+  net_income_q:
+    id: net_income_q
+    name: Net Income (Q)
+    category: Income Statement
+    unit: Rs Cr
+    in_screenshot: true
+    locked_in_original: false
+    needs_official_source: true
+    availability: Official-direct
+    formula: Quarterly Profit After Tax
+    frequency: Quarterly
+  eps_q:
+    id: eps_q
+    name: EPS (Q)
+    category: Income Statement
+    unit: Rs
+    in_screenshot: true
+    locked_in_original: false
+    needs_official_source: true
+    availability: Official-direct
+    formula: Quarterly Diluted EPS
+    frequency: Quarterly
+  ebitda_q:
+    id: ebitda_q
+    name: EBITDA (Q)
+    category: Income Statement
+    unit: Rs Cr
+    in_screenshot: true
+    locked_in_original: false
+    needs_official_source: true
+    availability: Computed-from-official
+    formula: Quarterly operating profit before D&A
+    frequency: Quarterly
+  operating_and_other_expenses_q:
+    id: operating_and_other_expenses_q
+    name: Operating and Other Expenses (Q)
+    category: Income Statement
+    unit: Rs Cr
+    in_screenshot: true
+    locked_in_original: false
+    needs_official_source: true
+    availability: Official-direct
+    formula: Quarterly other operating expenses
+    frequency: Quarterly
+  pbit_q:
+    id: pbit_q
+    name: PBIT (Q)
+    category: Income Statement
+    unit: Rs Cr
+    in_screenshot: true
+    locked_in_original: false
+    needs_official_source: true
+    availability: Computed-from-official
+    formula: Quarterly EBIT
+    frequency: Quarterly
+  pbt_q:
+    id: pbt_q
+    name: PBT (Q)
+    category: Income Statement
+    unit: Rs Cr
+    in_screenshot: true
+    locked_in_original: false
+    needs_official_source: true
+    availability: Computed-from-official
+    formula: Quarterly Profit Before Tax
+    frequency: Quarterly

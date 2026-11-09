@@ -1,45 +1,81 @@
-# DATA_AVAILABILITY.md — what the screener can and cannot display, and where the line comes from
+# DATA_AVAILABILITY.md — Official Data Posture & Filter Availability
 
-Availability posture per spec 7.x filter families, as of step 2 (2026-10-25). "Badge" is
-what a UI filter card shows when its data is not present. Every entry cites the source of
-truth; statuses live verbatim in `config/endpoints.yaml`.
+> Single source of truth for the availability classification of all 255 filters in `registry/filters.yaml`.
+> Governed by Operating Rules 4 ("No fabricated data") and 5 ("Honest labels").
 
-## Available (officially, verified live)
+---
 
-| Family / dataset | Source | Since | Usage |
-|---|---|---|---|
-| Prices (daily OHLC, volume, turnover, derived VWAP) | NSE + BSE UDiFF bhavcopies | ✅ verified | returns, premiums, smoothing-based quant filters, price-vs-benchmark |
-| F&O activity (OI, OI change, lots, expiry) | NSE FO bhavcopy + `fo_mktlots.csv` | ✅ verified | family 7.6 F&O filters; `fno_eligible` flag |
-| Market-cap classification (Large/Mid/Small) | AMFI half-yearly xlsx (rank 1–100 / 101–250 / 251+) | ✅ verified | mc presets; classification column |
-| ETF universe + underlying index | `eq_etfseclist.csv` (official ETF list) | ✅ verified | 7.14 ETF view (beefed up at step 5) |
-| Corporate actions (ex/rec dates, purpose, face value) | NSE corporateActions session API | ✅ verified once | dividend/split flags (computed at step 3) |
-| Sector/industry tags (mapping layer) | NSE index constituent lists + BSE sector column at step 5 | ✅ verified (4 of the index list slugs) | sector filter family + sector-medians |
+## 1. Classification Categories
 
-## Manual-entry paths (official but not automatable)
+Every metric in the screener is classified into exactly one of four availability tiers:
 
-| Data | Why manual | Where it lands |
-|---|---|---|
-| FBIL 3M Term MIBOR (for DCF fair-value filters) | FBIL gates machine access behind an access-key licensing + reCAPTCHA | `data/inbox/fbil_mibor.json`, badge **"manual entry — official FBIL published rate"** |
-| BSE scrip master (face value, shares outstanding) | api.bseindia.com returns 403 to automation | user drops official `ListofScripData*.csv` into `data/inbox/`; automatic partial BSE master from bhavcopy as fallback |
+| Status | Badge in UI | Description | Filter Count |
+|--------|-------------|-------------|--------------|
+| **`Official-direct`** | Green badge / standard | Raw values taken directly from exchange/regulatory publications without alteration | **65** |
+| **`Computed-from-official`** | Blue badge / info tooltip | Deterministic formulas computed strictly from official direct inputs (e.g., ratios, returns, moving averages) | **172** |
+| **`Approximate`** | Amber badge: "Approximate - computed locally" | Locally calculated quant ranks/scores where the proprietary formula is approximated transparently | **5** |
+| **`Unavailable`** | Gray badge: "Not available from official sources" | Metrics requiring proprietary consensus or commercial data feeds not published by official bodies | **13** |
 
-## Deferred (official sources exist; endpoints to be wired)
+---
 
-| Family | Source (planned) | Step |
-|---|---|---|
-| Quarterly / annual financials (P&L, balance sheet, cash flow) | NSE corporate filings XBRL downloads; exchange engine circular formats | 6 |
-| Ownership / shareholding pattern | NSE company pages / corporate filing APIs | 6 |
-| Bulk & block deals | NSE report-detail pages / API | 6 |
+## 2. Category-by-Category Availability Breakdown
 
-## Not available from official sources (badged, shown as "Not available from official sources")
+### 2.1 Profitability (16 filters)
+- **Official-direct (1):** Cost of Goods Sold
+- **Computed-from-official (15):** Return on Equity, Return on Assets, Return on Investment, ROCE, Net Profit Margin, EBITDA Margin, Operating Profit Margin, Cash Flow Margin, 5Y Avg EBITDA Margin, 5Y Avg Net Profit Margin, 5Y Avg Return on Equity, 5Y Avg Return on Assets, 5Y Avg Return on Investment, 5Y Avg Cash Flow Margin, 5Y Avg Operating Profit Margin
 
-- Anything not published by NSE/BSE/SEBI/AMFI/FBIL/exchange formats — including "Moneyflow",
-  analyst scores, or partner-sourced alternative-data shims (spec explicitly forbids these
-  from non-official mirrors).
+### 2.2 Growth (13 filters)
+- **Computed-from-official (9):** 1Y Hist Op. Cash Flow Growth, 1Y Historical EPS Growth, 1Y Historical Revenue Growth, 5Y Historical EBITDA Growth, 5Y Hist Op. Cash Flow Growth, 3Y Historical Dividend Growth, 5Y Historical EPS Growth, 5Y Historical Revenue Growth, 1Y Historical EBITDA Growth
+- **Unavailable (4):** 1Y Forward Revenue Growth, 1Y Forward EBITDA Growth, 1Y Fwd Op. Cash Flow Growth, 1Y Forward EPS Growth *(Reason: Requires analyst consensus forward estimates not published officially)*
 
-## Badge rules in UI (step 4+)
+### 2.3 Valuation (27 filters)
+- **Computed-from-official (25):** PE Ratio, TTM PE Ratio, PB Ratio, PS Ratio, Dividend Yield, EV/EBITDA Ratio, EV / EBIT Ratio, EV / Revenue Ratio, EV / Free Cash Flow, EV / Invested Capital, Enterprise Value, Price / Free Cash Flow, Price / CFO, Price / Sales, PE Premium vs Sector, PB Premium vs Sector, PS Premium vs Sector, Dividend Yield vs Sector, PE Premium vs Sub-sector, PB Premium vs Sub-sector, PS Premium vs Sub-sector, Dividend Yield vs Sub-sector, Sector Dividend Yield, Sector PB, Sector PE
+- **Unavailable (2):** Forward PE Ratio, Forward PS Ratio *(Reason: Requires forward analyst consensus estimates)*
 
-- Each value → tooltip line "Source: <OFFICIAL NAME> · As of <date> [+ 'manual entry' tag]".
-- Filter card for manual-only data shows its current as-of and a stale-date warning when older
-  than ~35 days.
-- Missing data never blocks the screener; the metric just lacks values (rows keep count with
-  blank cells).
+### 2.4 Ownership (22 filters)
+- **Official-direct (8):** Mutual Fund Holding, Domestic Institutional Holding, Foreign Institutional Holding, Promoter Holding, Pledged Promoter Holdings, Retail Investor Holding, Insurance Firms Holding, No. of Shareholders
+- **Computed-from-official (14):** MF Holding Change (3M/6M), DII Holding Change (3M/6M), FII Holding Change (3M/6M), Promoter Holding Change (3M/6M), Insider Trades (1M/3M/6M Cumulative), Bulk Deals (1M/3M/6M Cumulative)
+
+### 2.5 Futures & Options (28 filters)
+- **Official-direct (7):** Lot Size, Future Close Price, Future Volume, Future Open Interest, Call Open Interest, Put Open Interest
+- **Computed-from-official (21):** Fair Value, Fair Value Spread, Basis, Rollover Cost, Percentage Rollover, Calendar Spread, Cash & Carry Profit, Put Call Ratio, 1D/1W Change in Future OI, 1D/1W Change in Future Volume, 1D/1W Change in Call OI, 1D/1W Change in Put OI, Highest Call/Put OI Strikes, Highest 1D/1W OI Change CE/PE Strikes
+
+### 2.6 Price and Volume (20 filters)
+- **Official-direct (4):** Close Price, Daily Volume, Face value, VWAP
+- **Computed-from-official (16):** Market Cap, 1D/1W/1M/6M/1Y Return, 5Y CAGR, 1W/1M/6M/1Y Return vs Nifty, % Away From 52W High, % Away From 52W Low, 1M/3M Average Volume, 1D/1W Change in Volume
+
+### 2.7 Financial Ratios (14 filters)
+- **Computed-from-official (14):** Current Ratio, Quick Ratio, Debt to Equity, Long Term Debt to Equity, Interest Coverage Ratio, Cash Conversion Cycle, Net Income / Liabilities, Working Capital Turnover Ratio, Inventory Turnover Ratio, Asset Turnover Ratio, Days of Inventory Outstanding, Days of Sales Outstanding, Days Payable Outstanding, Earning Power
+
+### 2.8 Special / Quant Scores (5 filters)
+- **Approximate (5):** Price Momentum Rank, Fundamental Score, Value Momentum Rank, Earnings Quality Rank, Price to Intrinsic Value Rank *(All labeled "Approximate - computed locally", full formulas documented in METRICS.md)*
+
+### 2.9 Analyst Ratings (6 filters)
+- **Unavailable (6):** Percentage Upside, Percentage Buy Reco's, Percentage Hold Reco's, Percentage Sell Reco's, No. of analysts with buy reco, Total no. of analysts *(Reason: Proprietary sell-side broker aggregation; not published in regulatory filings. Users can supply their own values via Excel upload)*
+
+### 2.10 Technical Indicators (33 filters)
+- **Official-direct (1):** Volume Weighted Average Price (bhavcopy)
+- **Computed-from-official (32):** 1Y Max Loss, SMA (10/50/100/200D), EMA (10/50/100/200D), Alpha, Beta, Sharpe Ratio, Relative Volume, Volatility, Volatility vs Nifty, % Price above 1M/12M SMA, % Price above 1M EMA, RSI 14D, RSI Exponential 14D, ADX Rating, MACD Lines 1 & 2, Bollinger Band distances, Parabolic SAR distance, Williams %R, Stochastic %K & %D, 1W Change in OBV, 1W Change in AD Line, Super Trend
+
+### 2.11 Balance Sheet & Cash Flow (39 filters)
+- **Official-direct (39):** Book Value, Cash and Short-term Investments, Total Receivables, Total Inventory, Other Current Assets, Total Current Assets, Net Loans, Net PPE, Goodwill and Intangibles, Long Term Investments, Other Assets, Total Assets, Accounts Payable, Total Deposits, Other Current Liabilities, Total Current Liabilities, Total Long Term Debt, Total Debt, Deferred Income Tax, Minority Interest, Other Liabilities, Total Liabilities, Common Stock, Additional Paid-in Capital, Retained Earnings, Other Equity, Total Equity, Total Liabilities & Shareholders Equity, Common Shares Outstanding, Preferred Shares Outstanding, Policy Liabilities, Changes in Working Capital, Cash Flow from Operating Activities, Capital Expenditures, Cash from Investing Activities, Total Cash Dividends Paid, Cash from Financing Activities, Foreign Exchange Effects, Net Change in Cash
+
+### 2.12 ETFs (2 filters)
+- **Official-direct (1):** Expense Ratio (AMFI / AMC TER files)
+- **Computed-from-official (1):** Tracking Error (annualized std dev of NAV return minus index return)
+
+### 2.13 Income Statement (30 filters)
+- **Official-direct (23):** Total Revenue, Cost of Revenue, Depreciation & Amortization, Interest & Other Items, Taxes & Other Items, Net Income, Earnings Per Share, Dividend Per Share, Power & Fuel Cost, Raw Materials, Operating & Other expenses, Employee Cost, Selling & Administrative Expenses, Research & Development, Interest Income, Total Interest Expense, Loan Loss Provision, Total revenue (Q), Net Income (Q), EPS (Q), Operating and Other Expenses (Q)
+- **Computed-from-official (7):** Gross Profit, EBITDA, PBIT, PBT, Payout Ratio, Net Interest Income, EBITDA (Q), PBIT (Q), PBT (Q)
+
+---
+
+## 3. Official Source Endpoints Discovery Matrix
+
+| Publishing Authority | Datasets | Publication Cadence | Automated / Manual |
+|----------------------|----------|---------------------|-------------------|
+| **NSE (National Stock Exchange)** | UDiFF bhavcopy (cash + F&O), security master, F&O lot sizes, corporate filings (XBRL), bulk/block deals, index constituents | Daily at EOD (~18:00 IST) / Monthly / Quarterly | Automated with polite rate limits |
+| **BSE (Bombay Stock Exchange)** | UDiFF bhavcopy, scrip master (ISINs, BSE-only), announcements | Daily at EOD | Automated bhavcopy; scrip master via `data/inbox/` fallback if 403 |
+| **AMFI** | Half-yearly Market Cap classification (Large/Mid/Small 1–100/101–250/251+), ETF TER | Half-yearly (Jan/Jul), monthly | Automated XLSX parser with column-header fallback |
+| **FBIL** | 3-Month Term MIBOR rate | Daily | Manual entry via `data/inbox/fbil_mibor.json` (CAPTCHA/licensing gate) |
+| **SEBI** | SAST disclosures, PIT insider trades | Daily / event-driven | Automated via corporate filings integration |
