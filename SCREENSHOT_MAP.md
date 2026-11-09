@@ -512,3 +512,4 @@ The following two categories have **no screenshot in the reference set**:
 2. **Balance Sheet & Cash Flow** (38 filters from section 10.10): Book Value, Cash, Receivables, Inventory, Assets, Liabilities, Debt, Equity, Operating/Investing/Financing Cash Flows, Capex, FCF
 
 Both will be implemented faithfully from section 10 specifications in `registry/filters.yaml` and the UI replica.
+

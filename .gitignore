@@ -17,7 +17,7 @@ data/inbox/*
 
 # Reference material kept untracked until the owner decides (spec screenshots + saved reference page)
 Images/
-screener.html
+/screener.html
 
 # Session-local config
 .claude/
