@@ -75,3 +75,36 @@ def test_api_custom_filter_validate():
     data = validate_custom_filter(req)
     assert data["valid"] is True
     assert data["sample_evaluations"] == [12.0, 6.0]
+
+
+def test_api_universe_match():
+    from app.api.routes import MatchUniverseRequest, match_universe
+
+    req = MatchUniverseRequest(
+        rows=[
+            {"Identifier": "INE002A01018", "Quantity": 10, "Buy_Price": 2000.0},
+            {"Identifier": "Tata Motors", "Quantity": 20, "Buy_Price": 500.0},
+            {"Identifier": "Nonexistent Fake Corp", "Quantity": 100, "Buy_Price": 10.0},
+        ],
+        id_column="Identifier",
+        compute_pnl=True,
+    )
+    res = match_universe(req)
+    assert res["matched_count"] == 1
+    assert res["ambiguous_count"] == 1
+    assert res["unmatched_count"] == 1
+
+    # Check P&L on matched row
+    matched_row = res["matched"][0]
+    assert matched_row["matched_security"]["nse_symbol"] == "RELIANCE"
+    assert "pnl" in matched_row
+    assert matched_row["pnl"]["invested_value"] == 20000.0
+
+
+def test_api_universe_template():
+    from app.api.routes import get_universe_template
+
+    res = get_universe_template()
+    assert "template_headers" in res
+    assert "Company Name" in res["template_headers"]
+    assert "ISIN" in res["template_headers"]

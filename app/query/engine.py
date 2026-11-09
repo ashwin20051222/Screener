@@ -186,3 +186,4 @@ class QueryEngine:
             "market_cap_categories": mc_categories,
             "benchmark_scope": scope,
         }
+

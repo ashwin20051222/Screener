@@ -158,3 +158,4 @@ def test_benchmark_scope_market_vs_universe():
     res_u = engine_univ.execute_query(market_universe=SAMPLE_UNIVERSE, active_universe=active_subset)
     hdfc_stock_u = next(s for s in res_u["items"] if s["name"] == "HDFC Bank Ltd")
     assert round(hdfc_stock_u["sector_pe"], 2) == 17.55
+

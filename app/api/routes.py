@@ -12,14 +12,27 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional, Set
 import yaml
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, File, Form, HTTPException, UploadFile
 from pydantic import BaseModel, Field
 
 from app.metrics.parser import compile_safe_expression, validate_and_test_expression
 from app.query.engine import FilterCondition, QueryEngine
 from app.config import settings
+from app.universe.importer import (
+    auto_detect_identifier_column,
+    generate_template_headers,
+    get_workbook_sheet_names,
+    identify_custom_columns,
+    parse_spreadsheet_data,
+)
+from app.universe.master import SecurityMasterIndex
+from app.universe.matcher import UniverseMatcher
+from app.universe.pnl import compute_row_pnl
 
 router = APIRouter(prefix="/api", tags=["screener"])
+
+_GLOBAL_MASTER = SecurityMasterIndex()
+_GLOBAL_MATCHER = UniverseMatcher(_GLOBAL_MASTER)
 
 ROOT = Path(__file__).resolve().parents[2]
 REGISTRY_PATH = ROOT / "registry" / "filters.yaml"
@@ -125,3 +138,63 @@ def validate_custom_filter(req: CustomFilterValidateRequest):
         return {"valid": False, "error": msg, "sample_evaluations": []}
 
     return {"valid": True, "message": msg, "sample_evaluations": sample_evals}
+
+
+class MatchUniverseRequest(BaseModel):
+    rows: List[Dict[str, Any]]
+    id_column: Optional[str] = None
+    compute_pnl: bool = True
+
+
+@router.post("/universe/upload-file")
+async def upload_universe_file(
+    file: UploadFile = File(...),
+    sheet_name: Optional[str] = Form(None),
+):
+    """Parses uploaded .xlsx/.xls/.csv file, returns sheet names, headers, auto-detected ID column, and parsed rows."""
+    contents = await file.read()
+    filename = file.filename or "upload.xlsx"
+
+    sheet_names = get_workbook_sheet_names(contents, filename)
+    selected_sheet = sheet_name if sheet_name in sheet_names else sheet_names[0]
+
+    rows, headers, id_col, custom_cols = parse_spreadsheet_data(
+        contents,
+        filename=filename,
+        sheet_name=selected_sheet,
+    )
+
+    return {
+        "filename": filename,
+        "sheet_names": sheet_names,
+        "selected_sheet": selected_sheet,
+        "headers": headers,
+        "auto_detected_id_column": id_col,
+        "detected_custom_columns": custom_cols,
+        "total_rows": len(rows),
+        "rows": rows,
+    }
+
+
+@router.post("/universe/match")
+def match_universe(req: MatchUniverseRequest):
+    """Executes 5-tier matching cascade on provided rows and optionally computes portfolio P&L."""
+    report = _GLOBAL_MATCHER.match_all(req.rows, id_col=req.id_column)
+
+    if req.compute_pnl:
+        # Enrich matched rows with P&L if quantity & buy_price exist
+        for m in report["matched"]:
+            sec = m.get("matched_security") or {}
+            raw = m.get("raw_input") or {}
+            close_px = sec.get("close_price")
+            pnl_info = compute_row_pnl(raw, close_price=close_px)
+            m["pnl"] = pnl_info
+
+    return report
+
+
+@router.get("/universe/template")
+def get_universe_template():
+    """Returns standard header template for user spreadsheets."""
+    return {"template_headers": generate_template_headers()}
+

@@ -167,3 +167,4 @@ def test_golden_williams_r_and_stochastic():
 
     assert wr is not None and round(wr, 2) == -28.57
     assert stoch is not None and round(stoch, 2) == 71.43
+

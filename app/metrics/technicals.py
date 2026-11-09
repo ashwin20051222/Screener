@@ -199,3 +199,4 @@ def sharpe_ratio(
     if volatility <= 0:
         return None
     return excess_return / volatility
+

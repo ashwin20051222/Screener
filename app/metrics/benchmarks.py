@@ -131,3 +131,4 @@ class BenchmarkEngine:
             out["dividend_yield_vs_sub_sector"] = None
 
         return out
+

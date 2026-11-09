@@ -54,3 +54,37 @@ export interface CustomFilter {
   formula: string;
   fn: (r: StockRow) => number | null;
 }
+
+export type MatchStatus = 'matched' | 'ambiguous' | 'unmatched';
+
+export interface PnLData {
+  quantity?: number | null;
+  buy_price?: number | null;
+  invested_value?: number | null;
+  current_value?: number | null;
+  pnl_amount?: number | null;
+  pnl_pct?: number | null;
+}
+
+export interface MatchRecord {
+  row_index: number;
+  raw_input: Record<string, any>;
+  status: MatchStatus;
+  matched_security?: Record<string, any> | null;
+  match_tier?: string | null;
+  confidence: number;
+  candidates?: Array<Record<string, any>>;
+  notes?: string;
+  pnl?: PnLData;
+}
+
+export interface MatchReport {
+  total_rows: number;
+  matched_count: number;
+  ambiguous_count: number;
+  unmatched_count: number;
+  matched: MatchRecord[];
+  ambiguous: MatchRecord[];
+  unmatched: MatchRecord[];
+  all_results: MatchRecord[];
+}

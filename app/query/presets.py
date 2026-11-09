@@ -112,3 +112,4 @@ def compute_sector_counts(stocks: Sequence[Dict[str, Any]]) -> Dict[str, Dict[st
             counts[sec]["sub_sectors"][sub] = counts[sec]["sub_sectors"].get(sub, 0) + 1
 
     return counts
+

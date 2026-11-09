@@ -100,3 +100,4 @@ def test_validate_and_test_expression_helper():
     is_valid, msg, results = validate_and_test_expression(expr, rows, allowed_identifiers=ALLOWED_METRICS)
     assert is_valid is True
     assert results == [27.0, 45.0, None]
+

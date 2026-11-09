@@ -20,8 +20,16 @@ import { StockDetailDrawer } from './components/StockDetailDrawer';
 import { SavedScreensModal } from './components/SavedScreensModal';
 import { ColumnPicker } from './components/ColumnPicker';
 import { ExportMenu } from './components/ExportMenu';
+import { ExcelUploadModal } from './components/ExcelUploadModal';
+import { MatchReportModal } from './components/MatchReportModal';
 import { exportTableData } from './utils/export';
 import { formatIndianNumber } from './utils/formatters';
+import { ParsedWorkbookInfo } from './utils/excelParser';
+import {
+  CLIENT_MASTER_SECURITIES,
+  matchUniverseClient,
+} from './utils/matcherClient';
+import { MatchReport } from './types';
 import {
   Search,
   ChevronDown,
@@ -35,6 +43,7 @@ import {
   ArrowUp,
   Sun,
   Moon,
+  Trash2,
 } from 'lucide-react';
 import * as XLSX from 'xlsx';
 
@@ -42,6 +51,21 @@ import * as XLSX from 'xlsx';
 const ALL_FILTERS_MAP = new Map<string, FilterDefinition>(
   Object.entries(filtersData.filters).map(([k, v]) => [k, v as FilterDefinition])
 );
+
+// Register portfolio custom columns for user spreadsheets
+const PORTFOLIO_COLUMNS: FilterDefinition[] = [
+  { id: 'quantity', name: 'Quantity', category: 'Portfolio', unit: 'shares', in_screenshot: false, locked_in_original: false, needs_official_source: false, availability: 'Computed-from-official' },
+  { id: 'buy_price', name: 'Buy Price', category: 'Portfolio', unit: '₹', in_screenshot: false, locked_in_original: false, needs_official_source: false, availability: 'Computed-from-official' },
+  { id: 'invested_value', name: 'Invested Value', category: 'Portfolio', unit: '₹', in_screenshot: false, locked_in_original: false, needs_official_source: false, availability: 'Computed-from-official' },
+  { id: 'current_value', name: 'Current Value', category: 'Portfolio', unit: '₹', in_screenshot: false, locked_in_original: false, needs_official_source: false, availability: 'Computed-from-official' },
+  { id: 'pnl_amount', name: 'P&L (₹)', category: 'Portfolio', unit: '₹', in_screenshot: false, locked_in_original: false, needs_official_source: false, availability: 'Computed-from-official' },
+  { id: 'pnl_pct', name: 'P&L (%)', category: 'Portfolio', unit: '%', in_screenshot: false, locked_in_original: false, needs_official_source: false, availability: 'Computed-from-official' },
+];
+
+for (const col of PORTFOLIO_COLUMNS) {
+  ALL_FILTERS_MAP.set(col.id, col);
+}
+
 const ALL_FILTERS_LIST = Array.from(ALL_FILTERS_MAP.values());
 
 // Default filters shown in left panel
@@ -79,10 +103,87 @@ export const App: React.FC = () => {
     },
   ]);
   const [activeUniverseTab, setActiveUniverseTab] = useState<'default' | 'custom'>('default');
-  const [selectedUniverseIndex, setSelectedUniverseIndex] = useState<number | null>(null);
-  const activeUniverse = (selectedUniverseIndex !== null ? universes[selectedUniverseIndex] : universes[0]) || universes[0];
-  const activeRows = activeUniverse.rows;
+  const [selectedUniverseIds, setSelectedUniverseIds] = useState<Set<string>>(new Set(['default_seed']));
+
+  // Multi-universe union: combine rows from all checked universes (deduplicated by name)
+  const activeRows = useMemo(() => {
+    const selected = universes.filter((u) => selectedUniverseIds.has(u.id));
+    if (selected.length === 0) return universes[0]?.rows || [];
+    const seen = new Set<string>();
+    const unionRows: StockRow[] = [];
+    for (const u of selected) {
+      for (const r of u.rows) {
+        if (!seen.has(r.name)) {
+          seen.add(r.name);
+          unionRows.push(r);
+        }
+      }
+    }
+    return unionRows;
+  }, [universes, selectedUniverseIds]);
+
   const [showMoreUniverses, setShowMoreUniverses] = useState(false);
+  const activeUniverse = universes.find((u) => selectedUniverseIds.has(u.id)) || universes[0];
+
+  const handleProceedToMatch = (parsed: ParsedWorkbookInfo, selectedIdCol: string) => {
+    setIsExcelUploadOpen(false);
+    setUploadedFilename(parsed.selectedSheet || 'My Uploaded Universe');
+    const report = matchUniverseClient(parsed.rows, selectedIdCol);
+    setMatchReportData(report);
+    setIsMatchReportOpen(true);
+  };
+
+  const handleSaveCustomUniverse = (newUniverse: StockUniverse) => {
+    setUniverses((prev) => [...prev, newUniverse]);
+    setSelectedUniverseIds((prev) => new Set([...prev, newUniverse.id]));
+    setActiveUniverseTab('custom');
+
+    // Auto-enable custom portfolio columns if available
+    const hasPnl = newUniverse.rows.some(
+      (r) => r.v.quantity !== undefined && r.v.quantity !== null
+    );
+    if (hasPnl) {
+      setColumns((prev) => {
+        const next = [...prev];
+        if (!next.includes('quantity')) next.push('quantity');
+        if (!next.includes('buy_price')) next.push('buy_price');
+        if (!next.includes('pnl_amount')) next.push('pnl_amount');
+        if (!next.includes('pnl_pct')) next.push('pnl_pct');
+        return next;
+      });
+    }
+  };
+
+  const toggleUniverseSelection = (id: string) => {
+    setSelectedUniverseIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) {
+        if (next.size > 1) next.delete(id);
+      } else {
+        next.add(id);
+      }
+      return next;
+    });
+  };
+
+  const handleDeleteUniverse = (id: string) => {
+    setUniverses((prev) => prev.filter((u) => u.id !== id));
+    setSelectedUniverseIds((prev) => {
+      const next = new Set(prev);
+      next.delete(id);
+      if (next.size === 0) next.add('default_seed');
+      return next;
+    });
+  };
+
+  const handleRenameUniverse = (id: string, currentName: string) => {
+    const newName = window.prompt('Rename universe:', currentName);
+    if (newName && newName.trim()) {
+      setUniverses((prev) =>
+        prev.map((u) => (u.id === id ? { ...u, name: newName.trim() } : u))
+      );
+    }
+  };
 
   // Sector filtering
   const [sectorSearch, setSectorSearch] = useState('');
@@ -151,6 +252,52 @@ export const App: React.FC = () => {
   const [isColumnPickerOpen, setIsColumnPickerOpen] = useState(false);
   const [isExportMenuOpen, setIsExportMenuOpen] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+
+  // Excel & Universe modals
+  const isUploadParam = !!getInitialParam('upload');
+  const isMatchReportParam = !!getInitialParam('matchreport');
+
+  const [isExcelUploadOpen, setIsExcelUploadOpen] = useState(isUploadParam);
+  const [isMatchReportOpen, setIsMatchReportOpen] = useState(isMatchReportParam);
+  const [matchReportData, setMatchReportData] = useState<MatchReport | null>(() => {
+    if (isMatchReportParam) {
+      const sample30 = [
+        { Identifier: 'INE002A01018', Quantity: 50, Buy_Price: 2200, Notes: 'Core holding' },
+        { Identifier: 'TCS', Quantity: 30, Buy_Price: 3200, Notes: 'IT bellwether' },
+        { Identifier: 'INE040A01034', Quantity: 100, Buy_Price: 1500, Notes: 'Banking leader' },
+        { Identifier: 'ICICIBANK', Quantity: 120, Buy_Price: 850, Notes: 'Private bank' },
+        { Identifier: 'INE009A01021', Quantity: 80, Buy_Price: 1350, Notes: 'IT export' },
+        { Identifier: 'HINDUNILVR', Quantity: 40, Buy_Price: 2400, Notes: 'FMCG staple' },
+        { Identifier: '500875', Quantity: 200, Buy_Price: 380, Notes: 'High dividend' },
+        { Identifier: 'SBIN', Quantity: 150, Buy_Price: 520, Notes: 'PSU bank' },
+        { Identifier: 'BHARTIARTL', Quantity: 90, Buy_Price: 780, Notes: 'Telecom' },
+        { Identifier: 'BAJFINANCE', Quantity: 15, Buy_Price: 6200, Notes: 'NBFC lending' },
+        { Identifier: '500820', Quantity: 25, Buy_Price: 2900, Notes: 'Decorative paints' },
+        { Identifier: 'MARUTI', Quantity: 10, Buy_Price: 8800, Notes: 'Auto 4-wheeler' },
+        { Identifier: 'INE280A01028', Quantity: 35, Buy_Price: 2700, Notes: 'Jewellery retail' },
+        { Identifier: 'SUNPHARMA', Quantity: 60, Buy_Price: 980, Notes: 'Pharma generic' },
+        { Identifier: 'Tata Steel Limited', Quantity: 300, Buy_Price: 115, Notes: 'Metals & mining' },
+        { Identifier: 'AXISBANK', Quantity: 70, Buy_Price: 910, Notes: 'Private bank' },
+        { Identifier: 'Wipro Limited', Quantity: 110, Buy_Price: 390, Notes: 'IT services' },
+        { Identifier: 'HCL Technologies Limited', Quantity: 45, Buy_Price: 1100, Notes: 'IT dividend' },
+        { Identifier: '500103', Quantity: 250, Buy_Price: 85, Notes: 'Capital goods' },
+        { Identifier: 'POWERGRID', Quantity: 180, Buy_Price: 190, Notes: 'Power transmission' },
+        { Identifier: 'NTPC Limited', Quantity: 220, Buy_Price: 180, Notes: 'Power generation' },
+        { Identifier: 'INF204KB14I2', Quantity: 500, Buy_Price: 220, Notes: 'Nifty 50 ETF' },
+        { Identifier: 'GOLDBEES', Quantity: 800, Buy_Price: 50, Notes: 'Gold ETF' },
+        { Identifier: '540115', Quantity: 12, Buy_Price: 4500, Notes: 'ER&D IT' },
+        { Identifier: 'INF204KB17I5', Quantity: 400, Buy_Price: 52, Notes: 'Commodity gold' },
+        { Identifier: 'Tata Motors', Quantity: 100, Buy_Price: 550, Notes: 'Ambiguous' },
+        { Identifier: 'L&T', Quantity: 20, Buy_Price: 2800, Notes: 'Ambiguous' },
+        { Identifier: 'Acme Quantum Robotics Ltd', Quantity: 100, Buy_Price: 100, Notes: 'Unmatched' },
+        { Identifier: 'INE999Z99999', Quantity: 50, Buy_Price: 250, Notes: 'Unmatched' },
+        { Identifier: 'Atlantis Global Trading', Quantity: 75, Buy_Price: 50, Notes: 'Unmatched' },
+      ];
+      return matchUniverseClient(sample30, 'Identifier');
+    }
+    return null;
+  });
+  const [uploadedFilename, setUploadedFilename] = useState('My Uploaded Portfolio');
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -415,7 +562,7 @@ export const App: React.FC = () => {
         };
 
         setUniverses(prev => [...prev, newUniverse]);
-        setSelectedUniverseIndex(universes.length);
+        setSelectedUniverseIds(new Set([newUniverse.id]));
         setActiveUniverseTab('custom');
         showToast(`Loaded ${rows.length} stocks from ${file.name}`);
       } catch (err) {
@@ -569,7 +716,7 @@ export const App: React.FC = () => {
                   </div>
                   <span
                     className="create-link"
-                    onClick={() => fileInputRef.current?.click()}
+                    onClick={() => setIsExcelUploadOpen(true)}
                   >
                     + Create
                   </span>
@@ -580,28 +727,44 @@ export const App: React.FC = () => {
                     <label className="universe-checkbox-item">
                       <input
                         type="checkbox"
-                        checked={selectedUniverseIndex === 0}
-                        onChange={() => setSelectedUniverseIndex(selectedUniverseIndex === 0 ? null : 0)}
+                        checked={selectedUniverseIds.has('default_seed')}
+                        onChange={() => toggleUniverseSelection('default_seed')}
                       />
                       <span>Nifty Smallcap 100</span>
                     </label>
                     <label className="universe-checkbox-item">
-                      <input type="checkbox" />
+                      <input
+                        type="checkbox"
+                        checked={selectedUniverseIds.has('nifty_500')}
+                        onChange={() => toggleUniverseSelection('nifty_500')}
+                      />
                       <span>Nifty 500</span>
                     </label>
                     <label className="universe-checkbox-item">
-                      <input type="checkbox" />
+                      <input
+                        type="checkbox"
+                        checked={selectedUniverseIds.has('nifty_midcap')}
+                        onChange={() => toggleUniverseSelection('nifty_midcap')}
+                      />
                       <span>Nifty Midcap 100</span>
                     </label>
 
                     {showMoreUniverses && (
                       <>
                         <label className="universe-checkbox-item">
-                          <input type="checkbox" />
+                          <input
+                            type="checkbox"
+                            checked={selectedUniverseIds.has('nifty_50')}
+                            onChange={() => toggleUniverseSelection('nifty_50')}
+                          />
                           <span>Nifty 50</span>
                         </label>
                         <label className="universe-checkbox-item">
-                          <input type="checkbox" />
+                          <input
+                            type="checkbox"
+                            checked={selectedUniverseIds.has('nifty_100')}
+                            onChange={() => toggleUniverseSelection('nifty_100')}
+                          />
                           <span>Nifty 100</span>
                         </label>
                       </>
@@ -621,18 +784,49 @@ export const App: React.FC = () => {
                         No custom universes uploaded yet. Click "+ Create" above.
                       </div>
                     ) : (
-                      universes.map((u, i) =>
-                        u.type === 'custom' ? (
-                          <label key={u.id} className="universe-checkbox-item">
-                            <input
-                              type="checkbox"
-                              checked={selectedUniverseIndex === i}
-                              onChange={() => setSelectedUniverseIndex(i)}
-                            />
-                            <span>{u.name}</span>
-                          </label>
-                        ) : null
-                      )
+                      universes
+                        .filter(u => u.type === 'custom')
+                        .map((u) => (
+                          <div
+                            key={u.id}
+                            style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'space-between',
+                              padding: '3px 0',
+                            }}
+                          >
+                            <label className="universe-checkbox-item" style={{ flex: 1, marginBottom: 0 }}>
+                              <input
+                                type="checkbox"
+                                checked={selectedUniverseIds.has(u.id)}
+                                onChange={() => toggleUniverseSelection(u.id)}
+                              />
+                              <span title={u.name} style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '160px' }}>
+                                {u.name}
+                              </span>
+                            </label>
+                            <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+                              <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>({u.rows.length})</span>
+                              <button
+                                type="button"
+                                style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', padding: '2px' }}
+                                title="Rename universe"
+                                onClick={() => handleRenameUniverse(u.id, u.name)}
+                              >
+                                <Pencil size={12} />
+                              </button>
+                              <button
+                                type="button"
+                                style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', padding: '2px' }}
+                                title="Delete universe"
+                                onClick={() => handleDeleteUniverse(u.id)}
+                              >
+                                <Trash2 size={12} />
+                              </button>
+                            </div>
+                          </div>
+                        ))
                     )}
                   </div>
                 )}
@@ -1017,6 +1211,22 @@ export const App: React.FC = () => {
         onLoadScreen={handleLoadScreen}
         onSaveCurrentScreen={handleSaveScreen}
         onDeleteScreen={handleDeleteScreen}
+      />
+
+      {/* Excel Universe Upload Modal */}
+      <ExcelUploadModal
+        isOpen={isExcelUploadOpen}
+        onClose={() => setIsExcelUploadOpen(false)}
+        onProceedToMatch={handleProceedToMatch}
+      />
+
+      {/* Security Master Match Report Modal */}
+      <MatchReportModal
+        isOpen={isMatchReportOpen}
+        report={matchReportData}
+        defaultUniverseName={uploadedFilename}
+        onClose={() => setIsMatchReportOpen(false)}
+        onSaveUniverse={handleSaveCustomUniverse}
       />
     </div>
   );

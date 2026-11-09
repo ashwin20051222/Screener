@@ -283,3 +283,4 @@ def validate_balance_sheet(
     if total_assets is None or total_liabilities is None or total_equity is None:
         return False
     return abs(total_assets - (total_liabilities + total_equity)) <= tolerance
+

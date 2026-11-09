@@ -1,0 +1,31 @@
+Identifier,Type,Quantity,Buy_Price,Notes
+INE002A01018,ISIN,50,2200.0,Core energy holding
+TCS,Symbol,30,3200.0,IT bellwether
+INE040A01034,ISIN,100,1500.0,Banking leader
+ICICIBANK,Symbol,120,850.0,Private bank
+INE009A01021,ISIN,80,1350.0,IT export
+HINDUNILVR,Symbol,40,2400.0,FMCG staple
+500875,BSE Code,200,380.0,High dividend
+SBIN,Symbol,150,520.0,PSU bank
+BHARTIARTL,Symbol,90,780.0,Telecom
+BAJFINANCE,Symbol,15,6200.0,NBFC lending
+500820,BSE Code,25,2900.0,Decorative paints
+MARUTI,Symbol,10,8800.0,Auto 4-wheeler
+INE280A01028,ISIN,35,2700.0,Jewellery retail
+SUNPHARMA,Symbol,60,980.0,Pharma generic
+Tata Steel Limited,Name,300,115.0,Metals & mining
+AXISBANK,Symbol,70,910.0,Private bank
+Wipro Limited,Name,110,390.0,IT services
+HCL Technologies Limited,Name,45,1100.0,IT dividend
+500103,BSE Code,250,85.0,Capital goods
+POWERGRID,Symbol,180,190.0,Power transmission
+NTPC Limited,Name,220,180.0,Power generation
+INF204KB14I2,ISIN,500,220.0,Nifty 50 ETF
+GOLDBEES,Symbol,800,50.0,Gold ETF
+540115,BSE Code,12,4500.0,ER&D IT
+INF204KB17I5,ISIN,400,52.0,Commodity gold
+Tata Motors,Name,100,550.0,Ambiguous: matches Tata Motors & Tata Motors DVR
+L&T,Name,20,2800.0,Ambiguous: matches Larsen & Toubro & L&T Tech Services
+Acme Quantum Robotics Ltd,Name,100,100.0,Unmatched: fictional entity
+INE999Z99999,ISIN,50,250.0,Unmatched: invalid ISIN
+Atlantis Global Trading,Name,75,50.0,Unmatched: non-existent firm

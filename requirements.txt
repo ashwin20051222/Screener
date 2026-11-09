@@ -7,4 +7,5 @@ PyYAML>=6.0
 APScheduler>=3.10,<4
 openpyxl>=3.1
 python-multipart>=0.0.9
+rapidfuzz>=3.0
 pytest>=8.0
