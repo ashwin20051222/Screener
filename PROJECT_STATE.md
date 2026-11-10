@@ -1,8 +1,8 @@
 # PROJECT_STATE.md — Continuity File
 
-> **Current Phase:** Phase 3 (Excel Universe) complete. Stopped at STOP GATE 3 awaiting user review and approval to proceed to Phase 4.
-> **Last Updated:** 2026-11-09T23:40:00+05:30
-> **Tags:** `baseline-prototype` (at commit 0d3b083), `ui-replica-v1` (at commit eb6772b).
+> **Current Phase:** Phase 5 Complete — Tagged `replica-v1`.
+> **Last Updated:** 2026-11-10T10:40:00+05:30
+> **Tags:** `baseline-prototype` (at commit 0d3b083), `ui-replica-v1` (at commit eb6772b), `replica-v1`.
 
 ---
 
@@ -57,15 +57,25 @@
 - **Visual Verification:**
   - Captured `phase3_upload_modal.png` and `phase3_match_report.png` at 1750x925.
 
+### Phase 4: Official Data Connectors 4.1–4.7 (Complete)
+- **4.1–4.2 Security Masters, Split/Bonus Adjuster & Reconciliation:** Added SME master (`SME_EQUITY_L.csv`), `ingest/adjuster.py` backward split/bonus price adjustment (`px_daily_adjusted`), `ingest/master_enrichment.py`, and `ingest/reconcile.py` 10-stock exchange raw-file reconciliation.
+- **4.3 F&O Metrics Engine:** Implemented BSE F&O UDiFF (`ingest/bse.py`) + 28 F&O metrics (`ingest/fno_metrics.py`) with honest `Unavailable` fallback for Fair Value when FBIL MIBOR is absent.
+- **4.4 Ownership & Deals:** Implemented SHP XBRL parser (`* 100` fractional normalization), Promoter Pledged %, Bulk/Block Deals, and SEBI PIT Insider Trades (`ingest/ownership.py`).
+- **4.5 Ind-AS XBRL Financials:** Implemented consolidated-first/standalone-fallback Ind-AS parser (`ingest/xbrl.py`, `ingest/financials.py`) with INR `/ 1e7 -> Rs Cr` scaling, 4 sector templates, and `fin_quarantine` check.
+- **4.6 Technical Indicators:** Completed all 33 indicators (`app/metrics/technicals.py`, `ingest/technicals_job.py`).
+- **4.7 ETFs, Inbox & Live Endpoint Checks:** Implemented AMFI 8-column `NAVAll.txt` + TER + 1Y tracking error (`ingest/etf.py`), expanded `data/inbox/` dispatch (`ingest/inbox.py`), registered `quarterly_filings` cron (`app/scheduler.py`), and live-verified NSE/AMFI endpoints updating `config/endpoints.yaml` and `DATA_SOURCES.md`.
+
+### Phase 5: Quant Scores, Hardening, Packaging (Complete — `replica-v1`)
+- **Quant Scores Engine (`config/scores.yaml`, `app/metrics/scores.py`):** Implemented all 5 Section 11 Quant Special scores (`price_momentum_rank`, `earnings_quality_rank`, `price_to_intrinsic_value_rank`, `value_momentum_rank`, `fundamental_score`) badged `"Approximate - computed locally"`.
+- **Database Snapshot & Full-Stack Serving (`app/query/db_store.py`, `app/api/routes.py`, `app/main.py`):** Joined DuckDB tables with provenance; added `/api/scores/weights`, `/api/screener/dataset`, `/api/scores/compute`; built Vite SPA (`apps/web/dist`) served from `/` on `http://127.0.0.1:8787` (`/status` retains diagnostic view).
+- **UI Completion & Zero Third-Party Branding:** Renamed `"Special"` -> `"Quant Special"`, added honest `"Not available from official sources"` and `"Approximate - computed locally"` pills, expanded `SavedScreensModal.tsx` to all 8 built-in Section 7 screens, centered modal overlays, and wired infinite scroll (`pageSize = 20`) + backend dataset hydration.
+- **6,500-Stock Benchmark (`tests/test_performance.py`):** Verified scoring + multi-filter query throughput across 6,500 synthetic rows.
+
 ---
 
-## 2. Next Up (Phase 4: Official Data Connectors)
+## 2. Next Up
 
-Upon receiving approval at STOP GATE 3:
-- **Sub-step 4.1: Security master + daily EOD prices (bhavcopy) + corporate actions:**
-  - Write `DATA_SOURCES.md` first (URL, format, ToS/robots note, refresh rate, as discovered with REA).
-  - Implement connector with retries, exponential backoff, rate limits, raw-file cache, schema validation, idempotent upsert into DuckDB, and reconciliation check against exchange files for 10 stocks.
-  - **STOP and pause at STOP GATE 4.1.**
+- Complete (`replica-v1` delivered). Ready for standalone feature customization requests via prompt Section 14.
 
 ---
 
@@ -80,6 +90,7 @@ Upon receiving approval at STOP GATE 3:
 
 ## 4. Verification Check
 
-- Full pytest suite: 84/84 passed (`.venv/bin/pytest tests/`).
-- Frontend build: `npm run build` passed cleanly in `apps/web`.
-- Ready for user review at **STOP GATE 3**.
+- Full pytest suite: `99 passed` (`.venv/bin/pytest -v tests/`).
+- Frontend production build: `npm run build` (`vite build`) passed in `apps/web` (`2089` modules).
+- Live FastAPI + SPA server verified on `http://127.0.0.1:8787` (`/`, `/health`, `/status`, `/api/filters`, `/api/scores/weights`, `/api/screener/dataset`).
+- Tagged `replica-v1`.

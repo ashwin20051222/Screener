@@ -53,6 +53,41 @@ export const PREBUILT_SCREENS: Omit<SavedScreen, 'id' | 'createdAt'>[] = [
     columns: ['market_cap', 'close_price', '1m_return', '1y_return', 'pe_ratio'],
     sort: { id: '1m_return', dir: -1 },
   },
+  {
+    name: 'Near 52W Lows',
+    note: 'Stocks trading within 15% above 52-week lows',
+    filters: [{ id: 'away_from_52w_low', min: 0, max: 15 }],
+    columns: ['market_cap', 'close_price', 'away_from_52w_low', 'pe_ratio'],
+    sort: { id: 'away_from_52w_low', dir: 1 },
+  },
+  {
+    name: 'Promoter Buying',
+    note: 'Companies with rising promoter stake over last 3 months',
+    filters: [{ id: 'promoter_holding_change_3m', min: 0.1, max: null }],
+    columns: ['market_cap', 'promoter_holding', 'promoter_holding_change_3m', 'pe_ratio'],
+    sort: { id: 'promoter_holding_change_3m', dir: -1 },
+  },
+  {
+    name: 'F&O Long Buildup',
+    note: 'Derivatives underlyings with rising 1D price and future OI buildup',
+    filters: [
+      { id: '1d_return', min: 1, max: null },
+      { id: '1d_change_in_future_oi', min: 5, max: null },
+    ],
+    columns: ['market_cap', 'close_price', '1d_return', '1d_change_in_future_oi', 'put_call_ratio'],
+    sort: { id: '1d_change_in_future_oi', dir: -1 },
+  },
+  {
+    name: 'Debt-free Smallcaps',
+    note: 'Smallcap firms with virtually zero debt and positive ROE',
+    filters: [
+      { id: 'market_cap', min: 100, max: 5000 },
+      { id: 'debt_to_equity', min: 0, max: 0.1 },
+      { id: 'return_on_equity', min: 12, max: null },
+    ],
+    columns: ['market_cap', 'debt_to_equity', 'return_on_equity', 'pe_ratio'],
+    sort: { id: 'return_on_equity', dir: -1 },
+  },
 ];
 
 export const SavedScreensModal: React.FC<SavedScreensModalProps> = ({

@@ -207,11 +207,13 @@ export const App: React.FC = () => {
     dir: -1,
   });
 
-  // Note & Saved Screens
+  // Note & Saved Screens & Infinite Scroll
   const [note, setNote] = useState('');
   const [savedScreens, setSavedScreens] = useState<SavedScreen[]>([]);
   const [isDirty, setIsDirty] = useState(false);
   const [selectedStock, setSelectedStock] = useState<StockRow | null>(null);
+  const [visibleLimit, setVisibleLimit] = useState(20);
+  const [liveSyncSourceLabel, setLiveSyncSourceLabel] = useState<string | null>(null);
 
   // Synchronous initialization from URL params for Visual QA
   const getInitialParam = (k: string) => {
@@ -221,6 +223,43 @@ export const App: React.FC = () => {
       return null;
     }
   };
+
+  // Optional hydration from live FastAPI + DuckDB backend if available (graceful offline fallback)
+  useEffect(() => {
+    let cancelled = false;
+    fetch('/api/screener/dataset')
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (cancelled || !data || !data.synced || !Array.isArray(data.rows) || data.rows.length === 0) {
+          return;
+        }
+        const liveRows: StockRow[] = data.rows.map((r: Record<string, any>) => ({
+          name: r.name || r.nse_symbol || 'Unknown',
+          sub: r.sub_sector || 'General',
+          sector: r.sector || 'Industrials',
+          v: Object.fromEntries(
+            Object.entries(r).filter(([, val]) => typeof val === 'number' || val === null)
+          ) as Record<string, number | null>,
+        }));
+        const derived = deriveMetrics(liveRows);
+        const liveUniv: StockUniverse = {
+          id: 'live_duckdb',
+          name: 'All NSE+BSE Official Listed',
+          type: 'default',
+          rows: derived,
+          totalMarketCount: derived.length,
+        };
+        setUniverses((prev) => [liveUniv, ...prev.filter((u) => u.id !== 'live_duckdb')]);
+        setSelectedUniverseIds(new Set(['live_duckdb']));
+        setLiveSyncSourceLabel(`Official DuckDB (${derived.length} stocks)`);
+      })
+      .catch(() => {
+        // Offline / seed mode: silent no-op
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const initialModalParam = getInitialParam('modal');
   const catLookup: Record<string, string> = {
@@ -1013,11 +1052,11 @@ export const App: React.FC = () => {
         {/* Sub Bar */}
         <div className="screener-sub-bar">
           <span className="results-count-text">
-            Showing <b>1 - {filteredAndSortedRows.length}</b> of <b>{activeUniverse.totalMarketCount ?? 5996}</b> results
+            Showing <b>{filteredAndSortedRows.length === 0 ? 0 : 1} - {Math.min(visibleLimit, filteredAndSortedRows.length)}</b> of <b>{activeFiltersCount > 0 || universes.some(u => u.type === 'custom' && selectedUniverseIds.has(u.id)) ? filteredAndSortedRows.length : (activeUniverse.totalMarketCount ?? 5996)}</b> results
           </span>
 
           <div className="sub-bar-right">
-            <div className="update-time-info">
+            <div className="update-time-info" title={liveSyncSourceLabel || 'Offline fixture/seed mode until sync'}>
               <Clock size={13} />
               <span>last updated at 6:30 AM IST</span>
             </div>
@@ -1071,8 +1110,16 @@ export const App: React.FC = () => {
           </div>
         )}
 
-        {/* Table Area */}
-        <div className="table-wrapper">
+        {/* Table Area (Infinite scroll pagination with page size 20) */}
+        <div
+          className="table-wrapper"
+          onScroll={(e) => {
+            const el = e.currentTarget;
+            if (el.scrollTop + el.clientHeight >= el.scrollHeight - 40 && visibleLimit < filteredAndSortedRows.length) {
+              setVisibleLimit((prev) => Math.min(filteredAndSortedRows.length, prev + 20));
+            }
+          }}
+        >
           <table className="screener-table">
             <thead>
               <tr>
@@ -1117,7 +1164,7 @@ export const App: React.FC = () => {
                   </td>
                 </tr>
               ) : (
-                filteredAndSortedRows.map((stock, idx) => (
+                filteredAndSortedRows.slice(0, visibleLimit).map((stock, idx) => (
                   <tr key={stock.name} onClick={() => setSelectedStock(stock)}>
                     <td className="col-index">{idx + 1}.</td>
                     <td className="col-name">{stock.name}</td>

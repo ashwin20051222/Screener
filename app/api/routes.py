@@ -198,3 +198,31 @@ def get_universe_template():
     """Returns standard header template for user spreadsheets."""
     return {"template_headers": generate_template_headers()}
 
+
+@router.get("/scores/weights")
+def get_scores_weights():
+    """Returns open-approximation quant score weights & formulas from config/scores.yaml."""
+    from app.metrics.scores import scores_config
+    return scores_config()
+
+
+@router.get("/screener/dataset")
+def get_screener_dataset():
+    """Loads live DuckDB screener dataset with provenance metadata if database is synced."""
+    from app.query.db_store import load_market_dataset_from_db
+    return load_market_dataset_from_db()
+
+
+class ScoresComputeRequest(BaseModel):
+    stocks: List[Dict[str, Any]]
+
+
+@router.post("/scores/compute")
+def compute_scores_endpoint(req: ScoresComputeRequest):
+    """Computes open-approximation quant scores for supplied market rows."""
+    from app.metrics.scores import compute_all_quant_scores, scores_config
+    return {
+        "badge": scores_config().get("badge", "Approximate - computed locally"),
+        "scores": compute_all_quant_scores(req.stocks),
+    }
+

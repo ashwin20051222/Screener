@@ -51,3 +51,16 @@ those rules; it grows in step 3 with the full metrics registry.
     interpolation.
 13. Rates: FBIL 3M MIBOR is manual-entry-only, dated by the user's entry; a rate older than
     35 days degrades the badge to "stale manual rate" (warning, still displayed with its date).
+    If absent, F&O `fair_value` and `fair_value_spread` report `Unavailable` rather than falling back to a hardcoded risk-free rate.
+
+## Phase 4–5 Ingestion & Quant Architecture
+
+14. **XBRL Scaling & Sign Conventions:** Live verification of NSE Ind-AS XBRL (`INDAS_*.xml`)
+    confirmed raw monetary values are reported in single INR (multiples of 10^7 compared to Rs Cr);
+    all extracted rupee line items are strictly divided by `10^7` into Rs Crores. Live Shareholding Pattern
+    XBRL (`SHP_*.xml`) stores ownership fractions (e.g. `0.5044`), which `ingest/ownership.py` multiplies by `100` to store percentages (`50.44`).
+15. **Statement Preference:** Consolidated Ind-AS filings (`NatureOfReportStandaloneConsolidated = Consolidated`) take priority over Standalone filings for identical `(isin, fy_end)`, recording `statement_type_used` in `fin_annual`/`fin_quarterly`.
+16. **Banking & Insurance Exclusions:** Companies mapped via `config/sector_map.yaml` to `financial_template: banks | insurers` (plus NBFCs with `is_financial_institution = true`) systematically evaluate `COGS`, `Inventory`, `Current Ratio`, `Quick Ratio`, `Debt to Equity`, and `Cash Conversion Cycle` to `null` (sector-inapplicable) and substitute Net Interest Income Margin + ROA in Fundamental Score health scoring.
+17. **AMFI NAVAll Format:** Live check against `portal.amfiindia.com/spages/NAVAll.txt` observed the updated 8-column semicolon format (`Scheme Code;ISIN Div Payout/ ISIN Growth;ISIN Div Reinvestment;Scheme Name;Plan;Option;Net Asset Value;Date`); the parser handles both 8-column and legacy 6-column records.
+18. **Split/Bonus Continuity:** Pre-ex-date adjusted OHLC series (`px_daily_adjusted`) applies cumulative backward adjustment factors derived from NSE/BSE split ratios (`N:M`) and bonus ratios (`A:B`) while preserving raw bhavcopy `close` unedited for exact audit reconciliation.
+19. **Quant Scores:** All 5 Special Quant Ranks (`price_momentum_rank`, `earnings_quality_rank`, `price_to_intrinsic_value_rank`, `value_momentum_rank`, `fundamental_score`) load transparent parameters from `config/scores.yaml`, compute over `benchmark_scope = market`, and strictly display the `"Approximate - computed locally"` badge.

@@ -108,3 +108,18 @@ def test_api_universe_template():
     assert "template_headers" in res
     assert "Company Name" in res["template_headers"]
     assert "ISIN" in res["template_headers"]
+
+
+def test_api_scores_weights_and_dataset():
+    from app.api.routes import ScoresComputeRequest, compute_scores_endpoint, get_scores_weights, get_screener_dataset
+
+    w = get_scores_weights()
+    assert w["badge"] == "Approximate - computed locally"
+    assert "fundamental_score" in w
+
+    ds = get_screener_dataset()
+    assert "synced" in ds and "rows" in ds
+
+    comp = compute_scores_endpoint(ScoresComputeRequest(stocks=SAMPLE_ROWS))
+    assert comp["badge"] == "Approximate - computed locally"
+    assert set(comp["scores"].keys()) == {"Reliance", "TCS", "HDFC Bank"}

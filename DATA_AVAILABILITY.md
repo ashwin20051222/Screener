@@ -74,8 +74,8 @@ Every metric in the screener is classified into exactly one of four availability
 
 | Publishing Authority | Datasets | Publication Cadence | Automated / Manual |
 |----------------------|----------|---------------------|-------------------|
-| **NSE (National Stock Exchange)** | UDiFF bhavcopy (cash + F&O), security master, F&O lot sizes, corporate filings (XBRL), bulk/block deals, index constituents | Daily at EOD (~18:00 IST) / Monthly / Quarterly | Automated with polite rate limits |
-| **BSE (Bombay Stock Exchange)** | UDiFF bhavcopy, scrip master (ISINs, BSE-only), announcements | Daily at EOD | Automated bhavcopy; scrip master via `data/inbox/` fallback if 403 |
-| **AMFI** | Half-yearly Market Cap classification (Large/Mid/Small 1–100/101–250/251+), ETF TER | Half-yearly (Jan/Jul), monthly | Automated XLSX parser with column-header fallback |
-| **FBIL** | 3-Month Term MIBOR rate | Daily | Manual entry via `data/inbox/fbil_mibor.json` (CAPTCHA/licensing gate) |
-| **SEBI** | SAST disclosures, PIT insider trades | Daily / event-driven | Automated via corporate filings integration |
+| **NSE (National Stock Exchange)** | CM + F&O UDiFF bhavcopy, `EQUITY_L.csv`, `SME_EQUITY_L.csv`, `ind_nifty*list.csv`, `corporate-actions`, `snapshot-capital-market-largedeal`, `corporates-pit`, `corporate-share-holdings-master` (SHP XBRL), `corporates-financial-results` (Ind-AS XBRL) | Daily at EOD / Monthly / Quarterly | Automated with polite session rate limits + `data/inbox/` manual fallback (`SHP_*.xml`, `INDAS_*.xml`, `bulk_deals*.csv`, `block_deals*.csv`, `*insider*.csv`, `SME_EQUITY_L.csv`) |
+| **BSE (Bombay Stock Exchange)** | CM + F&O UDiFF bhavcopy, `EQ_ISINCODE.csv` / `ScripMaster` | Daily at EOD | Automated UDiFF download; stops immediately on 403/WAF and accepts `data/inbox/` drop |
+| **AMFI** | Half-yearly Market Cap classification XLSX (`CATEGORIZATION` header), `NAVAll.txt` (8-column semicolon daily ETF/MF NAVs), monthly TER CSV | Half-yearly (Jan/Jul), Daily (NAVs), Monthly (TER) | Automated parsers + `data/inbox/NAVAll.txt` & `data/inbox/TER_*.csv` fallback |
+| **FBIL** | 3-Month Term MIBOR rate (`F&O Fair Value` benchmark) | Daily | Manual entry via `data/inbox/fbil_mibor.json` (browser/WAF gated; F&O Fair Value degrades gracefully to `Unavailable` if absent) |
+| **SEBI / Exchange Filings** | PIT insider trades & Bulk/Block institutional deals | Daily / event-driven | Automated via NSE corporate filings endpoints (`corporates-pit`, `snapshot-capital-market-largedeal`) + `data/inbox/` fallback |

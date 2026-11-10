@@ -33,8 +33,11 @@ synkinbox: ## process only the manual-import drop zone (data/inbox/)
 status: ## print db photo: per-source as-of dates, security counts, recent jobs
 	$(PYTHON) scripts/db_info.py
 
-run: ## start the app at http://127.0.0.1:8787 (serves API + status; host/port from config/settings.yaml)
+run: ## start the app at http://127.0.0.1:8787 (serves React UI + FastAPI API; host/port from config/settings.yaml)
 	$(PYTHON) -m app.main
+
+web-build: ## build the production React UI served by `make run`
+	cd apps/web && npm run build
 
 test: ## run the offline test suite (fixtures only, never the network)
 	$(PYTHON) -m pytest -q

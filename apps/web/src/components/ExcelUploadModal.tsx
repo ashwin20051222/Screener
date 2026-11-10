@@ -3,7 +3,6 @@ import { Check, Copy, Download, FileSpreadsheet, Upload, X } from 'lucide-react'
 import {
   copyTemplateHeadersToClipboard,
   downloadUniverseTemplate,
-  inspectWorkbookSheets,
   parseSpreadsheet,
   ParsedWorkbookInfo,
 } from '../utils/excelParser';
@@ -78,8 +77,7 @@ export const ExcelUploadModal: React.FC<ExcelUploadModalProps> = ({
     e.stopPropagation();
     setDragActive(false);
     if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-      const file = e.dataTransfer.files[0];
-      handleFileProcess(file);
+      handleFileProcess(e.dataTransfer.files[0]);
     }
   };
 
@@ -95,77 +93,58 @@ export const ExcelUploadModal: React.FC<ExcelUploadModalProps> = ({
   };
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
+    <div className="center-modal-backdrop" onClick={onClose}>
       <div
-        className="modal-container"
-        style={{ width: '640px', maxHeight: '90vh' }}
+        className="center-modal-card"
+        style={{ width: 'min(640px, 92vw)' }}
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Header */}
-        <div className="modal-header">
+        <div className="center-modal-header">
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <FileSpreadsheet size={20} color="var(--primary)" />
-            <h2 className="modal-title">Upload Stock Universe</h2>
+            <FileSpreadsheet size={18} color="var(--link-blue)" />
+            <h3 style={{ fontSize: '16px', fontWeight: 600 }}>Upload Stock Universe</h3>
           </div>
-          <button className="modal-close-btn" onClick={onClose}>
+          <button className="btn-outline" style={{ border: 'none' }} onClick={onClose}>
             <X size={18} />
           </button>
         </div>
 
-        {/* Body */}
-        <div className="modal-body" style={{ padding: '20px 24px', display: 'flex', flexDirection: 'column', gap: '18px' }}>
-          {/* Template helper info banner */}
+        <div className="center-modal-body" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          {/* Template helper banner */}
           <div
             style={{
-              padding: '12px 16px',
-              backgroundColor: 'var(--bg-active)',
-              borderRadius: '8px',
-              fontSize: '13px',
+              padding: '12px 14px',
+              backgroundColor: 'var(--panel-secondary)',
+              borderRadius: '6px',
+              fontSize: '12px',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'space-between',
-              border: '1px solid var(--border-color)',
+              gap: '12px',
+              border: '1px solid var(--border)',
             }}
           >
             <div>
-              <span style={{ fontWeight: 600 }}>Need a template? </span>
-              <span style={{ color: 'var(--text-muted)' }}>Use our pre-configured column headers.</span>
+              <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>Need a template? </span>
+              <span style={{ color: 'var(--text-secondary)' }}>
+                Prefill your sheet using canonical column headers.
+              </span>
             </div>
-            <div style={{ display: 'flex', gap: '8px' }}>
+            <div style={{ display: 'flex', gap: '8px', flexShrink: 0 }}>
               <button
                 type="button"
+                className="btn-outline"
+                style={{ fontSize: '12px', padding: '5px 10px' }}
                 onClick={handleCopyHeaders}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '6px',
-                  padding: '5px 10px',
-                  fontSize: '12px',
-                  background: 'var(--bg-card)',
-                  border: '1px solid var(--border-color)',
-                  borderRadius: '6px',
-                  cursor: 'pointer',
-                  color: 'var(--text-main)',
-                }}
               >
                 {copiedTemplate ? <Check size={14} color="#16a34a" /> : <Copy size={14} />}
                 {copiedTemplate ? 'Copied' : 'Copy Headers'}
               </button>
               <button
                 type="button"
+                className="btn-outline"
+                style={{ fontSize: '12px', padding: '5px 10px' }}
                 onClick={downloadUniverseTemplate}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '6px',
-                  padding: '5px 10px',
-                  fontSize: '12px',
-                  background: 'var(--bg-card)',
-                  border: '1px solid var(--border-color)',
-                  borderRadius: '6px',
-                  cursor: 'pointer',
-                  color: 'var(--text-main)',
-                }}
               >
                 <Download size={14} />
                 Template .xlsx
@@ -181,11 +160,11 @@ export const ExcelUploadModal: React.FC<ExcelUploadModalProps> = ({
             onDrop={handleDrop}
             onClick={() => fileInputRef.current?.click()}
             style={{
-              border: `2px dashed ${dragActive ? 'var(--primary)' : 'var(--border-color)'}`,
-              borderRadius: '12px',
-              padding: '36px 20px',
+              border: `2px dashed ${dragActive ? 'var(--link-blue)' : 'var(--border)'}`,
+              borderRadius: '8px',
+              padding: '38px 20px',
               textAlign: 'center',
-              backgroundColor: dragActive ? 'rgba(0, 102, 255, 0.05)' : 'var(--bg-active)',
+              backgroundColor: dragActive ? 'rgba(37, 99, 235, 0.05)' : 'var(--panel-secondary)',
               cursor: 'pointer',
               transition: 'all 0.15s ease',
             }}
@@ -201,81 +180,71 @@ export const ExcelUploadModal: React.FC<ExcelUploadModalProps> = ({
                 }
               }}
             />
-            <Upload size={32} color="var(--primary)" style={{ margin: '0 auto 10px' }} />
-            <p style={{ fontWeight: 600, fontSize: '14px', marginBottom: '4px' }}>
+            <Upload size={30} color="var(--link-blue)" style={{ margin: '0 auto 10px', display: 'block' }} />
+            <p style={{ fontWeight: 600, fontSize: '14px', marginBottom: '4px', color: 'var(--text-primary)' }}>
               {selectedFile ? selectedFile.name : 'Click to select or drag & drop spreadsheet'}
             </p>
-            <p style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
+            <p style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>
               Supports Excel (.xlsx, .xls) and Comma-Separated Values (.csv)
             </p>
           </div>
 
           {errorMsg && (
-            <div style={{ color: '#dc2626', fontSize: '13px', padding: '8px 12px', background: 'rgba(220, 38, 38, 0.08)', borderRadius: '6px' }}>
+            <div style={{ color: '#dc2626', fontSize: '12px', padding: '8px 12px', background: 'rgba(220, 38, 38, 0.08)', borderRadius: '6px' }}>
               {errorMsg}
             </div>
           )}
 
-          {/* Configuration when file parsed */}
           {parsedInfo && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-              {/* Sheet Selector (if workbook has multiple sheets) */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
               {parsedInfo.sheetNames.length > 1 && (
                 <div>
-                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: 'var(--text-muted)', marginBottom: '6px' }}>
-                    Select Sheet:
+                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '4px' }}>
+                    Select Sheet
                   </label>
                   <select
                     value={selectedSheet}
                     onChange={(e) => handleSheetChange(e.target.value)}
                     style={{
                       width: '100%',
-                      padding: '8px 12px',
-                      borderRadius: '6px',
-                      border: '1px solid var(--border-color)',
-                      background: 'var(--bg-card)',
-                      color: 'var(--text-main)',
-                      fontSize: '13px',
+                      padding: '7px 10px',
+                      borderRadius: '4px',
+                      border: '1px solid var(--border)',
+                      background: 'var(--bg)',
+                      color: 'var(--text-primary)',
                     }}
                   >
                     {parsedInfo.sheetNames.map((sheet) => (
-                      <option key={sheet} value={sheet}>
-                        {sheet}
-                      </option>
+                      <option key={sheet} value={sheet}>{sheet}</option>
                     ))}
                   </select>
                 </div>
               )}
 
-              {/* Identifier Column Selection */}
               <div>
-                <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: 'var(--text-muted)', marginBottom: '6px' }}>
-                  Stock Identifier Column: <span style={{ fontWeight: 400, color: 'var(--primary)' }}>(Auto-detected: {parsedInfo.autoDetectedIdCol})</span>
+                <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '4px' }}>
+                  Stock Identifier Column <span style={{ fontWeight: 400, color: 'var(--link-blue)' }}>(Auto-detected: {parsedInfo.autoDetectedIdCol})</span>
                 </label>
                 <select
                   value={selectedIdCol}
                   onChange={(e) => setSelectedIdCol(e.target.value)}
                   style={{
                     width: '100%',
-                    padding: '8px 12px',
-                    borderRadius: '6px',
-                    border: '1px solid var(--border-color)',
-                    background: 'var(--bg-card)',
-                    color: 'var(--text-main)',
-                    fontSize: '13px',
+                    padding: '7px 10px',
+                    borderRadius: '4px',
+                    border: '1px solid var(--border)',
+                    background: 'var(--bg)',
+                    color: 'var(--text-primary)',
                   }}
                 >
                   {parsedInfo.headers.map((h) => (
-                    <option key={h} value={h}>
-                      {h}
-                    </option>
+                    <option key={h} value={h}>{h}</option>
                   ))}
                 </select>
               </div>
 
-              {/* Detected Custom Columns */}
-              <div style={{ fontSize: '12px', color: 'var(--text-muted)', display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
-                <span>Detected Custom Columns:</span>
+              <div style={{ fontSize: '12px', color: 'var(--text-secondary)', display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+                <span>Custom Columns:</span>
                 {parsedInfo.detectedCustomCols.quantity && (
                   <span style={{ color: '#16a34a', fontWeight: 600 }}>✓ Quantity ({parsedInfo.detectedCustomCols.quantity})</span>
                 )}
@@ -285,22 +254,22 @@ export const ExcelUploadModal: React.FC<ExcelUploadModalProps> = ({
                 {parsedInfo.detectedCustomCols.notes && (
                   <span style={{ color: '#16a34a', fontWeight: 600 }}>✓ Notes ({parsedInfo.detectedCustomCols.notes})</span>
                 )}
+                {!parsedInfo.detectedCustomCols.quantity && !parsedInfo.detectedCustomCols.buy_price && (
+                  <span>None detected</span>
+                )}
               </div>
 
-              <div style={{ fontSize: '13px', color: 'var(--text-main)' }}>
-                <strong>{parsedInfo.rows.length} rows</strong> found in sheet "{selectedSheet}".
+              <div style={{ fontSize: '13px', color: 'var(--text-primary)' }}>
+                <b>{parsedInfo.rows.length} rows</b> ready in sheet "{selectedSheet}".
               </div>
             </div>
           )}
         </div>
 
-        {/* Footer */}
-        <div className="modal-footer" style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px' }}>
-          <button className="btn-cancel" onClick={onClose}>
-            Cancel
-          </button>
+        <div className="center-modal-footer">
+          <button className="btn-outline" onClick={onClose}>Cancel</button>
           <button
-            className="btn-apply"
+            className="btn-primary"
             disabled={!parsedInfo || parsedInfo.rows.length === 0 || isLoading}
             onClick={handleProceed}
           >

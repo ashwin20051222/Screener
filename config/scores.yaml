@@ -1,0 +1,48 @@
+# Quant Score Weights & Parameters (Spec Section 11)
+# All scores are transparent open approximations computed locally over the full listed market.
+badge: "Approximate - computed locally"
+benchmark_scope: "market"
+
+price_momentum_rank:
+  label: "Price Momentum Rank"
+  scale: "0 to 100"
+  weights:
+    abs_12m_return_pct: 0.60
+    rel_subsector_12m_return_pct: 0.40
+
+earnings_quality_rank:
+  label: "Earnings Quality Rank"
+  scale: "0 to 100"
+  weights:
+    net_profit_margin_pct: 0.3333
+    asset_turnover_pct: 0.3333
+    cfo_to_net_income_pct: 0.3334
+
+price_to_intrinsic_value_rank:
+  label: "Price to Intrinsic Value Rank"
+  scale: "0 to 100 (low P/IV -> high rank)"
+  models:
+    - "Graham EPS: EPS * (8.5 + 2 * clamp(EPS_5Y_CAGR%, 0, 20))"
+    - "FCF Perpetuity: (FCF_per_share * (1 + g)) / (r - g)"
+    - "Dividend Gordon Growth: (DPS * (1 + g)) / (r - g)"
+  parameters:
+    discount_rate: 0.11
+    terminal_growth: 0.04
+    graham_default_growth_pct: 8.0
+    graham_max_growth_pct: 20.0
+
+value_momentum_rank:
+  label: "Value Momentum Rank"
+  scale: "0 to 100"
+  weights:
+    growth_adjusted_pe_vs_sector_pct: 0.50
+    price_momentum_rank: 0.50
+
+fundamental_score:
+  label: "Fundamental Score"
+  scale: "1.0 to 10.0 (within-sector composite)"
+  pillar_weights:
+    valuation: 0.25        # PE premium vs sector, PB premium vs sector (inverted)
+    profitability: 0.30    # ROE, ROCE, Net Profit Margin
+    growth: 0.25           # 5Y Revenue CAGR, 5Y EPS CAGR
+    financial_health: 0.20 # Industrials: Debt/Equity (inv) + Interest Coverage; Banks: NII margin + ROA + ROE

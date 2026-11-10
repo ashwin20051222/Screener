@@ -4,9 +4,11 @@ from __future__ import annotations
 import html as _html
 import logging
 from contextlib import asynccontextmanager
+from pathlib import Path
 
 from fastapi import FastAPI
-from fastapi.responses import HTMLResponse
+from fastapi.responses import FileResponse, HTMLResponse
+from fastapi.staticfiles import StaticFiles
 import duckdb
 
 from app import db, scheduler
@@ -115,8 +117,21 @@ _EMPTY_JOBS = _row("no sync jobs recorded yet")
 _EMPTY_PX = _row("no price data yet — running sync will fill this in")
 
 
-@app.get("/")
+_WEB_DIST = Path(__file__).resolve().parents[1] / "apps" / "web" / "dist"
+if (_WEB_DIST / "assets").is_dir():
+    app.mount("/assets", StaticFiles(directory=str(_WEB_DIST / "assets")), name="web-assets")
+
+
+@app.get("/", response_model=None)
 def index():
+    index_html = _WEB_DIST / "index.html"
+    if index_html.is_file():
+        return FileResponse(str(index_html))
+    return HTMLResponse(status_page())
+
+
+@app.get("/status", response_class=HTMLResponse)
+def status_page():
     try:
         st = sources.status_report()
         locked = False

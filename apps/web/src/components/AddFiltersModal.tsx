@@ -110,7 +110,7 @@ export const AddFiltersModal: React.FC<AddFiltersModalProps> = ({
                   setSearchQuery('');
                 }}
               >
-                <span>{cat === 'Special' ? 'Tickertape Special' : cat}</span>
+                <span>{cat === 'Special' ? 'Quant Special' : cat}</span>
                 {isActive && <ChevronRight size={14} />}
               </div>
             );
@@ -143,43 +143,56 @@ export const AddFiltersModal: React.FC<AddFiltersModalProps> = ({
                 filteredItems.map(filter => {
                   const isChecked = activeFilterIds.includes(filter.id);
                   const hasData = loadedFilterIds.has(filter.id);
+                  const isUnavailable = filter.availability === 'Unavailable';
+                  const isApprox = filter.availability === 'Approximate';
 
                   return (
                     <label key={filter.id} className="modal-filter-item">
-                      {filter.locked_in_original ? (
-                        <span title="Locked in original (unlocked in this replica)">
-                          <input
-                            type="checkbox"
-                            checked={isChecked}
-                            onChange={e => onToggleFilter(filter.id, e.target.checked)}
-                          />
-                        </span>
-                      ) : (
-                        <input
-                          type="checkbox"
-                          checked={isChecked}
-                          onChange={e => onToggleFilter(filter.id, e.target.checked)}
-                        />
-                      )}
-                      <span style={{ flex: 1 }}>{filter.name}</span>
-                      {filter.locked_in_original && (
-                        <span title="Premium in original" style={{ display: 'inline-flex', alignItems: 'center' }}>
-                          <Lock size={12} className="modal-filter-lock" />
-                        </span>
-                      )}
-                      {!hasData && (
+                      <input
+                        type="checkbox"
+                        checked={isChecked}
+                        onChange={e => onToggleFilter(filter.id, e.target.checked)}
+                      />
+                      <span style={{ flex: 1 }} title={filter.formula || filter.name}>{filter.name}</span>
+                      {isApprox && (
                         <span
                           style={{
-                            fontSize: '11px',
+                            fontSize: '10px',
+                            color: '#b45309',
+                            background: 'rgba(245, 158, 11, 0.14)',
+                            padding: '2px 6px',
+                            borderRadius: '3px',
+                            fontWeight: 500,
+                          }}
+                        >
+                          Approximate - computed locally
+                        </span>
+                      )}
+                      {isUnavailable ? (
+                        <span
+                          style={{
+                            fontSize: '10px',
+                            color: '#6b7280',
+                            background: 'var(--tag-bg)',
+                            padding: '2px 6px',
+                            borderRadius: '3px',
+                          }}
+                        >
+                          Not available from official sources
+                        </span>
+                      ) : !hasData ? (
+                        <span
+                          style={{
+                            fontSize: '10px',
                             color: 'var(--text-muted)',
                             background: 'var(--tag-bg)',
                             padding: '2px 6px',
                             borderRadius: '3px',
                           }}
                         >
-                          no data
+                          awaiting sync
                         </span>
-                      )}
+                      ) : null}
                     </label>
                   );
                 })
@@ -204,7 +217,7 @@ export const AddFiltersModal: React.FC<AddFiltersModalProps> = ({
           <span>
             {isYourFilters
               ? 'See how to create Your Filters'
-              : `Learn more about ${selectedCategory === 'Special' ? 'Tickertape Special' : selectedCategory}`}
+              : `Learn more about ${selectedCategory === 'Special' ? 'Quant Special' : selectedCategory}`}
           </span>
         </div>
         <button className="btn-primary" onClick={onClose}>

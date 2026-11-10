@@ -1,18 +1,20 @@
-# ScreenerDesk — offline-first Indian stock screener (Tickertape-style, own build)
+# ScreenerDesk — offline-first Indian stock screener
 
-A local, offline-first replica of the Tickertape stock-screening experience — original
+A local, offline-first Indian stock-screening workbench — original
 branding ("ScreenerDesk"), no login, nothing locked/premium — built strictly on
 **official data sources**: NSE, BSE, AMFI, FBIL, SEBI/exchange filing formats. Nothing is
 scraped from aggregators; anything not publicly available is **badged "Not available from
-official sources"** rather than estimated.
+official sources"** rather than estimated. Quant ranks use transparent local approximations badged
+**"Approximate - computed locally"**.
 
 ## Quick start
 
 ```bash
-make install      # creates .venv (python 3.12) + installs requirements
+make install      # creates .venv (python 3.12) + installs Python requirements
+make web-build    # builds the React SPA into apps/web/dist/
 make sync-weekly  # first-time data pull (masters + classifications); needs network ONCE
 make sync-daily   # pulls yesterday's exchange bhavcopies + corporate actions
-make run          # opens the app at http://127.0.0.1:8787
+make run          # serves both the React SPA and API at http://127.0.0.1:8787
 ```
 
 After the first sync the app runs **fully offline**: price/master data is cached in
@@ -31,6 +33,7 @@ speculation.
 | `make sync-weekly` | security masters (NSE eq/ETF, F&O lots), index constituents, AMFI market-cap classification, manual FBIL rate check, inbox-processing first |
 | `make synkinbox` | only processes manual drops in `data/inbox/` (read its README) |
 | `make status` | prints per-source as-of dates, security counts, recent job results |
+| `make web-build` | installs/builds production frontend bundle (`apps/web/dist`) |
 | `make test` | offline pytest suite (no network) |
 
 Official-site blocks? BSE's master API and FBIL download portal deny bots. The designed
@@ -40,36 +43,38 @@ in `data/inbox/`. Full route list + rationale in [`DATA_SOURCES.md`](DATA_SOURCE
 ## Layout
 
 ```
-config/       endpoints.yaml (verified data endpoints + statuses/ToS), settings.yaml, sector_map.yaml
-app/          FastAPI app, DuckDB schema + upsert layer, scheduler (IST), /health + /api/meta/status
-ingest/       http (polite, throttled, caches to data/raw), udiff (34-col UDiFF parser),
-              nse.py, bse.py, amfi.py, fbil.py, inbox.py, sources.py (daily/weekly orchestrator)
+registry/     filters.yaml — single source of truth for all 255 filters across 13 categories + custom formulas
+config/       endpoints.yaml, settings.yaml, sector_map.yaml, scores.yaml
+app/          FastAPI app serving built SPA (/), /status, /health, /api/filters, /api/screener/*, /api/scores/*
+              metrics/ (formulas, technicals, benchmarks, custom parser, quant scores)
+              query/ (DuckDB snapshot builder & filter/sort engine), universe/ (Excel upload & 5-tier matcher)
+apps/web/     Vite + React 18 + TypeScript SPA (dist/ served directly by FastAPI)
+ingest/       http, udiff, nse, bse, amfi, fbil, inbox, adjuster, reconcile, fno_metrics,
+              ownership, xbrl, financials, technicals_job, etf, sources
 scripts/      sync_daily.py, sync_weekly.py, sync_inbox.py, db_info.py
-tests/        offline pytest suite: parser, DB upserts, masters, AMFI, scheduler cron mapping
-data/         raw/<source>/ (official files, traceable), cache/, inbox/ (manual imports),
-              processed/ (archived inbox files), screener.db (DuckDB)
-docs          README, DATA_SOURCES.md, DATA_AVAILABILITY.md, METRICS.md, ASSUMPTIONS.md, CHECKLIST.md
+tests/        offline pytest suite (golden metrics, matcher, XBRL, F&O, ownership, technicals, quant scores, 6,500-stock perf)
+data/         raw/<source>/ (official files, traceable), cache/, inbox/, processed/, screener.db (DuckDB)
+docs          README, DATA_SOURCES, DATA_AVAILABILITY, METRICS, ASSUMPTIONS, CHANGELOG, CHECKLIST, VISUAL_QA
 ```
 
 ## Product stance
 
-- **Official sources only.** NSE/BSE bhavcopies, NSE masters/index lists, AMFI
-  categorisation, FBIL manual entry, NSE corporate filings (step 6). See DATA_SOURCES.
+- **Official sources only.** NSE/BSE CM + F&O bhavcopies, NSE masters/SME/index lists, AMFI
+  categorisation & NAV/TER, FBIL manual entry, NSE Shareholding & Ind-AS XBRL filings. See `DATA_SOURCES.md`.
 - **Provenance on every value.** Raw files cached + sha-256'd; every number carries a source
-  tooltip + as-of date; jobs are traceable in `ingest_status`.
+  tooltip + as-of date in the stock drawer and API dataset; jobs are traceable in `ingest_status`.
 - **Benchmarks vs. filters.** All sector medians / percentiles / quant scores are computed
   over the **full listed market** (`benchmark_scope: market`); your Excel stock universe
-  (step 5) governs what's filtered. Sliders bound to your universe; Low/Mid/High presets are
+  governs what's filtered. Sliders bound to your universe; Low/Mid/High presets are
   tertiles (or AMFI's official MC ranks).
-- **Local-only.** No login, no telemetry, nothing premium; localhost by default on port
-  8787.
+- **Local-only.** No login, no telemetry, nothing locked; localhost by default on port
+  8787 (`http://127.0.0.1:8787`, diagnostics at `/status`).
 - **Personal-use compliance.** We identify our client, rate-limit generously, respect 403s,
   cache rather than re-fetch, and redistribute nothing.
 
 ## Roadmap
 
-Tracked in [`CHECKLIST.md`](CHECKLIST.md). Currently at **step 2 of 8** (data ingestion
-finished; registry/API/frontend steps land next, with stop-gate approvals between steps).
+All build phases (Phases 0–5, Steps 1–8 in [`CHECKLIST.md`](CHECKLIST.md)) are **complete** and tagged `replica-v1`.
 
 ## Dev notes
 

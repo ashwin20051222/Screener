@@ -14,26 +14,32 @@
       exhausted; DNS blip observed) -> per design, manual inbox drop is the fallback;
       BSE: 403 (publisher blocked, stops immediately — never evaded); FBIL: manual JSON
       inbox only.
-- [ ] **Step 3 — One filter registry + metrics engine**: `config/metrics_registry.yaml`,
-      `app/metrics/` with tested golden-number cases (spec section 8), include CAGR,
-      returns/premiums, EMA smoothing, OBV, Sharpe (1.34 reference), bank net-loans template;
-      auto-generated glossary + column set.
-- [ ] **Step 4 — Screener API + query engine**: DuckDB-backed filter engine (benchmark scope
-      = full market; filtering = active universe), presets (tertiles, AMFI MC bands),
-      winsorized display bounds, ranking, `/api/screener`, source+as-of badges on every value.
-- [ ] **Step 5 — Excel stock-universe upload**: parse user's xlsx (ISIN/symbol/name matching
-      chain), fuzzy fallback with threshold from settings, active-universe caching, slider
-      bounds from universe, 300px filter-panel + filter cards + Low/Mid/High, add-filter HSE
-      modal, results table (sticky header, column picker, 45px rows, 20-page infinite scroll):
-      React frontend in step 5-6.
-- [ ] **Step 6 — Official filings**: XBRL financials ingestion (quarterly), ownership, bulk
-      deals; ingest + badges + balance-sheet/cash-flow filter families per templates (bank
-      net loans, insurer).
-- [ ] **Step 7 — Docs + glossary finalization**: DATA_SOURCES.md updates after live
-      verification of all step-6 endpoints; final METRICS registry table; user guide; in-app
-      glossary pages.
-- [ ] **Step 8 — Golden tests + polish**: full spec-section-8 test battery green; UX checks
-      against the reference screenshots in `Images/`; `make run` end-to-end pass.
+- [x] **Step 3 — One filter registry + metrics engine**: `registry/filters.yaml` (255 filters),
+      `app/metrics/` (`formulas.py`, `technicals.py`, `benchmarks.py`, `parser.py`, `scores.py`)
+      with tested golden-number cases (Section 12), including CAGR, returns/premiums, EMA smoothing,
+      OBV, Sharpe (`1.34` reference), bank net-loans template, and Section 11 Quant Scores;
+      auto-generated glossary + column set (`METRICS.md`).
+- [x] **Step 4 — Screener API + query engine**: DuckDB-backed snapshot builder & query engine
+      (`app/query/engine.py`, `app/query/db_store.py`, benchmark scope = full market; filtering =
+      active universe), presets (tertiles, AMFI MC bands), `/api/screener/dataset`, `/api/scores/*`,
+      source + as-of badges on every value.
+- [x] **Step 5 — Excel stock-universe upload**: parse user `.xlsx`/`.xls`/`.csv` via 5-tier
+      ISIN/NSE/BSE/Normalized-Name/RapidFuzz cascade (`app/universe/matcher.py`), active-universe
+      management, Portfolio P&L calculator, 300px-class left filter panel + sliders + presets,
+      Add Filters modal, sticky results table with infinite scroll (page size 20) & column picker (`⊕`).
+- [x] **Step 6 — Official filings & connectors (Phases 4.1–4.7)**: NSE/BSE CM + F&O UDiFF
+      bhavcopy, security masters + SME master, corporate actions + split/bonus price adjuster,
+      F&O derived metrics (28 metrics), Ownership XBRL + Bulk/Block + PIT insider trades, Ind-AS
+      XBRL financials with 4 sector templates + quarantine integrity check, 33 technical indicators
+      EOD job, AMFI ETF NAV + TER + 1Y tracking error, `data/inbox/` fallback handlers, and 10-stock
+      exchange reconciliation.
+- [x] **Step 7 — Docs + glossary finalization**: `DATA_SOURCES.md` live-verified across all Phase 4
+      endpoints (2026-11-10), `DATA_AVAILABILITY.md` honest availability breakdown, final
+      `METRICS.md` (with Section 11 weights/formulas), `ASSUMPTIONS.md`, `CHANGELOG.md`,
+      `README.md`, and in-app category glossary pages.
+- [x] **Step 8 — Golden tests + polish (`replica-v1`)**: Full pytest suite, 6,500-stock performance
+      benchmark (`tests/test_performance.py`), Vite SPA built & served on `:8787`, headless visual
+      QA verified at `1750 × 925` (`VISUAL_QA.md`), tagged `replica-v1`.
 
 Run every step with `make run` (server) and `make test` (offline suite). Data ops:
 `make sync-daily` / `make sync-weekly` / `make synkinbox` / `make status`.

@@ -15,6 +15,9 @@ export interface FilterDefinition {
   availability: AvailabilityStatus;
   formula?: string;
   frequency?: string;
+  null_rule?: string;
+  direction_of_goodness?: string;
+  glossary?: string;
 }
 
 export interface FilterState {

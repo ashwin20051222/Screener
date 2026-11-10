@@ -1,7 +1,7 @@
 # METRICS.md — Metrics & Filter Registry Specification
 
-> **Version:** 2.0 (Phase 2)
-> **Source of Truth:** `registry/filters.yaml`
+> **Version:** 5.0 (Phase 5 / `replica-v1`)
+> **Source of Truth:** `registry/filters.yaml` & `config/scores.yaml`
 > **Total Filters:** 255 across 13 Categories
 
 ---
@@ -14,11 +14,11 @@
   - `Q0`: Latest reported quarter
   - `TTM`: Trailing Twelve Months (sum of trailing 4 quarters)
   - `P`: Latest closing price from official exchange bhavcopy
-  - `MC`: Market Capitalization in ₹ Crores ( 	imes 	ext{Shares Outstanding} / 10^7$)
+  - `MC`: Market Capitalization in Rs Crores (`Close * Shares Outstanding / 10^7`)
 - **Averages & Compound Growth:**
-  - $	ext{avg2}(x) = rac{x[FY0] + x[FY-1]}{2}$
-  - $	ext{avg5}(x) = rac{1}{5} \sum_{i=0}^{4} x[FY-i]$
-  - $	ext{CAGR}_n(x) = \left(rac{x[FY0]}{x[FY-n]}ight)^{1/n} - 1$ (Evaluates to `null` if start or end $\le 0$)
+  - `avg2(x) = (x[FY0] + x[FY-1]) / 2`
+  - `avg5(x) = (1/5) * sum_{i=0..4}(x[FY-i])`
+  - `CAGR_n(x) = (x[FY0] / x[FY-n])^(1/n) - 1` (Evaluates to `null` if start or end `<= 0`)
 - **Trading Windows:**
   - `1W`: 5 trading days
   - `1M`: 20 trading days (4 weeks for returns)
@@ -354,4 +354,33 @@
 | `sector_dividend_yield` | Sector Dividend Yield | % | neutral | Null if fewer than 2 peers exist in the sector | Median of positive Dividend Yields across sector | `Computed-from-official` |
 | `sector_pb` | Sector PB | - | neutral | Null if fewer than 2 peers exist in the sector | Median of positive PB ratios across sector | `Computed-from-official` |
 | `sector_pe` | Sector PE | - | neutral | Null if fewer than 2 peers exist in the sector | Median of positive PE ratios across sector | `Computed-from-official` |
+
+---
+
+## 3. Section 11 Quant Scores Specification (`config/scores.yaml`)
+
+> **Badge:** `Approximate - computed locally`
+> **Engine:** [`app/metrics/scores.py`](app/metrics/scores.py) (served via `/api/scores/weights` & `/api/scores/compute`)
+> **Scope:** Computed cross-sectionally over the full listed market (`benchmark_scope: "market"`) using rank-based percentile scoring (`0.0–100.0`, mid-rank averaging on ties). Missing sub-components are re-weighted over available components unless all inputs for a score are `null`.
+
+1. **Price Momentum Rank (`price_momentum_rank`, 0–100):**
+   - `0.60 * pct(1Y Return) + 0.40 * pct(1Y Return - Sub-sector Median 1Y Return)`
+2. **Earnings Quality Rank (`earnings_quality_rank`, 0–100):**
+   - Equal-weight (`0.3333 / 0.3333 / 0.3334`) mix of `pct(Net Profit Margin)`, `pct(Asset Turnover Ratio)`, and `pct(CFO / Net Income)` (valid when `Net Income > 0`).
+3. **Price to Intrinsic Value Rank (`price_to_intrinsic_value_rank`, 0–100):**
+   - Inverted percentile rank of `Close / IV` (lower `P/IV` ranks higher).
+   - `IV` = median of available models using `r = 0.11`, `g_term = 0.04`:
+     - **Graham EPS:** `EPS * (8.5 + 2 * clamp(5Y EPS Growth %, 0, 20))` (defaults to `8.0%` growth if 5Y EPS growth missing and `EPS > 0`)
+     - **FCF Perpetuity:** `(FCF_per_share * (1 + g_term)) / (r - g_term)` where `FCF = CFO - CapEx > 0`
+     - **Dividend Gordon Growth:** `(DPS * (1 + g_term)) / (r - g_term)` where `DPS > 0`
+4. **Value Momentum Rank (`value_momentum_rank`, 0–100):**
+   - `0.50 * inv_pct(PE Premium vs Sector - 0.5 * 5Y Growth) + 0.50 * Price Momentum Rank`
+5. **Fundamental Score (`fundamental_score`, 1.0–10.0 within-sector):**
+   - Weighted pillar composite across market percentiles, then mapped linearly (`1.0 + 9.0 * sector_pct / 100.0`) within each `sector`:
+     - **Valuation (`0.25`):** inverted PE premium/ratio (`0.50`) + inverted PB premium/ratio (`0.50`)
+     - **Profitability (`0.30`):** ROE (`0.40`) + ROA [financials] or ROCE [non-financials] (`0.35`) + Net Profit Margin (`0.25`)
+     - **Growth (`0.25`):** 5Y (fallback 1Y) Revenue Growth (`0.50`) + 5Y (fallback 1Y) EPS Growth (`0.50`)
+     - **Financial Health (`0.20`):**
+       - *Non-financials:* inverted Debt-to-Equity (`0.50`) + Interest Coverage (`0.50`)
+       - *Financial Institutions (`is_financial_institution` or `sector == "Financials"`):* Net Interest Income Margin (`0.50`) + ROA (`0.50`)
 

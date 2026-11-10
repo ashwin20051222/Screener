@@ -94,7 +94,7 @@
    - Share button (↗️) opens Saved Screens modal with localStorage persistence.
    - Screen configuration exportable as downloadable `.json` file and copyable to clipboard.
    - Supports importing screen `.json` files.
-   - Includes 4 built-in pre-built screens (Low-Debt Midcaps, High ROE + Low PE, High Dividend Yield, Strong Momentum).
+   - Includes all 8 built-in pre-built screens (`High ROE + Low PE`, `Low-Debt Midcaps`, `High Dividend Yield`, `Strong Momentum`, `Near 52W Lows`, `Promoter Buying`, `F&O Long Buildup`, `Debt-free Smallcaps`).
 3. **In-App Glossary:**
    - 📗 "Learn more about [Category]" opens dedicated modal.
    - Displays formulas, availability status tags (`Official-direct`, `Computed-from-official`, `Approximate`, `Unavailable`), frequencies, and units.
@@ -116,3 +116,19 @@
 | 4. Known visual deviations | — | **0 (Zero)** | Full parity achieved |
 
 **Sign-off:** Phase 1 visual replica is complete, fully functional, and ready for review at **STOP GATE 1**.
+
+---
+
+## 6. Phase 3 & Phase 5 Visual QA (Modals, Drawer, Badges, Quant Special)
+
+Re-verified against the production Vite build served from FastAPI on `http://127.0.0.1:8787` at `1750 × 925`:
+
+| View | Capture Artifact | Verification Highlights | Status |
+|------|------------------|-------------------------|--------|
+| **Excel Upload Modal** | `phase3_upload_modal.png` | Centered `.center-modal-card` backdrop, drag/drop zone, sheet selector, identifier column picker, copyable template headers | **PASSED** |
+| **Match Report Modal** | `phase3_match_report.png` | Summary counters (`25 Matched`, `2 Ambiguous`, `3 Unmatched`), candidate selection dropdowns, manual match picker, Portfolio P&L summary | **PASSED** |
+| **Quant Special Modal** | `phase5_quant_special.png` | Category renamed to `Quant Special` (zero third-party branding), `Approximate - computed locally` amber pills, clean checkbox alignment | **PASSED** |
+| **Analyst Unavailable Badges** | `phase5_unavailable_badges.png` | Honest `"Not available from official sources"` pills in modal & drawer with zero fabricated target/rating values | **PASSED** |
+| **Stock Detail Drawer** | `phase5_drawer.png` | Slide-out drawer with source + as-of tooltips, Quant Special breakdown (`Approximate - computed locally`), and unavailable metrics panel | **PASSED** |
+
+**Final Sign-off (`replica-v1`):** Zero visual deviations across all Phase 1, Phase 3, and Phase 5 screens.
