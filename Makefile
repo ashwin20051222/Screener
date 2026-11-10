@@ -6,7 +6,7 @@ PIP      := $(VENV)/bin/pip
 PYTHON   := $(VENV)/bin/python
 
 .DEFAULT_GOAL := help
-.PHONY: help venv install sync-daily sync-weekly synkinbox status coverage run web-build test clean
+.PHONY: help venv install sync-daily sync-weekly sync-shp synkinbox status coverage run web-build test clean
 
 help: ## show this help
 	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z_-]+:.*?## / {printf "  \033[36m%-12s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST)
@@ -26,6 +26,10 @@ sync-daily: ## daily EOD sync: walk back for published bhavcopies (NSE CM+FO, BS
 
 sync-weekly: ## weekly: inbox imports first, then equity/ETF masters, F&O lots, index lists, AMFI, FBIL
 	$(PYTHON) scripts/sync_weekly.py
+
+UNIVERSE ?= nifty100
+sync-shp: ## unblock Market Cap via official PR MCAP bulk shares + resumable SHP XBRL (UNIVERSE=nifty100|nifty500|all)
+	$(PYTHON) scripts/sync_shp.py --universe $(UNIVERSE)
 
 synkinbox: ## process only the manual-import drop zone (data/inbox/)
 	$(PYTHON) scripts/sync_inbox.py

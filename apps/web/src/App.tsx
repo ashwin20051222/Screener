@@ -1331,7 +1331,9 @@ export const App: React.FC = () => {
                       const prov = stock._provenance || {};
                       const cellTooltip = val === null || val === undefined
                         ? `${fDef?.name || colId}: ${formatMissingFeedReason(fDef?.feeds)}`
-                        : `${fDef?.name || colId}: ${formatIndianNumber(val)} | Source: ${prov.price_source || fDef?.feeds || 'official'} | As of: ${prov.price_as_of || 'fixture'}`;
+                        : colId === 'market_cap'
+                          ? `Market Cap: ${formatIndianNumber(val)} Rs Cr | Shares: ${prov.shares_source || 'official'} (${prov.shares_as_of || 'n/a'}) | Price: ${prov.price_source || 'NSE'} (${prov.price_as_of || 'n/a'})`
+                          : `${fDef?.name || colId}: ${formatIndianNumber(val)} | Source: ${prov.price_source || fDef?.feeds || 'official'} | As of: ${prov.price_as_of || 'fixture'}`;
                       return (
                         <td key={colId} title={cellTooltip}>
                           {formatIndianNumber(val)}

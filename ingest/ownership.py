@@ -135,6 +135,11 @@ def parse_shp_xbrl(payload: bytes, *, symbol: Optional[str] = None, isin: Option
     # Promoter Pledged / Encumbered %
     prom_shares = _shares_from_ctx("ShareholdingOfPromoterAndPromoterGroup_ContextI")
     tot_shares = _shares_from_ctx("ShareholdingPattern_ContextI", "PublicShareholding_ContextI")
+    if tot_shares is None:
+        s_pub = _shares_from_ctx("PublicShareholding_ContextI") or 0
+        s_np = _shares_from_ctx("SharesHeldByNonPromotersNonPublic_ContextI") or 0
+        tot_sum = (prom_shares or 0) + s_pub + s_np
+        tot_shares = tot_sum if tot_sum > 0 else None
     pledged_shares = None
     prom_ctx = by_ctx.get("ShareholdingOfPromoterAndPromoterGroup_ContextI", {})
     for k in ("NumberOfSharesPledgedOrOtherwiseEncumbered", "NumberOfSharesEncumbered"):
@@ -184,6 +189,7 @@ def parse_shp_xbrl(payload: bytes, *, symbol: Optional[str] = None, isin: Option
         "retail_pct": retail_pct,
         "insurance_pct": ins_pct,
         "no_of_shareholders": no_sh,
+        "shares_outstanding": tot_shares,
         "source": "NSE SHP XBRL",
     }
 
@@ -192,7 +198,20 @@ def sync_shareholding_xbrl_from_bytes(con, payload: bytes, *, symbol: Optional[s
     row = parse_shp_xbrl(payload, symbol=symbol, isin=isin)
     if not row["symbol"]:
         return {"status": "fail", "message": "symbol missing from SHP XBRL"}
+    sh_out = row.pop("shares_outstanding", None)
     n = db.upsert_rows(con, "ownership_quarterly", [row], keys=["symbol", "quarter_end"])
+    if sh_out and sh_out > 0:
+        con.execute(
+            """
+            UPDATE ref_security
+            SET shares_outstanding = COALESCE(?, shares_outstanding),
+                shares_source = COALESCE(shares_source, 'NSE SHP XBRL'),
+                shares_as_of = COALESCE(shares_as_of, ?),
+                updated_at = current_timestamp
+            WHERE nse_symbol = ?
+            """,
+            [sh_out, row["quarter_end"], row["symbol"]],
+        )
     db.upsert_rows(con, "raw_files", [{
         "sha256": hashlib.sha256(payload).hexdigest(),
         "source": "NSE-SHP",
@@ -201,26 +220,163 @@ def sync_shareholding_xbrl_from_bytes(con, payload: bytes, *, symbol: Optional[s
         "bytes": len(payload),
         "rows": n,
     }], keys=["sha256"])
-    return {"status": "ok", "rows": n, "symbol": row["symbol"], "quarter_end": str(row["quarter_end"])}
+    return {
+        "status": "ok",
+        "rows": n,
+        "symbol": row["symbol"],
+        "quarter_end": str(row["quarter_end"]),
+        "shares_outstanding": sh_out,
+    }
 
 
-def sync_shareholding_for_symbol(con, symbol: str, *, max_quarters: int = 3) -> dict:
+def ordered_universe_symbols(con, universe: str = "nifty100") -> List[str]:
+    """Returns NSE symbols prioritized as: NIFTY100 -> rest of NIFTY500 -> remaining listed."""
+    def _latest_idx_syms(idx_name: str) -> List[str]:
+        return [
+            r[0] for r in con.execute(
+                """
+                SELECT r.symbol
+                FROM ref_index_constituent r
+                JOIN (SELECT MAX(as_of) AS max_dt FROM ref_index_constituent WHERE index_name = ?) m
+                  ON r.as_of = m.max_dt
+                WHERE r.index_name = ? AND r.symbol IS NOT NULL
+                ORDER BY r.symbol
+                """,
+                [idx_name, idx_name],
+            ).fetchall()
+        ]
+
+    n100 = _latest_idx_syms("NIFTY100")
+    n500 = _latest_idx_syms("NIFTY500")
+    all_syms = [
+        r[0] for r in con.execute(
+            "SELECT DISTINCT nse_symbol FROM ref_security WHERE nse_symbol IS NOT NULL AND COALESCE(listing_status, 'listed') <> 'delisted' ORDER BY nse_symbol"
+        ).fetchall()
+    ]
+
+    seen: set[str] = set()
+    ordered: List[str] = []
+
+    def _add(items: List[str]):
+        for s in items:
+            if s and s not in seen:
+                seen.add(s)
+                ordered.append(s)
+
+    uni = (universe or "nifty100").lower().strip()
+    if uni == "nifty100":
+        _add(n100)
+        return ordered if ordered else all_syms[:100]
+    if uni == "nifty500":
+        _add(n100)
+        _add(n500)
+        return ordered if ordered else all_syms[:500]
+    _add(n100)
+    _add(n500)
+    _add(all_syms)
+    return ordered
+
+
+def sync_shareholding_for_symbol(
+    con,
+    symbol: str,
+    *,
+    max_quarters: int = 3,
+    session=None,
+) -> dict:
     """Fetches NSE shareholding master list & up to `max_quarters` official SHP XBRL files."""
-    s = bootstrap_nse_session()
+    s = session or bootstrap_nse_session()
     url = f"https://www.nseindia.com/api/corporate-share-holdings-master?index=equities&symbol={symbol}"
-    data = fetch_json(url, source="nse-api", session=s)
+    r_meta = http.fetch(url, source="nse-api", session=s)
+    if r_meta.blocked():
+        return {"status": "blocked", "symbol": symbol, "message": r_meta.error or "http:403"}
+    if not r_meta.ok():
+        return {"status": "skip", "symbol": symbol, "message": f"no shareholding master data ({r_meta.error})"}
+    try:
+        data = json.loads(r_meta.bytes)
+    except Exception:
+        return {"status": "skip", "symbol": symbol, "message": "non-JSON shareholding master"}
     if not isinstance(data, list) or not data:
         return {"status": "skip", "symbol": symbol, "message": "no shareholding master data"}
     saved = 0
+    shares_updated = False
     for entry in data[:max_quarters]:
         x_url = entry.get("xbrl")
         if not x_url:
             continue
         r = http.fetch(x_url, source="nse-shp", session=s, save_name=f"SHP_{symbol}_{entry.get('date','')}.xml")
+        if r.blocked():
+            return {"status": "blocked", "symbol": symbol, "quarters": saved, "message": r.error or "http:403"}
         if r.ok():
-            sync_shareholding_xbrl_from_bytes(con, r.bytes, symbol=symbol, isin=entry.get("isin"))
+            x_res = sync_shareholding_xbrl_from_bytes(con, r.bytes, symbol=symbol, isin=entry.get("isin"))
             saved += 1
-    return {"status": "ok", "symbol": symbol, "quarters": saved}
+            if x_res.get("shares_outstanding"):
+                shares_updated = True
+    return {"status": "ok", "symbol": symbol, "quarters": saved, "shares_updated": shares_updated}
+
+
+def sync_shp_batch(
+    con,
+    universe: str = "nifty100",
+    *,
+    resume: bool = True,
+    max_quarters: int = 1,
+    max_symbols: int | None = None,
+) -> dict:
+    """Resumable sequential SHP sync ordered NIFTY100 -> NIFTY500 -> rest; stops on 403/429."""
+    t0 = datetime.now()
+    symbols = ordered_universe_symbols(con, universe)
+    if max_symbols is not None:
+        symbols = symbols[:max_symbols]
+
+    done = db.get_progress_keys(con, "sync_shp", statuses=("ok",)) if resume else set()
+    s = bootstrap_nse_session()
+    processed = 0
+    skipped = 0
+    failed = 0
+    blocked = False
+
+    for sym in symbols:
+        if sym in done:
+            skipped += 1
+            continue
+        res = sync_shareholding_for_symbol(con, sym, max_quarters=max_quarters, session=s)
+        if res.get("status") == "blocked":
+            db.mark_progress(con, "sync_shp", sym, "fail", res.get("message", "403/429"))
+            log.error(
+                "NSE returned 403/429 at %s. Respecting publisher limits — stopping immediately.\n"
+                "Manual fallback: download SHP XBRL files in your browser as data/inbox/SHP_<symbol>.xml "
+                "or daily PR archive as data/inbox/PRddmmyy.zip and run `make synkinbox`.",
+                sym,
+            )
+            blocked = True
+            failed += 1
+            break
+        if res.get("status") == "ok" and res.get("quarters", 0) > 0:
+            db.mark_progress(con, "sync_shp", sym, "ok", f"q={res['quarters']}")
+            processed += 1
+        else:
+            db.mark_progress(con, "sync_shp", sym, "skip", res.get("message", "no data"))
+            failed += 1
+
+    db.upsert_rows(con, "ingest_status", [{
+        "id": f"sync_shp::{universe}::{date.today()}",
+        "job": "sync_shp",
+        "run_date": date.today(),
+        "status": "partial" if blocked else "ok",
+        "rows": processed,
+        "message": f"universe={universe} ok={processed} resumed_skip={skipped} miss_or_fail={failed} blocked={blocked}",
+        "started_at": t0,
+        "finished_at": datetime.now(),
+    }], keys=["id"])
+    return {
+        "status": "partial" if blocked else "ok",
+        "universe": universe,
+        "processed": processed,
+        "skipped_resume": skipped,
+        "failed_or_missing": failed,
+        "blocked": blocked,
+    }
 
 
 # ------------------------------------------------------------------ Bulk & Block Deals Parser
@@ -525,3 +681,4 @@ def compute_ownership_snapshot(con, symbol: str, as_of: date | None = None) -> D
             out[f"insider_trades_{label}_cumulative"] = round((float(pit[0]) / float(shares_out)) * 100.0, 4)
 
     return out
+

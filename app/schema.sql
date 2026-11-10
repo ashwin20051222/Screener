@@ -15,6 +15,8 @@ CREATE TABLE IF NOT EXISTS ref_security (
     paid_up_value             DOUBLE,
     market_lot                INTEGER,
     shares_outstanding        BIGINT,
+    shares_source             VARCHAR,
+    shares_as_of              DATE,
     sector                    VARCHAR,               -- Mapped UI sector (11 sectors + 'ETF')
     sub_sector                VARCHAR,               -- Detailed sub-sector / industry
     industry                  VARCHAR,               -- Raw exchange industry classification
@@ -431,4 +433,13 @@ CREATE TABLE IF NOT EXISTS ingest_status (
     message     VARCHAR,
     started_at  TIMESTAMP,
     finished_at TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS ingest_progress (
+    job        VARCHAR NOT NULL,
+    item_key   VARCHAR NOT NULL,
+    status     VARCHAR NOT NULL,            -- ok | holiday | skip | fail
+    message    VARCHAR,
+    updated_at TIMESTAMP DEFAULT current_timestamp,
+    PRIMARY KEY (job, item_key)
 );

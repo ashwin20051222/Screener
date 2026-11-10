@@ -324,10 +324,16 @@ INDEX_SLUGS = [
 def sync_index_constituents(con, slugs: list[str] | None = None) -> dict:
     results = {}
     slugs = slugs or INDEX_SLUGS
-    base = endpoints()["sources"]["nse_index_constituents"]["url_pattern"]
+    ep = endpoints()["sources"]["nse_index_constituents"]
+    base = ep["url_pattern"]
+    mirror_base = ep.get("mirror_url_pattern", "https://www.niftyindices.com/IndexConstituent/ind_{slug}list.csv")
     for slug in slugs:
         url = base.format(slug=slug)
         r = http.fetch(url, source="nse-indices", save_name=f"ind_{slug}list.csv")
+        if not r.ok() and mirror_base:
+            m_url = mirror_base.format(slug=slug)
+            r = http.fetch(m_url, source="nse-indices", save_name=f"ind_{slug}list.csv")
+            url = m_url
         if not r.ok():
             results[slug] = {"status": "skip", "message": r.error}
             continue
@@ -417,3 +423,175 @@ def _maybe_float(v):
         return float(str(v).replace(",", ""))
     except (TypeError, ValueError):
         return None
+
+
+# ------------------------------------------------------------------ NSE Daily PR Archive (MCAP Shares + Nifty 50 Index Close)
+
+def _parse_nse_mcap_csv(payload: bytes, fallback_date: date | None = None) -> list[dict]:
+    """Parses official NSE mcap{ddmmyyyy}.csv returning symbol, series, face_value, shares_outstanding, trade_date."""
+    rows = list(csv.reader(io.StringIO(payload.decode("utf-8", "replace"))))
+    if not rows:
+        return []
+    hdr = [h.strip().upper() for h in rows[0]]
+
+    def find_col(prefix: str, default: int | None = None) -> int | None:
+        for idx, col in enumerate(hdr):
+            if col.startswith(prefix):
+                return idx
+        return default
+
+    i_dt = find_col("TRADE DATE", 0)
+    i_sym = find_col("SYMBOL", 1)
+    i_ser = find_col("SERIES", 2)
+    i_fv = find_col("FACE VALUE", 6)
+    i_iss = find_col("ISSUE SIZE", 7)
+    if i_sym is None or i_iss is None:
+        return []
+
+    out = []
+    for row in rows[1:]:
+        if len(row) <= max(i_sym, i_iss):
+            continue
+        sym = row[i_sym].strip().upper()
+        if not sym:
+            continue
+        raw_sh = _maybe_float(row[i_iss])
+        sh = int(round(raw_sh)) if raw_sh and raw_sh > 0 else None
+        if not sh:
+            continue
+        ser = row[i_ser].strip().upper() if i_ser is not None and i_ser < len(row) else "EQ"
+        fv = _maybe_float(row[i_fv]) if i_fv is not None and i_fv < len(row) else None
+        td = None
+        if i_dt is not None and i_dt < len(row) and row[i_dt].strip():
+            s_dt = row[i_dt].strip()
+            for fmt in ("%d %b %Y", "%d-%b-%Y", "%Y-%m-%d", "%d/%m/%Y"):
+                try:
+                    td = datetime.strptime(s_dt, fmt).date()
+                    break
+                except ValueError:
+                    continue
+        out.append({
+            "symbol": sym,
+            "series": ser,
+            "face_value": fv,
+            "shares_outstanding": sh,
+            "trade_date": td or fallback_date,
+        })
+    return out
+
+
+def _parse_pd_nifty50_row(payload: bytes, d: date) -> dict | None:
+    """Extracts official Nifty 50 close OHLC row from pd{ddmmyyyy}.csv inside PR{ddmmyy}.zip."""
+    rows = list(csv.reader(io.StringIO(payload.decode("utf-8", "replace"))))
+    if not rows:
+        return None
+    hdr = [h.strip().upper() for h in rows[0]]
+    if "SECURITY" not in hdr or "CLOSE_PRICE" not in hdr:
+        return None
+    i_sec = hdr.index("SECURITY")
+    for row in rows[1:]:
+        if len(row) <= i_sec or row[i_sec].strip().upper() != "NIFTY 50":
+            continue
+        def _col(name: str):
+            return _maybe_float(row[hdr.index(name)]) if name in hdr and hdr.index(name) < len(row) else None
+        close = _col("CLOSE_PRICE")
+        if not close:
+            return None
+        return {
+            "source": "NSE-INDEX",
+            "date": d,
+            "symbol": "NIFTY50",
+            "isin": None,
+            "series": "IDX",
+            "open": _col("OPEN_PRICE"),
+            "high": _col("HIGH_PRICE"),
+            "low": _col("LOW_PRICE"),
+            "close": close,
+            "prev_close": _col("PREV_CL_PR"),
+            "last": close,
+            "volume": int(round(_col("NET_TRDQTY") or 0)),
+            "turnover_rs": _col("NET_TRDVAL"),
+            "wap": None,
+            "trades": int(round(_col("TRADES") or 0)) if _col("TRADES") is not None else None,
+        }
+    return None
+
+
+def sync_nse_mcap_csv_bytes(con, payload: bytes, d: date | None = None, url: str = "(manual mcap.csv)") -> dict:
+    parsed = _parse_nse_mcap_csv(payload, fallback_date=d)
+    if not parsed:
+        return {"status": "skip", "rows": 0, "message": "no shares rows in mcap csv"}
+    # Prefer EQ/SM/BE series updates without overriding primary shares with obscure series if duplicate symbol exists
+    by_sym: dict[str, dict] = {}
+    prio = {"EQ": 0, "SM": 1, "BE": 2, "BZ": 3}
+    for r in parsed:
+        cur = by_sym.get(r["symbol"])
+        if cur is None or prio.get(r["series"], 9) < prio.get(cur["series"], 9):
+            by_sym[r["symbol"]] = r
+
+    updates = [
+        (r["shares_outstanding"], "NSE PR MCAP", r["trade_date"], r["face_value"], r["symbol"])
+        for r in by_sym.values()
+    ]
+    con.executemany(
+        """
+        UPDATE ref_security
+        SET shares_outstanding = ?,
+            shares_source = ?,
+            shares_as_of = ?,
+            face_value = COALESCE(face_value, ?),
+            updated_at = current_timestamp
+        WHERE nse_symbol = ?
+        """,
+        updates,
+    )
+    _mark_bytes(con, "NSE-PR", url, payload, len(updates), None if url.startswith("(") else url)
+    return {"status": "ok", "rows": len(updates), "date": str(d or parsed[0]["trade_date"])}
+
+
+def sync_nse_pr_mcap_from_zip_bytes(con, payload: bytes, d: date, url: str = "(PR.zip)") -> dict:
+    import zipfile
+    updated = 0
+    nifty_ok = False
+    with zipfile.ZipFile(io.BytesIO(payload)) as z:
+        for name in z.namelist():
+            low = name.lower().rsplit("/", 1)[-1]
+            if low.startswith("mcap") and low.endswith(".csv"):
+                res = sync_nse_mcap_csv_bytes(con, z.read(name), d=d, url=url)
+                updated += int(res.get("rows", 0))
+            elif low.startswith("pd") and low.endswith(".csv"):
+                n_row = _parse_pd_nifty50_row(z.read(name), d)
+                if n_row:
+                    db.upsert_rows(con, "px_daily", [n_row], keys=["source", "symbol", "date", "series"])
+                    nifty_ok = True
+    return {"status": "ok" if updated > 0 else "skip", "rows": updated, "nifty50_synced": nifty_ok, "date": str(d)}
+
+
+def sync_nse_pr_mcap(con, d: date | None = None, lookback_days: int = 7) -> dict:
+    """Fetches NSE PR{ddmmyy}.zip (bulk shares_outstanding via mcap CSV + Nifty50 close via pd CSV)."""
+    from app.config import data_path
+    ep = endpoints()["sources"].get("nse_pr_mcap") or {}
+    pattern = ep.get("url_pattern", "https://nsearchives.nseindia.com/archives/equities/bhavcopy/pr/PR{ddmmyy}.zip")
+    start_d = d or (date.today() - timedelta(days=1))
+    raw_dir = data_path(settings()["data"]["raw_dir"]) / "nse"
+    for i in range(max(1, lookback_days) + 1):
+        cand = start_d - timedelta(days=i)
+        stamp = cand.strftime("%d%m%y")
+        # Cache-first check before network call
+        if raw_dir.exists():
+            cached = sorted(raw_dir.glob(f"PR{stamp}*.zip"))
+            if cached:
+                res = sync_nse_pr_mcap_from_zip_bytes(con, cached[-1].read_bytes(), cand, url=str(cached[-1]))
+                res["raw"] = str(cached[-1])
+                res["from_cache"] = True
+                return res
+        url = pattern.format(ddmmyy=stamp)
+        r = http.fetch(url, source="nse", save_name=f"PR{stamp}.zip")
+        if r.blocked():
+            return {"status": "blocked", "date": str(cand), "message": f"blocked ({r.error}); drop PRddmmyy.zip into data/inbox/"}
+        if not r.ok():
+            continue
+        res = sync_nse_pr_mcap_from_zip_bytes(con, r.bytes, cand, url=url)
+        res["raw"] = str(r.saved_path)
+        return res
+    return {"status": "skip", "message": "no PR zip found within lookback window"}

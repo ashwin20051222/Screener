@@ -1,7 +1,7 @@
 # PROJECT_STATE.md — Continuity File
 
-> **Current Phase:** Fix Prompt #1 — **Task B Complete** (`fix-1b`); proceeding to **Task C** (`Market Cap / SHP shares unblock`).
-> **Last Updated:** 2026-11-10T11:15:30+05:30
+> **Current Phase:** Fix Prompt #1 — **Task C Complete** (`fix-1c`); proceeding to **Task D** (`Price History Backfill & Vectorised Technicals`).
+> **Last Updated:** 2026-11-10T11:23:30+05:30
 > **Tags:** `baseline-prototype`, `ui-replica-v1`, `replica-v1`.
 
 ---
@@ -81,7 +81,13 @@
   - Synced `feeds:` into `apps/web/src/data/filters.json`; updated `AddFiltersModal.tsx` to display specific `feeds` missing messages (`needs make sync-quarterly`, `needs make backfill`, `needs make sync-shp`, etc.) and coverage `%` tooltips when populated.
   - Wired real index checkboxes, honest live row & sector/sub-sector counts (removed hardcoded `5996` and `SECTORS_CONFIG`), and added offline sample-mode banner (`App.tsx`).
   - Visually verified `fix1_before_seed.png` (15 sample rows + banner + `needs sync`) and `fix1_after_nifty100.png` (Nifty 100 = exact `100` constituents, banner hidden, unticking returns `2645` all-listed).
-- **Next:** Task C — `ingest_progress` checkpoint table, REA bulk shares research, `make sync-shp` + AMFI 6M average market cap separate labeling.
+- **Task C (Fix Prompt #1) Complete (`fix-1c`):**
+  - Discovered official NSE Daily Press Release archive (`PR{ddmmyy}.zip` bundling `mcap{ddmmyyyy}.csv` with exact `Issue Size` shares outstanding for `3,257` NSE securities + `pd{ddmmyyyy}.csv` `Nifty 50` daily close) and added HTTP/2 `curl` transport in `ingest/http.py` (strictly keeping `>= 5s` interval and immediate `403`/`429` stop).
+  - Added `ingest_progress(job, item_key, status, message, updated_at)` + `ref_security.shares_source`/`shares_as_of` in `app/schema.sql` & `app/db.py`.
+  - Implemented bulk `sync_nse_pr_mcap` + inbox `PR*.zip`/`mcap*.csv` + `niftyindices.com` mirror fallback in `ingest/nse.py`, plus SHP shares extraction & resumable `sync_shp_batch` (`ingest/ownership.py`) + `make sync-shp UNIVERSE=nifty100`.
+  - Exposed AMFI 6-month average market cap strictly under its own `amfi_avg_mcap_crs` card in `StockDetailDrawer.tsx` + Market Cap shares provenance tooltips in `App.tsx`.
+  - Verified live `make sync-shp UNIVERSE=nifty100`: `2,644 / 2,645` securities have `shares_outstanding`, yielding **`100.0%` (`100/100`) Market Cap coverage on Nifty 100**.
+- **Next:** Task D — Resumable `make backfill DAYS=400|1300`, 10-day F&O backfill, split/bonus adjustment, and vectorised technicals job.
 
 ---
 

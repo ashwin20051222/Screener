@@ -133,6 +133,7 @@ def load_market_dataset_from_db(con=None) -> Dict[str, Any]:
         sec_rows = con.execute(
             """
             SELECT security_id, isin, nse_symbol, bse_code, name, face_value, shares_outstanding,
+                   shares_source, shares_as_of,
                    sector, sub_sector, industry, financial_template, is_financial_institution,
                    is_etf, is_sme, fno_eligible
             FROM ref_security
@@ -206,7 +207,8 @@ def load_market_dataset_from_db(con=None) -> Dict[str, Any]:
 
         stocks: List[Dict[str, Any]] = []
         for s in sec_rows:
-            sid, isin, sym, bse_code, name, fv, sh_out, sec, sub_sec, ind, tpl, is_fin, is_etf, is_sme, fno_elig = s
+            (sid, isin, sym, bse_code, name, fv, sh_out, sh_src, sh_asof,
+             sec, sub_sec, ind, tpl, is_fin, is_etf, is_sme, fno_elig) = s
             key_sym = sym or f"BSE:{bse_code}"
             px = (px_map.get(sym) if sym else None) or (px_by_isin.get(isin) if isin else None)
             close_px = float(px[3]) if (px and px[3] is not None) else None
@@ -232,6 +234,8 @@ def load_market_dataset_from_db(con=None) -> Dict[str, Any]:
                 "_provenance": {
                     "price_source": px[6] if px else None,
                     "price_as_of": str(px[2]) if px else None,
+                    "shares_source": sh_src,
+                    "shares_as_of": str(sh_asof) if sh_asof else None,
                 },
             }
 
@@ -239,6 +243,7 @@ def load_market_dataset_from_db(con=None) -> Dict[str, Any]:
                 rank, cls, avg_mc, amfi_dt = amfi_map[isin]
                 row["amfi_rank"] = rank
                 row["amfi_category"] = cls
+                row["amfi_avg_mcap_crs"] = round(float(avg_mc), 2) if avg_mc is not None else None
                 row["_provenance"]["amfi_as_of"] = str(amfi_dt)
 
             if sym and sym in tech_map:

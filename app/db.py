@@ -41,6 +41,8 @@ def init_schema(con: duckdb.DuckDBPyConnection) -> None:
     # Forward-compatible idempotent column migrations for existing DB files
     for col_def in (
         "shares_outstanding BIGINT",
+        "shares_source VARCHAR",
+        "shares_as_of DATE",
         "sector VARCHAR",
         "sub_sector VARCHAR",
         "industry VARCHAR",
@@ -152,3 +154,33 @@ def upsert_df(
     finally:
         con.unregister("stage_df")
     return _apply_stage(con, table, keys, len(df))
+
+
+def mark_progress(con: duckdb.DuckDBPyConnection, job: str, item_key: str, status: str, message: str = "") -> None:
+    """Idempotently records checkpoint state for resumable long-running jobs."""
+    from datetime import datetime
+    upsert_rows(
+        con,
+        "ingest_progress",
+        [{
+            "job": job,
+            "item_key": str(item_key),
+            "status": status,
+            "message": (message or "")[:400],
+            "updated_at": datetime.now(),
+        }],
+        keys=["job", "item_key"],
+    )
+
+
+def get_progress_keys(con: duckdb.DuckDBPyConnection, job: str, statuses: tuple[str, ...] = ("ok", "holiday", "skip")) -> set[str]:
+    """Returns set of item_keys already completed for a resumable job."""
+    try:
+        placeholders = ", ".join(["?"] * len(statuses))
+        rows = con.execute(
+            f"SELECT item_key FROM ingest_progress WHERE job = ? AND status IN ({placeholders})",
+            [job, *statuses],
+        ).fetchall()
+        return {str(r[0]) for r in rows}
+    except Exception:
+        return set()

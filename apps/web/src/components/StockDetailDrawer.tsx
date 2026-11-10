@@ -32,14 +32,28 @@ export const StockDetailDrawer: React.FC<StockDetailDrawerProps> = ({
 
   if (!stock) return null;
 
+  const prov = stock._provenance || {};
   const keyMetrics = [
-    { id: 'market_cap', label: 'Market Cap (Rs Cr)', src: 'NSE Bhavcopy x Shares' },
-    { id: 'close_price', label: 'Close Price (Rs)', src: 'Official Exchange Bhavcopy' },
+    {
+      id: 'market_cap',
+      label: 'Market Cap (Rs Cr)',
+      src: prov.shares_source
+        ? `${prov.shares_source} (${prov.shares_as_of || 'n/a'}) × Price (${prov.price_as_of || 'n/a'})`
+        : 'NSE PR MCAP / XBRL × Bhavcopy',
+    },
+    ...(stock.v.amfi_avg_mcap_crs !== undefined && stock.v.amfi_avg_mcap_crs !== null
+      ? [{
+          id: 'amfi_avg_mcap_crs',
+          label: 'AMFI 6-month average market cap (Rs Cr)',
+          src: `AMFI Categorisation (${prov.amfi_as_of || 'n/a'})`,
+        }]
+      : []),
+    { id: 'close_price', label: 'Close Price (Rs)', src: `${prov.price_source || 'Exchange Bhavcopy'} (${prov.price_as_of || 'n/a'})` },
     { id: 'pe_ratio', label: 'PE Ratio', src: 'Close / EPS (FY0)' },
     { id: 'pb_ratio', label: 'PB Ratio', src: 'Close / BVPS' },
     { id: '1m_return', label: '1M Return (%)', src: 'Adjusted EOD Series' },
     { id: '1d_return', label: '1D Return (%)', src: 'Bhavcopy Daily Change' },
-    { id: 'return_on_equity', label: 'Return on Equity (%)', src: 'Ind-AS XBRL Filing' },
+    { id: 'return_on_equity', label: 'Return on Equity (%)', src: `Ind-AS XBRL (${prov.statement_type || 'filing'})` },
     { id: 'pe_premium_vs_sector', label: 'PE Prem vs Sector (%)', src: 'Market-wide Benchmark' },
   ];
 

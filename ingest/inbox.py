@@ -36,6 +36,8 @@ PAT_NSE_CM = re.compile(r"BhavCopy_NSE_CM_0_0_0_(\d{8})_F_0000\.csv\.zip$", re.I
 PAT_NSE_FO = re.compile(r"BhavCopy_NSE_FO_0_0_0_(\d{8})_F_0000\.csv\.zip$", re.I)
 PAT_BSE_CM = re.compile(r"BhavCopy_BSE_CM_0_0_0_(\d{8})_F_0000\.CSV$", re.I)
 PAT_NIFTY = re.compile(r"ind_nifty\w*list\.csv$", re.I)
+PAT_NSE_PR = re.compile(r"PR(\d{6})\.zip$", re.I)
+PAT_NSE_MCAP = re.compile(r"mcap(\d{8})\.csv$", re.I)
 
 
 def process_inbox(con) -> list[dict]:
@@ -80,6 +82,14 @@ def _process_one(con, p: Path) -> dict:
             return nse_mod.sync_fno_lots_from_bytes(con, p.read_bytes())
         if PAT_NIFTY.match(name):
             return nse_mod.sync_index_list_from_bytes(con, p.read_bytes(), filename_hint=name)
+        m_pr = PAT_NSE_PR.match(name)
+        if m_pr:
+            d = datetime.strptime(m_pr.group(1), "%d%m%y").date()
+            return nse_mod.sync_nse_pr_mcap_from_zip_bytes(con, p.read_bytes(), d, url=f"(inbox {name})")
+        m_mc = PAT_NSE_MCAP.match(name)
+        if m_mc:
+            d = datetime.strptime(m_mc.group(1), "%d%m%Y").date()
+            return nse_mod.sync_nse_mcap_csv_bytes(con, p.read_bytes(), d=d, url=f"(inbox {name})")
         if name.lower().startswith("averagemarketcapitalization") and name.lower().endswith(".xlsx"):
             return amfi_mod.sync_categorisation_from_bytes(con, p.read_bytes(), filename_hint=name)
         if name.lower().startswith("listofscripdata") and name.lower().endswith(".csv"):

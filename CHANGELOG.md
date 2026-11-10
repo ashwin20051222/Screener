@@ -4,6 +4,13 @@ All notable milestones for **ScreenerDesk** (Indian Stock Screener Replica).
 
 ## [Unreleased — Fix Prompt #1]
 
+### Task C — Market Cap Unblock & Resumable Checkpointing (`2026-11-10`)
+- Added `ingest_progress` checkpoint table (`app/schema.sql`, `app/db.py`) and enforced `>= 5.0s` NSE throttling + clean HTTP/2 `curl` fallback for `nsearchives.nseindia.com` (`ingest/http.py`).
+- Discovered & wired NSE bulk Press Release archive (`PR{ddmmyy}.zip` -> `mcap{ddmmyyyy}.csv` `Issue Size` for 3,257 securities + `pd*.csv` `Nifty 50` daily close) in `ingest/nse.py` and `ingest/inbox.py` (cache-first, zero per-symbol scraping needed for Market Cap).
+- Implemented SHP `shares_outstanding` extraction & resumable `sync_shp_batch` (`ingest/ownership.py`, stopping cleanly on `403`/`429`), plus `scripts/sync_shp.py` and `make sync-shp UNIVERSE=nifty100`.
+- Surfaced `amfi_avg_mcap_crs` separately as `"AMFI 6-month average market cap"` and dynamic shares provenance in `StockDetailDrawer.tsx`, `App.tsx`, `config/endpoints.yaml`, and `DATA_SOURCES.md`.
+- Verified `100.0%` (`100/100`) Market Cap coverage on live Nifty 100 constituents.
+
 ### Task B — Truthful UI & Real Index Universes (`2026-11-10`)
 - Added `GET /api/universes` and latest-snapshot index membership lookup in `app/query/db_store.py` (with `px_by_isin` price fallback and graceful busy-lock handling).
 - Replaced hardcoded `5996`, `default_seed` binding, and static `SECTORS_CONFIG` in `apps/web/src/App.tsx` with dynamic backend universes (`Nifty 50` .. `Nifty Smallcap 250` + `All NSE + BSE listed`), real filtered counts, and dynamic sector/sub-sector counts.

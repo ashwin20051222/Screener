@@ -69,6 +69,10 @@ def run_daily(con=None) -> dict:
 
         summary["corp_actions"] = nse_mod.sync_corporate_actions(con)
         try:
+            summary["pr_mcap"] = nse_mod.sync_nse_pr_mcap(con)
+        except Exception as exc:
+            summary["pr_mcap_error"] = str(exc)
+        try:
             from ingest import ownership as own_mod
             summary["bulk_block_deals"] = own_mod.sync_bulk_block_deals(con)
             summary["insider_trades"] = own_mod.sync_insider_trades(con, days_back=7)
@@ -184,17 +188,24 @@ def status_report(con=None) -> dict:
         amfi = con.execute("SELECT max(as_of_date) FROM ref_amfi_classification").fetchone()
         corp = con.execute("SELECT max(ex_date) FROM corp_action").fetchone()
         mibor = con.execute("SELECT max(rate_date) FROM ref_fbil_mibor").fetchone()
-        secs = con.execute("SELECT count(*), sum(fno_eligible::INT), sum(is_etf::INT) FROM ref_security").fetchone()
+        secs = con.execute("SELECT count(*), sum(fno_eligible::INT), sum(is_etf::INT), sum(CASE WHEN shares_outstanding > 0 THEN 1 ELSE 0 END) FROM ref_security").fetchone()
         jobs = con.execute(
             "SELECT job, run_date, status, message FROM ingest_status ORDER BY finished_at DESC LIMIT 20"
         ).fetchall()
+        quar = con.execute("SELECT count(*) FROM fin_quarantine").fetchone()
+        prog_rows = con.execute("SELECT job, status, count(*) FROM ingest_progress GROUP BY job, status ORDER BY job, status").fetchall()
+        progress: dict = {}
+        for j, st, c in prog_rows:
+            progress.setdefault(j, {})[st] = int(c)
         return {
             "px_per_source": [{"source": s, "as_of": str(d), "rows": c} for s, d, c in px],
             "fno_as_of": str(fno[0] or "n/a"),
             "amfi_period": str(amfi[0] or "n/a"),
             "corp_actions_as_of": str(corp[0] or "n/a"),
             "fbil_as_of": str(mibor[0] or "n/a"),
-            "securities": {"total": secs[0], "fno_eligible": secs[1], "etf": secs[2]},
+            "securities": {"total": secs[0], "fno_eligible": secs[1], "etf": secs[2], "shares_populated": secs[3]},
+            "fin_quarantine_count": int(quar[0]) if quar else 0,
+            "progress": progress,
             "recent_jobs": [{"job": j, "on": str(d), "status": st, "msg": m} for j, d, st, m in jobs],
         }
     finally:

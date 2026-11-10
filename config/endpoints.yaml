@@ -91,8 +91,16 @@ sources:
     kind: index-constituents         # covers Nifty 50/100/Next50/200/500, Midcap 100/150/50, Smallcap 100/250/50, sectoral
     cadence: weekly
     url_pattern: "https://nsearchives.nseindia.com/content/indices/ind_{slug}list.csv"
-    slugs_needed: [nifty50, niftynext50, nifty100, nifty200, nifty500, niftymidcap100, niftysmallcap100]
+    mirror_url_pattern: "https://www.niftyindices.com/IndexConstituent/ind_{slug}list.csv"
+    slugs_needed: [nifty50, niftynext50, nifty100, nifty200, nifty500, niftymidcap100, niftymidcap150, niftysmallcap100, niftysmallcap250]
     tos_note: "same as nse_cm_bhavcopy (official NSE indices list files; also mirrored on niftyindices.com)"
+
+  nse_pr_mcap:
+    status: ok                       # verified live 2026-11-10 (HTTP/2 200: 698 KB PR091126.zip -> mcap09112026.csv with 3,257 shares rows)
+    kind: shares-outstanding-bulk
+    cadence: daily_eod
+    url_pattern: "https://nsearchives.nseindia.com/archives/equities/bhavcopy/pr/PR{ddmmyy}.zip"
+    tos_note: "Official NSE Daily Press Release ZIP bundling mcapDDMMYYYY.csv (Issue Size / Shares Outstanding) and pdDDMMYYYY.csv (Nifty 50 index close); HTTP/2 transport via standard curl fallback avoids HTTP/1.1 keep-alive stall on nsearchives."
 
   bse_scrip_master:
     status: blocked                  # api.bseindia.com ListofScripData returns 403 "Access Denied" even with Referer (verified 2026-10-25)
