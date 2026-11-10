@@ -6,6 +6,7 @@ import {
   StockRow,
   StockUniverse,
   SavedScreen,
+  UniverseMeta,
 } from './types';
 import {
   INITIAL_SEED_ROWS,
@@ -13,7 +14,7 @@ import {
   deriveMetrics,
 } from './data/seed';
 import { NumericFilterWidget } from './components/NumericFilterWidget';
-import { AddFiltersModal } from './components/AddFiltersModal';
+import { AddFiltersModal, FilterCoverageStats, formatMissingFeedReason } from './components/AddFiltersModal';
 import { GlossaryModal } from './components/GlossaryModal';
 import { CustomFilterModal } from './components/CustomFilterModal';
 import { StockDetailDrawer } from './components/StockDetailDrawer';
@@ -88,42 +89,77 @@ const DEFAULT_COLUMNS = [
   'return_on_equity',
 ];
 
+const FALLBACK_INDEX_UNIVERSES: UniverseMeta[] = [
+  { id: 'nifty50', label: 'Nifty 50', slug: 'NIFTY50', count: 0, as_of: null },
+  { id: 'niftynext50', label: 'Nifty Next 50', slug: 'NIFTYNEXT50', count: 0, as_of: null },
+  { id: 'nifty100', label: 'Nifty 100', slug: 'NIFTY100', count: 0, as_of: null },
+  { id: 'nifty200', label: 'Nifty 200', slug: 'NIFTY200', count: 0, as_of: null },
+  { id: 'nifty500', label: 'Nifty 500', slug: 'NIFTY500', count: 0, as_of: null },
+  { id: 'niftymidcap100', label: 'Nifty Midcap 100', slug: 'NIFTYMIDCAP100', count: 0, as_of: null },
+  { id: 'niftymidcap150', label: 'Nifty Midcap 150', slug: 'NIFTYMIDCAP150', count: 0, as_of: null },
+  { id: 'niftysmallcap100', label: 'Nifty Smallcap 100', slug: 'NIFTYSMALLCAP100', count: 0, as_of: null },
+  { id: 'niftysmallcap250', label: 'Nifty Smallcap 250', slug: 'NIFTYSMALLCAP250', count: 0, as_of: null },
+];
+
+const CANONICAL_SECTOR_ORDER = Object.keys(SECTORS_CONFIG);
+
 export const App: React.FC = () => {
   // Theme state
   const [theme, setTheme] = useState<'light' | 'dark'>('light');
 
-  // Stock Universes
-  const [universes, setUniverses] = useState<StockUniverse[]>([
-    {
-      id: 'default_seed',
-      name: 'Sample: 15 rows from your screenshots',
-      type: 'default',
-      rows: INITIAL_SEED_ROWS,
-      totalMarketCount: 5996,
-    },
-  ]);
-  const [activeUniverseTab, setActiveUniverseTab] = useState<'default' | 'custom'>('default');
-  const [selectedUniverseIds, setSelectedUniverseIds] = useState<Set<string>>(new Set(['default_seed']));
+  // Stock Universes & Live Backend State
+  const [isSynced, setIsSynced] = useState(false);
+  const [liveRows, setLiveRows] = useState<StockRow[]>([]);
+  const [indexUniverses, setIndexUniverses] = useState<UniverseMeta[]>(FALLBACK_INDEX_UNIVERSES);
+  const [allListedMeta, setAllListedMeta] = useState<UniverseMeta | null>(null);
+  const [universeMembers, setUniverseMembers] = useState<Record<string, string[]>>({});
+  const [selectedIndexSlugs, setSelectedIndexSlugs] = useState<Set<string>>(new Set());
 
-  // Multi-universe union: combine rows from all checked universes (deduplicated by name)
+  const [universes, setUniverses] = useState<StockUniverse[]>([]);
+  const [activeUniverseTab, setActiveUniverseTab] = useState<'default' | 'custom'>('default');
+  const [selectedUniverseIds, setSelectedUniverseIds] = useState<Set<string>>(new Set());
+
+  // Multi-universe active rows:
+  // - If no index AND no custom universe checked => entire listed market (when synced) or sample 15 rows (offline seed)
+  // - If one or more checked => deduplicated union across selected index constituents & custom Excel universes
   const activeRows = useMemo(() => {
-    const selected = universes.filter((u) => selectedUniverseIds.has(u.id));
-    if (selected.length === 0) return universes[0]?.rows || [];
+    const baseRows = isSynced ? liveRows : INITIAL_SEED_ROWS;
+    const selectedCustom = universes.filter((u) => u.type === 'custom' && selectedUniverseIds.has(u.id));
+    if (selectedIndexSlugs.size === 0 && selectedCustom.length === 0) {
+      return baseRows;
+    }
+
+    const allowedSymbols = new Set<string>();
+    for (const slug of selectedIndexSlugs) {
+      for (const sym of (universeMembers[slug] || [])) {
+        allowedSymbols.add(sym);
+      }
+    }
+
     const seen = new Set<string>();
     const unionRows: StockRow[] = [];
-    for (const u of selected) {
+    if (selectedIndexSlugs.size > 0) {
+      for (const r of baseRows) {
+        const key = r.nse_symbol || r.name;
+        if (r.nse_symbol && allowedSymbols.has(r.nse_symbol) && !seen.has(key)) {
+          seen.add(key);
+          unionRows.push(r);
+        }
+      }
+    }
+    for (const u of selectedCustom) {
       for (const r of u.rows) {
-        if (!seen.has(r.name)) {
-          seen.add(r.name);
+        const key = r.nse_symbol || r.name;
+        if (!seen.has(key)) {
+          seen.add(key);
           unionRows.push(r);
         }
       }
     }
     return unionRows;
-  }, [universes, selectedUniverseIds]);
+  }, [isSynced, liveRows, universes, selectedUniverseIds, selectedIndexSlugs, universeMembers]);
 
   const [showMoreUniverses, setShowMoreUniverses] = useState(false);
-  const activeUniverse = universes.find((u) => selectedUniverseIds.has(u.id)) || universes[0];
 
   const handleProceedToMatch = (parsed: ParsedWorkbookInfo, selectedIdCol: string) => {
     setIsExcelUploadOpen(false);
@@ -154,16 +190,24 @@ export const App: React.FC = () => {
     }
   };
 
+  const toggleIndexSelection = (slug: string) => {
+    setSelectedIndexSlugs((prev) => {
+      const next = new Set(prev);
+      if (next.has(slug)) next.delete(slug);
+      else next.add(slug);
+      return next;
+    });
+    setVisibleLimit(20);
+  };
+
   const toggleUniverseSelection = (id: string) => {
     setSelectedUniverseIds((prev) => {
       const next = new Set(prev);
-      if (next.has(id)) {
-        if (next.size > 1) next.delete(id);
-      } else {
-        next.add(id);
-      }
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
       return next;
     });
+    setVisibleLimit(20);
   };
 
   const handleDeleteUniverse = (id: string) => {
@@ -171,7 +215,6 @@ export const App: React.FC = () => {
     setSelectedUniverseIds((prev) => {
       const next = new Set(prev);
       next.delete(id);
-      if (next.size === 0) next.add('default_seed');
       return next;
     });
   };
@@ -224,38 +267,46 @@ export const App: React.FC = () => {
     }
   };
 
-  // Optional hydration from live FastAPI + DuckDB backend if available (graceful offline fallback)
+  // Hydrate universes and live dataset from FastAPI + DuckDB backend
   useEffect(() => {
     let cancelled = false;
-    fetch('/api/screener/dataset')
-      .then((res) => (res.ok ? res.json() : null))
-      .then((data) => {
-        if (cancelled || !data || !data.synced || !Array.isArray(data.rows) || data.rows.length === 0) {
-          return;
-        }
-        const liveRows: StockRow[] = data.rows.map((r: Record<string, any>) => ({
+    Promise.all([
+      fetch('/api/universes').then((r) => (r.ok ? r.json() : null)).catch(() => null),
+      fetch('/api/screener/dataset').then((r) => (r.ok ? r.json() : null)).catch(() => null),
+    ]).then(([uData, dData]) => {
+      if (cancelled) return;
+      if (Array.isArray(uData) && uData.length > 0) {
+        const allEntry = uData.find((u: UniverseMeta) => u.slug === 'ALL') || null;
+        const indices = uData.filter((u: UniverseMeta) => u.slug !== 'ALL');
+        setIndexUniverses(indices.length > 0 ? indices : FALLBACK_INDEX_UNIVERSES);
+        setAllListedMeta(allEntry);
+      }
+      if (dData && dData.synced && Array.isArray(dData.rows) && dData.rows.length > 0) {
+        const parsedLiveRows: StockRow[] = dData.rows.map((r: Record<string, any>) => ({
           name: r.name || r.nse_symbol || 'Unknown',
-          sub: r.sub_sector || 'General',
-          sector: r.sector || 'Industrials',
+          sub: r.sub_sector || 'Unclassified',
+          sector: r.sector || 'Unclassified',
+          nse_symbol: r.nse_symbol || undefined,
+          _provenance: r._provenance || undefined,
           v: Object.fromEntries(
-            Object.entries(r).filter(([, val]) => typeof val === 'number' || val === null)
+            Object.entries(r).filter(([k, val]) => !k.startsWith('_') && (typeof val === 'number' || val === null))
           ) as Record<string, number | null>,
         }));
-        const derived = deriveMetrics(liveRows);
-        const liveUniv: StockUniverse = {
-          id: 'live_duckdb',
-          name: 'All NSE+BSE Official Listed',
-          type: 'default',
-          rows: derived,
-          totalMarketCount: derived.length,
-        };
-        setUniverses((prev) => [liveUniv, ...prev.filter((u) => u.id !== 'live_duckdb')]);
-        setSelectedUniverseIds(new Set(['live_duckdb']));
-        setLiveSyncSourceLabel(`Official DuckDB (${derived.length} stocks)`);
-      })
-      .catch(() => {
-        // Offline / seed mode: silent no-op
-      });
+        setLiveRows(parsedLiveRows);
+        setUniverseMembers(dData.universes || {});
+        setIsSynced(true);
+        const asOf = dData.as_of || {};
+        const parts = [
+          asOf.price ? `Price: ${asOf.price}` : null,
+          asOf.masters ? `Masters: ${asOf.masters}` : null,
+          asOf.filings ? `Filings: ${asOf.filings}` : null,
+          asOf.amfi ? `AMFI: ${asOf.amfi}` : null,
+        ].filter(Boolean);
+        setLiveSyncSourceLabel(
+          `Official DuckDB (${parsedLiveRows.length} stocks)${parts.length ? ' · ' + parts.join(' · ') : ''}`
+        );
+      }
+    });
     return () => {
       cancelled = true;
     };
@@ -409,22 +460,62 @@ export const App: React.FC = () => {
   };
 
 
-  // Set of loaded metric IDs
-  const loadedFilterIds = useMemo(() => {
+  // Set of loaded metric IDs + exact per-filter coverage over activeRows
+  const { loadedFilterIds, filterCoverage } = useMemo(() => {
     const ids = new Set<string>();
+    const counts = new Map<string, number>();
+    const total = activeRows.length;
     activeRows.forEach(r => {
-      Object.keys(r.v).forEach(k => {
-        if (r.v[k] !== null && r.v[k] !== undefined) ids.add(k);
+      Object.entries(r.v).forEach(([k, val]) => {
+        if (val !== null && val !== undefined) {
+          ids.add(k);
+          counts.set(k, (counts.get(k) || 0) + 1);
+        }
       });
     });
-    return ids;
+    const covMap = new Map<string, FilterCoverageStats>();
+    ALL_FILTERS_LIST.forEach(f => {
+      const nonNull = counts.get(f.id) || 0;
+      covMap.set(f.id, {
+        nonNull,
+        total,
+        pct: total > 0 ? (nonNull / total) * 100 : 0,
+      });
+    });
+    return { loadedFilterIds: ids, filterCoverage: covMap };
+  }, [activeRows]);
+
+  // Dynamic sector & sub-sector counts computed strictly from activeRows (before sector filters)
+  const dynamicSectorsMap = useMemo(() => {
+    const map = new Map<string, { count: number; subSectors: Map<string, number> }>();
+    for (const sec of CANONICAL_SECTOR_ORDER) {
+      map.set(sec, { count: 0, subSectors: new Map() });
+    }
+    for (const r of activeRows) {
+      const sec = r.sector || 'Unclassified';
+      const sub = r.sub || 'Unclassified';
+      if (!map.has(sec)) {
+        map.set(sec, { count: 0, subSectors: new Map() });
+      }
+      const entry = map.get(sec)!;
+      entry.count += 1;
+      entry.subSectors.set(sub, (entry.subSectors.get(sub) || 0) + 1);
+    }
+    return map;
   }, [activeRows]);
 
   // Sector filtering
   const filteredSectorsList = useMemo(() => {
     const q = sectorSearch.toLowerCase();
-    return Object.keys(SECTORS_CONFIG).filter(s => s.toLowerCase().includes(q));
-  }, [sectorSearch]);
+    const ordered = [
+      ...CANONICAL_SECTOR_ORDER,
+      ...Array.from(dynamicSectorsMap.keys()).filter(k => !CANONICAL_SECTOR_ORDER.includes(k)),
+    ];
+    return ordered.filter(s => {
+      const hasCount = (dynamicSectorsMap.get(s)?.count || 0) > 0;
+      return (s !== 'Unclassified' || hasCount) && s.toLowerCase().includes(q);
+    });
+  }, [sectorSearch, dynamicSectorsMap]);
 
   // Combined Rows after Sector and Numeric Filter Application
   const filteredAndSortedRows = useMemo(() => {
@@ -591,13 +682,16 @@ export const App: React.FC = () => {
           return row;
         });
 
-        const derivedRows = deriveMetrics(rows);
+        const derivedRows = deriveMetrics(rows.map(r => ({
+          ...r,
+          sub: r.sub || 'Unclassified',
+          sector: r.sector || 'Unclassified',
+        })));
         const newUniverse: StockUniverse = {
           id: 'custom_' + Date.now(),
           name: file.name,
           type: 'custom',
           rows: derivedRows,
-          totalMarketCount: rows.length,
         };
 
         setUniverses(prev => [...prev, newUniverse]);
@@ -763,58 +857,89 @@ export const App: React.FC = () => {
 
                 {activeUniverseTab === 'default' ? (
                   <div>
-                    <label className="universe-checkbox-item">
-                      <input
-                        type="checkbox"
-                        checked={selectedUniverseIds.has('default_seed')}
-                        onChange={() => toggleUniverseSelection('default_seed')}
-                      />
-                      <span>Nifty Smallcap 100</span>
-                    </label>
-                    <label className="universe-checkbox-item">
-                      <input
-                        type="checkbox"
-                        checked={selectedUniverseIds.has('nifty_500')}
-                        onChange={() => toggleUniverseSelection('nifty_500')}
-                      />
-                      <span>Nifty 500</span>
-                    </label>
-                    <label className="universe-checkbox-item">
-                      <input
-                        type="checkbox"
-                        checked={selectedUniverseIds.has('nifty_midcap')}
-                        onChange={() => toggleUniverseSelection('nifty_midcap')}
-                      />
-                      <span>Nifty Midcap 100</span>
-                    </label>
-
-                    {showMoreUniverses && (
-                      <>
-                        <label className="universe-checkbox-item">
-                          <input
-                            type="checkbox"
-                            checked={selectedUniverseIds.has('nifty_50')}
-                            onChange={() => toggleUniverseSelection('nifty_50')}
-                          />
-                          <span>Nifty 50</span>
-                        </label>
-                        <label className="universe-checkbox-item">
-                          <input
-                            type="checkbox"
-                            checked={selectedUniverseIds.has('nifty_100')}
-                            onChange={() => toggleUniverseSelection('nifty_100')}
-                          />
-                          <span>Nifty 100</span>
-                        </label>
-                      </>
-                    )}
-
-                    <span
-                      className="show-more-link"
-                      onClick={() => setShowMoreUniverses(!showMoreUniverses)}
+                    <div
+                      style={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        fontSize: '11px',
+                        color: 'var(--text-secondary)',
+                        marginBottom: '6px',
+                        paddingBottom: '4px',
+                        borderBottom: '1px solid var(--border-light)',
+                      }}
+                      title={
+                        isSynced && allListedMeta
+                          ? `All NSE + BSE listed: ${allListedMeta.count} securities (As of: ${allListedMeta.as_of || 'n/a'})`
+                          : 'Offline sample mode (15 rows)'
+                      }
                     >
-                      {showMoreUniverses ? 'Show Less' : 'Show 2 More'}
-                    </span>
+                      <span>
+                        {allListedMeta ? allListedMeta.label : 'All NSE + BSE listed'}
+                        {isSynced ? ` (${allListedMeta?.count ?? liveRows.length})` : ''}
+                      </span>
+                      {selectedIndexSlugs.size > 0 && (
+                        <button
+                          type="button"
+                          className="create-link"
+                          style={{ background: 'none', border: 'none', padding: 0, fontSize: '11px' }}
+                          onClick={() => {
+                            setSelectedIndexSlugs(new Set());
+                            setVisibleLimit(20);
+                          }}
+                        >
+                          Show all
+                        </button>
+                      )}
+                    </div>
+
+                    {(showMoreUniverses ? indexUniverses : indexUniverses.slice(0, 5)).map((u) => {
+                      const disabled = !isSynced || u.count === 0;
+                      const tooltip = isSynced
+                        ? `Members: ${u.count} | As of: ${u.as_of || 'n/a'}`
+                        : 'Offline sample mode — needs make sync-weekly';
+                      return (
+                        <label
+                          key={u.id}
+                          className="universe-checkbox-item"
+                          style={{ opacity: disabled ? 0.65 : 1, cursor: disabled ? 'not-allowed' : 'pointer' }}
+                          title={tooltip}
+                        >
+                          <input
+                            type="checkbox"
+                            disabled={disabled}
+                            checked={!disabled && selectedIndexSlugs.has(u.slug)}
+                            onChange={() => toggleIndexSelection(u.slug)}
+                          />
+                          <span style={{ flex: 1 }}>
+                            {u.label}
+                            {isSynced && u.count > 0 ? ` (${u.count})` : ''}
+                          </span>
+                          {(!isSynced || u.count === 0) && (
+                            <span
+                              style={{
+                                fontSize: '10px',
+                                color: 'var(--text-muted)',
+                                background: 'var(--tag-bg)',
+                                padding: '1px 5px',
+                                borderRadius: '3px',
+                              }}
+                            >
+                              needs sync
+                            </span>
+                          )}
+                        </label>
+                      );
+                    })}
+
+                    {indexUniverses.length > 5 && (
+                      <span
+                        className="show-more-link"
+                        onClick={() => setShowMoreUniverses(!showMoreUniverses)}
+                      >
+                        {showMoreUniverses ? 'Show Less' : `Show ${indexUniverses.length - 5} More`}
+                      </span>
+                    )}
                   </div>
                 ) : (
                   <div>
@@ -897,9 +1022,10 @@ export const App: React.FC = () => {
 
                 <div style={{ maxHeight: '280px', overflowY: 'auto' }}>
                   {filteredSectorsList.map(secName => {
-                    const secData = SECTORS_CONFIG[secName];
+                    const secData = dynamicSectorsMap.get(secName);
                     const isSecChecked = selectedSectors.has(secName);
                     const isSecExpanded = expandedSectors.has(secName);
+                    const subEntries = secData ? Array.from(secData.subSectors.entries()).sort((a, b) => b[1] - a[1]) : [];
 
                     return (
                       <div key={secName}>
@@ -914,25 +1040,27 @@ export const App: React.FC = () => {
                               {secName} ({secData?.count ?? 0})
                             </span>
                           </label>
-                          <span
-                            className="sector-expand-chevron"
-                            onClick={() => {
-                              setExpandedSectors(prev => {
-                                const next = new Set(prev);
-                                if (next.has(secName)) next.delete(secName);
-                                else next.add(secName);
-                                return next;
-                              });
-                            }}
-                          >
-                            {isSecExpanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
-                          </span>
+                          {subEntries.length > 0 && (
+                            <span
+                              className="sector-expand-chevron"
+                              onClick={() => {
+                                setExpandedSectors(prev => {
+                                  const next = new Set(prev);
+                                  if (next.has(secName)) next.delete(secName);
+                                  else next.add(secName);
+                                  return next;
+                                });
+                              }}
+                            >
+                              {isSecExpanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+                            </span>
+                          )}
                         </div>
 
                         {/* Sub-Sectors Expansion */}
-                        {isSecExpanded && secData?.subSectors && (
+                        {isSecExpanded && subEntries.length > 0 && (
                           <div className="subsector-list">
-                            {Object.entries(secData.subSectors).map(([subName, subCount]) => (
+                            {subEntries.map(([subName, subCount]) => (
                               <label key={subName} className="universe-checkbox-item">
                                 <input
                                   type="checkbox"
@@ -1052,13 +1180,16 @@ export const App: React.FC = () => {
         {/* Sub Bar */}
         <div className="screener-sub-bar">
           <span className="results-count-text">
-            Showing <b>{filteredAndSortedRows.length === 0 ? 0 : 1} - {Math.min(visibleLimit, filteredAndSortedRows.length)}</b> of <b>{activeFiltersCount > 0 || universes.some(u => u.type === 'custom' && selectedUniverseIds.has(u.id)) ? filteredAndSortedRows.length : (activeUniverse.totalMarketCount ?? 5996)}</b> results
+            Showing <b>{filteredAndSortedRows.length === 0 ? 0 : 1} - {Math.min(visibleLimit, filteredAndSortedRows.length)}</b> of <b>{filteredAndSortedRows.length}</b> results
           </span>
 
           <div className="sub-bar-right">
-            <div className="update-time-info" title={liveSyncSourceLabel || 'Offline fixture/seed mode until sync'}>
+            <div
+              className="update-time-info"
+              title={isSynced && liveSyncSourceLabel ? liveSyncSourceLabel : 'Offline sample mode: 15 fixture rows until sync'}
+            >
               <Clock size={13} />
-              <span>last updated at 6:30 AM IST</span>
+              <span>{isSynced ? (liveSyncSourceLabel || 'Official DuckDB synced') : 'Offline sample mode'}</span>
             </div>
 
             <div style={{ position: 'relative' }}>
@@ -1094,6 +1225,30 @@ export const App: React.FC = () => {
             <span className="blue-dot-indicator" title="Live status indicator" />
           </div>
         </div>
+
+        {/* Offline Sample Banner when DuckDB is not synced */}
+        {!isSynced && (
+          <div
+            data-testid="sample-mode-banner"
+            style={{
+              padding: '7px 20px',
+              fontSize: '12px',
+              background: '#fffbeb',
+              borderBottom: '1px solid #fde68a',
+              color: '#92400e',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+            }}
+          >
+            <span>
+              Offline sample mode: {INITIAL_SEED_ROWS.length} sample rows. Run{' '}
+              <code style={{ background: 'rgba(146, 64, 14, 0.1)', padding: '1px 4px', borderRadius: '3px' }}>make sync-weekly</code>{' '}
+              and{' '}
+              <code style={{ background: 'rgba(146, 64, 14, 0.1)', padding: '1px 4px', borderRadius: '3px' }}>make sync-daily</code>, then reload.
+            </span>
+          </div>
+        )}
 
         {/* Toast notification banner */}
         {toastMessage && (
@@ -1172,8 +1327,13 @@ export const App: React.FC = () => {
 
                     {columns.map(colId => {
                       const val = stock.v[colId];
+                      const fDef = ALL_FILTERS_MAP.get(colId);
+                      const prov = stock._provenance || {};
+                      const cellTooltip = val === null || val === undefined
+                        ? `${fDef?.name || colId}: ${formatMissingFeedReason(fDef?.feeds)}`
+                        : `${fDef?.name || colId}: ${formatIndianNumber(val)} | Source: ${prov.price_source || fDef?.feeds || 'official'} | As of: ${prov.price_as_of || 'fixture'}`;
                       return (
-                        <td key={colId}>
+                        <td key={colId} title={cellTooltip}>
                           {formatIndianNumber(val)}
                         </td>
                       );
@@ -1218,6 +1378,7 @@ export const App: React.FC = () => {
         allFilters={ALL_FILTERS_LIST}
         activeFilterIds={filters.map(f => f.id)}
         loadedFilterIds={loadedFilterIds}
+        filterCoverage={filterCoverage}
         onToggleFilter={handleToggleFilter}
         onOpenCustomFilterBuilder={() => {
           setIsAddFilterModalOpen(false);

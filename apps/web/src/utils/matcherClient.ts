@@ -364,6 +364,7 @@ export function convertMatchReportToStockRows(
       name: sec.name,
       sub: sec.sub_sector,
       sector: sec.sector,
+      nse_symbol: sec.nse_symbol,
       v,
     });
   }

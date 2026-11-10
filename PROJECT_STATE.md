@@ -1,7 +1,7 @@
 # PROJECT_STATE.md — Continuity File
 
-> **Current Phase:** Fix Prompt #1 — **Task A Complete** (`STOP GATE A` — awaiting approval for Task B).
-> **Last Updated:** 2026-11-10T11:00:00+05:30
+> **Current Phase:** Fix Prompt #1 — **Task B Complete** (`fix-1b`); proceeding to **Task C** (`Market Cap / SHP shares unblock`).
+> **Last Updated:** 2026-11-10T11:15:30+05:30
 > **Tags:** `baseline-prototype`, `ui-replica-v1`, `replica-v1`.
 
 ---
@@ -75,12 +75,13 @@
 
 ## 2. Next Up
 
-- **Task A (Fix Prompt #1) Complete — Stopped at STOP GATE A:**
-  - Verified live runtime baseline: `make status` reports `0` securities; `/api/screener/dataset` returns `synced: False`, `row_count: 0`, `universes_count: 0`.
-  - Added `feeds:` classification (`daily|weekly|history|shp|xbrl|fno|amfi|deals|manual|unavailable`) to all `255` filters in `registry/filters.yaml`.
-  - Created `scripts/coverage.py` and `make coverage` target; generated baseline `docs/DATA_COVERAGE.md` (`0%` non-null across all `255` filters pre-sync).
-  - Verified all diagnosis items `D1–D8` with exact file/line evidence in `AUDIT.md` Section 5.
-  - Proposed implementation plan for **Tasks B–H** (with `>= 5s` spacing time estimates) awaiting user approval before starting Task B.
+- **Task B (Fix Prompt #1) Complete (`fix-1b`):**
+  - Added `GET /api/universes` (`app/api/routes.py`, `app/query/db_store.py`) returning the 9 canonical indices from latest `ref_index_constituent` snapshots + `"All NSE + BSE listed"`, with graceful DuckDB busy-lock fallback and `px_by_isin` fallback.
+  - Replaced `"Industrials"` / `"General"` fallbacks with `"Unclassified"` in `db_store.py` and `App.tsx`.
+  - Synced `feeds:` into `apps/web/src/data/filters.json`; updated `AddFiltersModal.tsx` to display specific `feeds` missing messages (`needs make sync-quarterly`, `needs make backfill`, `needs make sync-shp`, etc.) and coverage `%` tooltips when populated.
+  - Wired real index checkboxes, honest live row & sector/sub-sector counts (removed hardcoded `5996` and `SECTORS_CONFIG`), and added offline sample-mode banner (`App.tsx`).
+  - Visually verified `fix1_before_seed.png` (15 sample rows + banner + `needs sync`) and `fix1_after_nifty100.png` (Nifty 100 = exact `100` constituents, banner hidden, unticking returns `2645` all-listed).
+- **Next:** Task C — `ingest_progress` checkpoint table, REA bulk shares research, `make sync-shp` + AMFI 6M average market cap separate labeling.
 
 ---
 

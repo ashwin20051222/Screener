@@ -52,7 +52,6 @@ export const MatchReportModal: React.FC<MatchReportModalProps> = ({
       name: universeName.trim() || 'Custom Universe',
       type: 'custom',
       rows: finalRows,
-      totalMarketCount: finalRows.length,
     };
     onSaveUniverse(newUniverse);
     onClose();

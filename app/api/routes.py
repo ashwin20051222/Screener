@@ -206,6 +206,13 @@ def get_scores_weights():
     return scores_config()
 
 
+@router.get("/universes")
+def get_universes():
+    """Returns canonical index universe metadata from latest ref_index_constituent snapshot + All listed."""
+    from app.query.db_store import get_universes_summary
+    return get_universes_summary()
+
+
 @router.get("/screener/dataset")
 def get_screener_dataset():
     """Loads live DuckDB screener dataset with provenance metadata if database is synced."""

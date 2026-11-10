@@ -110,9 +110,11 @@ def test_api_universe_template():
     assert "ISIN" in res["template_headers"]
 
 
-def test_api_scores_weights_and_dataset():
+def test_api_scores_weights_and_dataset(tmp_path, monkeypatch):
+    from app import config
     from app.api.routes import ScoresComputeRequest, compute_scores_endpoint, get_scores_weights, get_screener_dataset
 
+    monkeypatch.setattr(config, "data_path", lambda rel: tmp_path / rel)
     w = get_scores_weights()
     assert w["badge"] == "Approximate - computed locally"
     assert "fundamental_score" in w
@@ -123,3 +125,44 @@ def test_api_scores_weights_and_dataset():
     comp = compute_scores_endpoint(ScoresComputeRequest(stocks=SAMPLE_ROWS))
     assert comp["badge"] == "Approximate - computed locally"
     assert set(comp["scores"].keys()) == {"Reliance", "TCS", "HDFC Bank"}
+
+
+def test_api_universes_and_unclassified_fallback(tmp_path, monkeypatch):
+    from datetime import date
+    from app import config, db
+    from app.api.routes import get_universes
+    from app.query.db_store import get_universes_summary, load_market_dataset_from_db
+
+    monkeypatch.setattr(config, "data_path", lambda rel: tmp_path / rel)
+    # Always returns canonical 9 indices + All NSE + BSE listed even if DB empty
+    u_route = get_universes()
+    labels = [x["label"] for x in u_route]
+    assert labels[:5] == ["Nifty 50", "Nifty Next 50", "Nifty 100", "Nifty 200", "Nifty 500"]
+    assert labels[-1] == "All NSE + BSE listed"
+
+    import duckdb
+    con = duckdb.connect(str(tmp_path / "u.db"))
+    db.init_schema(con)
+    db.upsert_rows(con, "ref_security", [
+        {"security_id": "INE001", "isin": "INE001", "nse_symbol": "FOO", "name": "Foo Ltd"},
+        {"security_id": "INE002", "isin": "INE002", "nse_symbol": "BAR", "name": "Bar Ltd", "sector": "Energy", "sub_sector": "Oil & Gas"},
+    ], keys=["security_id"])
+    db.upsert_rows(con, "ref_index_constituent", [
+        {"index_name": "NIFTY100", "symbol": "OLD", "as_of": date(2025, 1, 1)},
+        {"index_name": "NIFTY100", "symbol": "FOO", "as_of": date(2026, 1, 1)},
+    ], keys=["index_name", "symbol", "as_of"])
+
+    ds = load_market_dataset_from_db(con)
+    assert ds["synced"] is True
+    foo = [r for r in ds["rows"] if r["nse_symbol"] == "FOO"][0]
+    assert foo["sector"] == "Unclassified"
+    assert foo["sub_sector"] == "Unclassified"
+    assert ds["universes"]["NIFTY100"] == ["FOO"]
+
+    summary = get_universes_summary(con)
+    n100 = [x for x in summary if x["slug"] == "NIFTY100"][0]
+    assert n100["count"] == 1
+    assert n100["as_of"] == "2026-01-01"
+    all_entry = [x for x in summary if x["slug"] == "ALL"][0]
+    assert all_entry["count"] == 2
+    con.close()

@@ -13,11 +13,20 @@ export interface FilterDefinition {
   locked_in_original: boolean;
   needs_official_source: boolean;
   availability: AvailabilityStatus;
+  feeds?: string;
   formula?: string;
   frequency?: string;
   null_rule?: string;
   direction_of_goodness?: string;
   glossary?: string;
+}
+
+export interface UniverseMeta {
+  id: string;
+  label: string;
+  slug: string;
+  count: number;
+  as_of: string | null;
 }
 
 export interface FilterState {
@@ -30,6 +39,8 @@ export interface StockRow {
   name: string;
   sub: string;
   sector: string;
+  nse_symbol?: string;
+  _provenance?: Record<string, any>;
   v: Record<string, number | null>;
 }
 
@@ -38,7 +49,6 @@ export interface StockUniverse {
   name: string;
   type: 'default' | 'custom';
   rows: StockRow[];
-  totalMarketCount?: number;
 }
 
 export interface SavedScreen {

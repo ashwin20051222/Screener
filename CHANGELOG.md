@@ -4,6 +4,13 @@ All notable milestones for **ScreenerDesk** (Indian Stock Screener Replica).
 
 ## [Unreleased — Fix Prompt #1]
 
+### Task B — Truthful UI & Real Index Universes (`2026-11-10`)
+- Added `GET /api/universes` and latest-snapshot index membership lookup in `app/query/db_store.py` (with `px_by_isin` price fallback and graceful busy-lock handling).
+- Replaced hardcoded `5996`, `default_seed` binding, and static `SECTORS_CONFIG` in `apps/web/src/App.tsx` with dynamic backend universes (`Nifty 50` .. `Nifty Smallcap 250` + `All NSE + BSE listed`), real filtered counts, and dynamic sector/sub-sector counts.
+- Added offline sample-mode banner (`15 sample rows`) with disabled `needs sync` index tags when unsynced, and live `as_of` dates in header tooltip when synced.
+- Replaced `"Industrials"`/`"General"` empty-sector defaults with `"Unclassified"`, replaced `"awaiting sync"` with specific `feeds`-driven command hints (`AddFiltersModal.tsx`, synced `filters.json`), and added source + as-of tooltips on numeric table cells.
+- Captured `fix1_before_seed.png` and `fix1_after_nifty100.png` (`1750 × 925`).
+
 ### Task A — Baseline Reproduction, Coverage Tooling & Diagnosis Audit (`2026-11-10`)
 - Verified live app serving and baseline DB state (`synced: False`, `row_count: 0`, `universes_count: 0`).
 - Added explicit `feeds:` provenance job tags (`amfi`, `daily`, `deals`, `fno`, `history`, `manual`, `shp`, `unavailable`, `weekly`, `xbrl`) across all `255` filters in `registry/filters.yaml`.

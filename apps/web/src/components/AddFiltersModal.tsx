@@ -2,12 +2,48 @@ import React, { useState } from 'react';
 import { FilterDefinition } from '../types';
 import { Search, ChevronRight, Lock, BookOpen } from 'lucide-react';
 
+export interface FilterCoverageStats {
+  nonNull: number;
+  total: number;
+  pct: number;
+}
+
+export function formatMissingFeedReason(feeds?: string): string {
+  switch (feeds) {
+    case 'daily':
+      return 'needs make sync-daily';
+    case 'weekly':
+      return 'needs make sync-weekly';
+    case 'shp':
+      return 'needs make sync-shp';
+    case 'history':
+      return 'needs make backfill';
+    case 'xbrl':
+      return 'needs make sync-quarterly';
+    case 'fno':
+      return 'needs F&O bhavcopy';
+    case 'deals':
+      return 'needs make sync-deals';
+    case 'amfi':
+      return 'needs AMFI TER / NAV';
+    case 'manual':
+      return 'needs data/inbox/fbil_mibor.json';
+    case 'inbox':
+      return 'needs data/inbox/ drop';
+    case 'unavailable':
+      return 'Not available from official sources';
+    default:
+      return 'needs sync';
+  }
+}
+
 interface AddFiltersModalProps {
   isOpen: boolean;
   onClose: () => void;
   allFilters: FilterDefinition[];
   activeFilterIds: string[];
   loadedFilterIds: Set<string>;
+  filterCoverage?: Map<string, FilterCoverageStats>;
   onToggleFilter: (id: string, isChecked: boolean) => void;
   onOpenCustomFilterBuilder: () => void;
   onOpenGlossary: (category: string) => void;
@@ -37,6 +73,7 @@ export const AddFiltersModal: React.FC<AddFiltersModalProps> = ({
   allFilters,
   activeFilterIds,
   loadedFilterIds,
+  filterCoverage,
   onToggleFilter,
   onOpenCustomFilterBuilder,
   onOpenGlossary,
@@ -142,9 +179,15 @@ export const AddFiltersModal: React.FC<AddFiltersModalProps> = ({
               ) : (
                 filteredItems.map(filter => {
                   const isChecked = activeFilterIds.includes(filter.id);
-                  const hasData = loadedFilterIds.has(filter.id);
-                  const isUnavailable = filter.availability === 'Unavailable';
+                  const cov = filterCoverage?.get(filter.id);
+                  const nonNull = cov ? cov.nonNull : loadedFilterIds.has(filter.id) ? 1 : 0;
+                  const hasData = nonNull > 0;
+                  const isUnavailable = filter.availability === 'Unavailable' || filter.feeds === 'unavailable';
                   const isApprox = filter.availability === 'Approximate';
+                  const tooltip = cov && cov.nonNull > 0
+                    ? `Coverage: ${cov.pct.toFixed(1)}% (${cov.nonNull}/${cov.total}) — ${filter.formula || filter.name}`
+                    : (filter.formula || filter.name);
+                  const missingText = formatMissingFeedReason(filter.feeds);
 
                   return (
                     <label key={filter.id} className="modal-filter-item">
@@ -153,7 +196,7 @@ export const AddFiltersModal: React.FC<AddFiltersModalProps> = ({
                         checked={isChecked}
                         onChange={e => onToggleFilter(filter.id, e.target.checked)}
                       />
-                      <span style={{ flex: 1 }} title={filter.formula || filter.name}>{filter.name}</span>
+                      <span style={{ flex: 1 }} title={tooltip}>{filter.name}</span>
                       {isApprox && (
                         <span
                           style={{
@@ -190,7 +233,7 @@ export const AddFiltersModal: React.FC<AddFiltersModalProps> = ({
                             borderRadius: '3px',
                           }}
                         >
-                          awaiting sync
+                          {missingText}
                         </span>
                       ) : null}
                     </label>

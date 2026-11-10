@@ -16,6 +16,104 @@ from ingest.ownership import compute_ownership_snapshot
 
 log = logging.getLogger(__name__)
 
+CANONICAL_INDICES = [
+    ("nifty50", "NIFTY50", "Nifty 50"),
+    ("niftynext50", "NIFTYNEXT50", "Nifty Next 50"),
+    ("nifty100", "NIFTY100", "Nifty 100"),
+    ("nifty200", "NIFTY200", "Nifty 200"),
+    ("nifty500", "NIFTY500", "Nifty 500"),
+    ("niftymidcap100", "NIFTYMIDCAP100", "Nifty Midcap 100"),
+    ("niftymidcap150", "NIFTYMIDCAP150", "Nifty Midcap 150"),
+    ("niftysmallcap100", "NIFTYSMALLCAP100", "Nifty Smallcap 100"),
+    ("niftysmallcap250", "NIFTYSMALLCAP250", "Nifty Smallcap 250"),
+]
+
+
+def get_universes_summary(con=None) -> List[Dict[str, Any]]:
+    """Returns canonical index universe metadata from latest ref_index_constituent snapshot + All listed."""
+    own = con is None
+    if con is None:
+        from app.config import data_path, settings
+        db_p = data_path(settings()["data"]["db_path"])
+        if not db_p.exists():
+            return [
+                {"id": cid, "label": lbl, "slug": slug, "count": 0, "as_of": None}
+                for cid, slug, lbl in CANONICAL_INDICES
+            ] + [{"id": "all_listed", "label": "All NSE + BSE listed", "slug": "ALL", "count": 0, "as_of": None}]
+        try:
+            con = db.connect(read_only=True)
+        except Exception as exc:
+            log.warning("DuckDB busy during get_universes_summary: %s", exc)
+            return [
+                {"id": cid, "label": lbl, "slug": slug, "count": 0, "as_of": None}
+                for cid, slug, lbl in CANONICAL_INDICES
+            ] + [{"id": "all_listed", "label": "All NSE + BSE listed", "slug": "ALL", "count": 0, "as_of": None}]
+
+    try:
+        idx_stats: Dict[str, tuple] = {}
+        try:
+            for idx_nm, cnt, dt in con.execute(
+                """
+                SELECT r.index_name, COUNT(DISTINCT r.symbol), MAX(r.as_of)
+                FROM ref_index_constituent r
+                JOIN (
+                    SELECT index_name, MAX(as_of) AS max_as_of
+                    FROM ref_index_constituent
+                    GROUP BY index_name
+                ) latest
+                  ON r.index_name = latest.index_name AND r.as_of = latest.max_as_of
+                GROUP BY r.index_name
+                """
+            ).fetchall():
+                idx_stats[str(idx_nm).upper()] = (int(cnt), str(dt) if dt else None)
+        except Exception:
+            idx_stats = {}
+
+        total_listed = 0
+        max_sec_dt = None
+        try:
+            sec_stat = con.execute(
+                """
+                SELECT COUNT(*), MAX(CAST(updated_at AS DATE))
+                FROM ref_security
+                WHERE COALESCE(listing_status, 'listed') <> 'delisted' AND name IS NOT NULL
+                """
+            ).fetchone()
+            if sec_stat:
+                total_listed = int(sec_stat[0] or 0)
+                max_sec_dt = str(sec_stat[1]) if sec_stat[1] else None
+        except Exception:
+            pass
+
+        seen_slugs = set()
+        out: List[Dict[str, Any]] = []
+        for cid, slug, lbl in CANONICAL_INDICES:
+            cnt, dt = idx_stats.get(slug, (0, None))
+            seen_slugs.add(slug)
+            out.append({"id": cid, "label": lbl, "slug": slug, "count": cnt, "as_of": dt})
+
+        for slug, (cnt, dt) in sorted(idx_stats.items()):
+            if slug not in seen_slugs:
+                out.append({
+                    "id": slug.lower(),
+                    "label": slug,
+                    "slug": slug,
+                    "count": cnt,
+                    "as_of": dt,
+                })
+
+        out.append({
+            "id": "all_listed",
+            "label": "All NSE + BSE listed",
+            "slug": "ALL",
+            "count": total_listed,
+            "as_of": max_sec_dt,
+        })
+        return out
+    finally:
+        if own:
+            con.close()
+
 
 def load_market_dataset_from_db(con=None) -> Dict[str, Any]:
     """Loads full listed market dataset from DuckDB if synced; returns empty rows when DB has no data."""
@@ -24,8 +122,12 @@ def load_market_dataset_from_db(con=None) -> Dict[str, Any]:
         from app.config import data_path, settings
         db_p = data_path(settings()["data"]["db_path"])
         if not db_p.exists():
-            return {"synced": False, "rows": [], "universes": {}}
-        con = db.connect(read_only=True)
+            return {"synced": False, "rows": [], "universes": {}, "as_of": {}}
+        try:
+            con = db.connect(read_only=True)
+        except Exception as exc:
+            log.warning("DuckDB busy during load_market_dataset_from_db: %s", exc)
+            return {"synced": False, "sync_in_progress": True, "rows": [], "universes": {}, "as_of": {}}
 
     try:
         sec_rows = con.execute(
@@ -39,18 +141,22 @@ def load_market_dataset_from_db(con=None) -> Dict[str, Any]:
             """
         ).fetchall()
         if not sec_rows:
-            return {"synced": False, "rows": [], "universes": {}}
+            return {"synced": False, "rows": [], "universes": {}, "as_of": {}}
 
-        # Latest px_daily per symbol (NSE preferred over BSE if both exist)
+        # Latest px_daily per symbol and per isin (NSE preferred over BSE if both exist)
         px_map: Dict[str, tuple] = {}
+        px_by_isin: Dict[str, tuple] = {}
         for r in con.execute(
             """
             SELECT symbol, isin, date, close, volume, wap, source
             FROM px_daily
-            QUALIFY ROW_NUMBER() OVER (PARTITION BY symbol ORDER BY CASE WHEN source = 'NSE' THEN 0 ELSE 1 END, date DESC) = 1
+            QUALIFY ROW_NUMBER() OVER (PARTITION BY COALESCE(isin, symbol) ORDER BY CASE WHEN source = 'NSE' THEN 0 ELSE 1 END, date DESC) = 1
             """
         ).fetchall():
-            px_map[r[0]] = r
+            if r[0]:
+                px_map.setdefault(r[0], r)
+            if r[1]:
+                px_by_isin.setdefault(r[1], r)
 
         # Latest tech_daily per symbol
         tech_df = con.execute(
@@ -82,18 +188,27 @@ def load_market_dataset_from_db(con=None) -> Dict[str, Any]:
         ).fetchall():
             etf_map[sym] = (er, er_dt, te, te_dt)
 
-        # Index memberships
+        # Index memberships from latest snapshot per index
         univ_members: Dict[str, List[str]] = {}
         for idx_nm, sym in con.execute(
-            "SELECT DISTINCT index_name, symbol FROM ref_index_constituent"
+            """
+            SELECT DISTINCT r.index_name, r.symbol
+            FROM ref_index_constituent r
+            JOIN (
+                SELECT index_name, MAX(as_of) AS max_as_of
+                FROM ref_index_constituent
+                GROUP BY index_name
+            ) latest
+              ON r.index_name = latest.index_name AND r.as_of = latest.max_as_of
+            """
         ).fetchall():
-            univ_members.setdefault(idx_nm, []).append(sym)
+            univ_members.setdefault(str(idx_nm).upper(), []).append(sym)
 
         stocks: List[Dict[str, Any]] = []
         for s in sec_rows:
             sid, isin, sym, bse_code, name, fv, sh_out, sec, sub_sec, ind, tpl, is_fin, is_etf, is_sme, fno_elig = s
             key_sym = sym or f"BSE:{bse_code}"
-            px = px_map.get(sym) if sym else None
+            px = (px_map.get(sym) if sym else None) or (px_by_isin.get(isin) if isin else None)
             close_px = float(px[3]) if (px and px[3] is not None) else None
             mc = (close_px * float(sh_out) / 1e7) if (close_px and sh_out) else None
 
@@ -103,8 +218,8 @@ def load_market_dataset_from_db(con=None) -> Dict[str, Any]:
                 "nse_symbol": sym,
                 "bse_code": bse_code,
                 "name": name,
-                "sector": "ETF" if is_etf else (sec or "Industrials"),
-                "sub_sector": sub_sec or ind or ("ETF" if is_etf else "General"),
+                "sector": "ETF" if is_etf else (sec or "Unclassified"),
+                "sub_sector": sub_sec or ind or ("ETF" if is_etf else "Unclassified"),
                 "is_financial_institution": bool(is_fin),
                 "is_etf": bool(is_etf),
                 "is_sme": bool(is_sme),
@@ -215,7 +330,23 @@ def load_market_dataset_from_db(con=None) -> Dict[str, Any]:
                 r.update(q_scores[k])
                 r["_provenance"]["quant_badge"] = "Approximate - computed locally"
 
-        return {"synced": True, "rows": stocks, "universes": univ_members}
+        max_px_dt = con.execute("SELECT MAX(date) FROM px_daily").fetchone()[0]
+        max_master_dt = con.execute("SELECT MAX(as_of) FROM ref_index_constituent").fetchone()[0]
+        max_fin_dt = con.execute("SELECT MAX(fiscal_year_end) FROM fin_annual").fetchone()[0]
+        max_shp_dt = con.execute("SELECT MAX(quarter_end) FROM ownership_quarterly").fetchone()[0]
+        max_amfi_dt = con.execute("SELECT MAX(as_of_date) FROM ref_amfi_classification").fetchone()[0]
+        return {
+            "synced": True,
+            "rows": stocks,
+            "universes": univ_members,
+            "as_of": {
+                "price": str(max_px_dt) if max_px_dt else None,
+                "masters": str(max_master_dt) if max_master_dt else None,
+                "filings": str(max_fin_dt or max_shp_dt) if (max_fin_dt or max_shp_dt) else None,
+                "amfi": str(max_amfi_dt) if max_amfi_dt else None,
+            },
+        }
     finally:
         if own:
             con.close()
+
