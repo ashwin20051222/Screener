@@ -62,6 +62,12 @@ def process_inbox(con) -> list[dict]:
             run_technicals_job(con, incremental=True)
         except Exception as exc:
             log.warning("Post-inbox technicals refresh failed: %s", exc)
+    if any(r.get("status") == "ok" for r in results):
+        try:
+            from app.query.snapshot import build_screener_snapshot
+            build_screener_snapshot(con)
+        except Exception as exc:
+            log.warning("Post-inbox snapshot rebuild failed: %s", exc)
     return results
 
 

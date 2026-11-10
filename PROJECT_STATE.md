@@ -1,7 +1,7 @@
 # PROJECT_STATE.md — Continuity File
 
-> **Current Phase:** Fix Prompt #1 — **Task E Complete** (`fix-1e`); proceeding to **Task F** (`Performance: Snapshot Serving`).
-> **Last Updated:** 2026-11-10T11:36:30+05:30
+> **Current Phase:** Fix Prompt #1 — **Task F Complete** (`fix-1f`); proceeding to **Task G** (`Official Sector Classification`).
+> **Last Updated:** 2026-11-10T11:44:45+05:30
 > **Tags:** `baseline-prototype`, `ui-replica-v1`, `replica-v1`.
 
 ---
@@ -96,7 +96,13 @@
   - Added `sync_deals_and_pit` (`ingest/ownership.py`), `scripts/sync_deals.py` (`make sync-deals`), and targeted resumable `run_quarterly(universe, max_symbols, resume)` (`ingest/sources.py`) + `scripts/sync_quarterly.py` (`make sync-quarterly UNIVERSE=nifty100|nifty500|all MAX=...`, auto-regenerating `docs/DATA_COVERAGE.md` and exposing `fin_quarantine_count` in `make status`).
   - Surfaced `n/a for this sector` / `n/a (sector)` hints and tooltips for bank/insurer-inapplicable ratios in `StockDetailDrawer.tsx` & `App.tsx`, and rebuilt `apps/web/dist`.
   - Live verified (`make sync-deals` + `make sync-quarterly UNIVERSE=nifty100 MAX=2`): `78` bulk/block deal rows, `ABB` & `ADANIENSOL` SHP (3Q) + Ind-AS XBRL filings synced in `143.33s` (`32` requests, `0` quarantined), populating `17/17` `shp`, `6/6` `deals`, and `126/137` `xbrl` filters (`103 passed`).
-- **Next:** Task F — Precomputed `screener_snapshot` table + set-based SQL + GZip/ETag `< 1.5s` API.
+- **Task F (Fix Prompt #1) Complete (`fix-1f`):**
+  - Added `screener_snapshot` + `screener_snapshot_meta` tables (`app/schema.sql`) and implemented `app/query/snapshot.py` (`build_screener_snapshot`, `load_snapshot_from_db`) + `scripts/build_snapshot.py` (`make snapshot`).
+  - Eliminated N+1 DB queries (`D8`) via set-based `compute_all_ownership_snapshots_bulk` (`ingest/ownership.py`) and `compute_all_fundamental_metrics_bulk` (`ingest/financials.py`), sharing pure computation helpers (`_compute_fundamentals_from_rows`, `_ownership_snapshot_from_inputs`) and replacing `.fetchdf()` NaN pollution with clean cursor row dicts.
+  - Hooked `build_screener_snapshot` onto completion of `run_daily`, `run_weekly`, `run_quarterly`, `backfill_prices`, `sync_shp_batch`, `sync_deals_and_pit`, and `process_inbox`, plus updated `scripts/coverage.py` to read from snapshot.
+  - Added `GZipMiddleware` (`app/main.py`) and upgraded `GET /api/screener/dataset` (`app/api/routes.py`) with `?universe=`, `?fields=`, `ETag`, and `304 Not Modified`.
+  - Measured speedup on live `2,645`-stock DB: `39.77s / 4.33 MB` -> **`0.333s` full market (`182 KB` GZipped, `119x` faster)** and **`0.065s` NIFTY100 (`15.1 KB` GZipped)**; offline suite `105 passed`.
+- **Next:** Task G — Official all-listed sector/industry classification + expanded `sector_map.yaml`.
 
 ---
 

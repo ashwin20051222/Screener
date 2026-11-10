@@ -85,6 +85,11 @@ def run_daily(con=None) -> dict:
             summary["technicals"] = run_technicals_job(con)
         except Exception as exc:
             summary["compute_error"] = str(exc)
+        try:
+            from app.query.snapshot import build_screener_snapshot
+            summary["snapshot"] = build_screener_snapshot(con)
+        except Exception as exc:
+            summary["snapshot_error"] = str(exc)
         _mark(con, "daily", run_date, "ok", 0, str(summary)[:400], t0)
     except Exception as e:
         log.exception("daily sync failed")
@@ -129,6 +134,11 @@ def run_weekly(con=None) -> dict:
         except Exception as exc:
             summary["etf_nav_error"] = str(exc)
         summary["fbil"] = fbil_mod.sync_manual_rate(con)
+        try:
+            from app.query.snapshot import build_screener_snapshot
+            summary["snapshot"] = build_screener_snapshot(con)
+        except Exception as exc:
+            summary["snapshot_error"] = str(exc)
         _mark(con, "weekly", run_date, "ok", 0, str(summary)[:400], t0)
     except Exception as e:
         log.exception("weekly sync failed")
@@ -214,6 +224,11 @@ def run_quarterly(
 
         q_row = con.execute("SELECT COUNT(*) FROM fin_quarantine").fetchone()
         summary["fin_quarantine_count"] = int(q_row[0]) if q_row else 0
+        try:
+            from app.query.snapshot import build_screener_snapshot
+            summary["snapshot"] = build_screener_snapshot(con)
+        except Exception as exc:
+            summary["snapshot_error"] = str(exc)
         summary["elapsed_seconds"] = round(time.time() - t0, 2)
         _mark(
             con,

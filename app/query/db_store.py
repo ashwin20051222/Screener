@@ -321,14 +321,32 @@ def load_market_dataset_from_db(con=None) -> Dict[str, Any]:
                 row["tracking_error"] = te
 
             if sym:
-                own_snap = compute_ownership_snapshot(con, sym)
-                row.update(own_snap)
-                fin_snap = compute_fundamental_metrics(con, sym, close_px, sh_out, is_fin)
-                if fin_snap.get("statement_type_used"):
-                    row["_provenance"]["statement_type"] = fin_snap.pop("statement_type_used")
-                    row.update(fin_snap)
+                row["_fin_input"] = (sym, close_px, sh_out, is_fin)
 
             stocks.append(row)
+
+        from ingest.financials import compute_all_fundamental_metrics_bulk
+        from ingest.ownership import compute_all_ownership_snapshots_bulk
+
+        fin_inputs = {}
+        for r in stocks:
+            fi = r.pop("_fin_input", None)
+            if fi:
+                fin_inputs[fi[0]] = (fi[1], fi[2], fi[3])
+        own_bulk = compute_all_ownership_snapshots_bulk(con)
+        fin_bulk = compute_all_fundamental_metrics_bulk(con, fin_inputs)
+        for r in stocks:
+            rsym = r.get("nse_symbol")
+            if not rsym:
+                continue
+            if rsym in own_bulk:
+                r.update(own_bulk[rsym])
+            fin_snap = fin_bulk.get(rsym)
+            if fin_snap:
+                fin_copy = dict(fin_snap)
+                if fin_copy.get("statement_type_used"):
+                    r["_provenance"]["statement_type"] = fin_copy.pop("statement_type_used")
+                    r.update(fin_copy)
 
         # Market-wide Sector Benchmarks & Quant Scores
         be = BenchmarkEngine()

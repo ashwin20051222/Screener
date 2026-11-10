@@ -33,7 +33,10 @@ async def lifespan(app: FastAPI):
     sched.shutdown(wait=False)
 
 
+from fastapi.middleware.gzip import GZipMiddleware
+
 app = FastAPI(title=settings()["app"]["name"], lifespan=lifespan)
+app.add_middleware(GZipMiddleware, minimum_size=1024)
 app.include_router(screener_router)
 
 

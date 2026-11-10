@@ -359,6 +359,12 @@ def sync_shp_batch(
             db.mark_progress(con, "sync_shp", sym, "skip", res.get("message", "no data"))
             failed += 1
 
+    try:
+        from app.query.snapshot import build_screener_snapshot
+        build_screener_snapshot(con)
+    except Exception as exc:
+        log.warning("Post-SHP snapshot rebuild failed: %s", exc)
+
     db.upsert_rows(con, "ingest_status", [{
         "id": f"sync_shp::{universe}::{date.today()}",
         "job": "sync_shp",
@@ -598,6 +604,11 @@ def sync_deals_and_pit(con, *, days_back: int = 183) -> dict:
         log.error("NSE 403/429 on PIT API. Manual drop: data/inbox/CF-Insider-Trading-*.csv -> make synkinbox.")
     total_rows = int(res_deals.get("rows", 0)) + int(res_pit.get("rows", 0))
     blocked = res_pit.get("status") == "blocked"
+    try:
+        from app.query.snapshot import build_screener_snapshot
+        build_screener_snapshot(con)
+    except Exception as exc:
+        log.warning("Post-deals snapshot rebuild failed: %s", exc)
     db.upsert_rows(con, "ingest_status", [{
         "id": f"sync_deals::{date.today()}",
         "job": "sync_deals",
@@ -613,22 +624,8 @@ def sync_deals_and_pit(con, *, days_back: int = 183) -> dict:
 
 # ------------------------------------------------------------------ Ownership Metrics Aggregator
 
-def compute_ownership_snapshot(con, symbol: str, as_of: date | None = None) -> Dict[str, Optional[float]]:
-    """Computes all 22 Ownership metrics for `symbol` per Section 10.5."""
-    ref_dt = as_of or date.today()
-    q_rows = con.execute(
-        """
-        SELECT quarter_end, promoter_pct, promoter_pledged_pct, promoter_pledged_total_pct,
-               mf_pct, dii_pct, fii_pct, retail_pct, insurance_pct, no_of_shareholders
-        FROM ownership_quarterly
-        WHERE symbol = ? AND quarter_end <= ?
-        ORDER BY quarter_end DESC
-        LIMIT 3
-        """,
-        [symbol, ref_dt],
-    ).fetchall()
-
-    out: Dict[str, Optional[float]] = {
+def _default_ownership_snapshot() -> Dict[str, Optional[float]]:
+    return {
         "mutual_fund_holding": None,
         "domestic_institutional_holding": None,
         "foreign_institutional_holding": None,
@@ -653,11 +650,20 @@ def compute_ownership_snapshot(con, symbol: str, as_of: date | None = None) -> D
         "insider_trades_6m_cumulative": None,
     }
 
+
+def _ownership_snapshot_from_inputs(
+    q_rows: list[tuple],
+    shares_out: Optional[float],
+    bd_sums: tuple[float, float, float] | None = None,
+    pit_sums: tuple[float, float, float] | None = None,
+) -> Dict[str, Optional[float]]:
+    """Computes ownership + deals/PIT metrics cleanly from pre-fetched rows."""
+    out = _default_ownership_snapshot()
+
     if q_rows:
         q0 = q_rows[0]
         out["promoter_holding"] = q0[1]
         out["pledged_promoter_holdings"] = q0[2]
-        out["mf_holding_change_3m"] = None
         out["mutual_fund_holding"] = q0[4]
         out["domestic_institutional_holding"] = q0[5]
         out["foreign_institutional_holding"] = q0[6]
@@ -687,34 +693,147 @@ def compute_ownership_snapshot(con, symbol: str, as_of: date | None = None) -> D
             if q0[1] is not None and q2[1] is not None:
                 out["promoter_holding_change_6m"] = round(q0[1] - q2[1], 4)
 
-    # Shares outstanding from ref_security
+    if shares_out and shares_out > 0:
+        b1, b3, b6 = bd_sums or (0.0, 0.0, 0.0)
+        p1, p3, p6 = pit_sums or (0.0, 0.0, 0.0)
+        denom = float(shares_out)
+        out["bulk_deals_1m_cumulative"] = round((float(b1) / denom) * 100.0, 4)
+        out["bulk_deals_3m_cumulative"] = round((float(b3) / denom) * 100.0, 4)
+        out["bulk_deals_6m_cumulative"] = round((float(b6) / denom) * 100.0, 4)
+        out["insider_trades_1m_cumulative"] = round((float(p1) / denom) * 100.0, 4)
+        out["insider_trades_3m_cumulative"] = round((float(p3) / denom) * 100.0, 4)
+        out["insider_trades_6m_cumulative"] = round((float(p6) / denom) * 100.0, 4)
+
+    return out
+
+
+def compute_ownership_snapshot(con, symbol: str, as_of: date | None = None) -> Dict[str, Optional[float]]:
+    """Computes all 22 Ownership metrics for `symbol` per Section 10.5."""
+    ref_dt = as_of or date.today()
+    q_rows = con.execute(
+        """
+        SELECT quarter_end, promoter_pct, promoter_pledged_pct, promoter_pledged_total_pct,
+               mf_pct, dii_pct, fii_pct, retail_pct, insurance_pct, no_of_shareholders
+        FROM ownership_quarterly
+        WHERE symbol = ? AND quarter_end <= ?
+        ORDER BY quarter_end DESC
+        LIMIT 3
+        """,
+        [symbol, ref_dt],
+    ).fetchall()
+
     sh_row = con.execute(
         "SELECT shares_outstanding FROM ref_security WHERE nse_symbol = ? LIMIT 1", [symbol]
     ).fetchone()
     shares_out = sh_row[0] if sh_row and sh_row[0] and sh_row[0] > 0 else None
 
+    bd_sums = (0.0, 0.0, 0.0)
+    pit_sums = (0.0, 0.0, 0.0)
     if shares_out:
-        for label, days in (("1m", 30), ("3m", 91), ("6m", 182)):
-            since = ref_dt - timedelta(days=days)
-            bd = con.execute(
-                """
-                SELECT COALESCE(SUM(CASE WHEN buy_sell = 'BUY' THEN quantity ELSE -quantity END), 0)
-                FROM bulk_block_deals
-                WHERE symbol = ? AND deal_date > ? AND deal_date <= ?
-                """,
-                [symbol, since, ref_dt],
-            ).fetchone()
-            out[f"bulk_deals_{label}_cumulative"] = round((float(bd[0]) / float(shares_out)) * 100.0, 4)
+        d30 = ref_dt - timedelta(days=30)
+        d91 = ref_dt - timedelta(days=91)
+        d182 = ref_dt - timedelta(days=182)
+        bd = con.execute(
+            """
+            SELECT
+                COALESCE(SUM(CASE WHEN deal_date > ? THEN CASE WHEN buy_sell = 'BUY' THEN quantity ELSE -quantity END ELSE 0 END), 0),
+                COALESCE(SUM(CASE WHEN deal_date > ? THEN CASE WHEN buy_sell = 'BUY' THEN quantity ELSE -quantity END ELSE 0 END), 0),
+                COALESCE(SUM(CASE WHEN buy_sell = 'BUY' THEN quantity ELSE -quantity END), 0)
+            FROM bulk_block_deals
+            WHERE symbol = ? AND deal_date > ? AND deal_date <= ?
+            """,
+            [d30, d91, symbol, d182, ref_dt],
+        ).fetchone()
+        if bd:
+            bd_sums = (float(bd[0]), float(bd[1]), float(bd[2]))
 
-            pit = con.execute(
-                """
-                SELECT COALESCE(SUM(CASE WHEN transaction_type = 'BUY' THEN shares ELSE -shares END), 0)
-                FROM insider_trades
-                WHERE symbol = ? AND broadcast_date > ? AND broadcast_date <= ?
-                """,
-                [symbol, since, ref_dt],
-            ).fetchone()
-            out[f"insider_trades_{label}_cumulative"] = round((float(pit[0]) / float(shares_out)) * 100.0, 4)
+        pit = con.execute(
+            """
+            SELECT
+                COALESCE(SUM(CASE WHEN broadcast_date > ? THEN CASE WHEN transaction_type = 'BUY' THEN shares ELSE -shares END ELSE 0 END), 0),
+                COALESCE(SUM(CASE WHEN broadcast_date > ? THEN CASE WHEN transaction_type = 'BUY' THEN shares ELSE -shares END ELSE 0 END), 0),
+                COALESCE(SUM(CASE WHEN transaction_type = 'BUY' THEN shares ELSE -shares END), 0)
+            FROM insider_trades
+            WHERE symbol = ? AND broadcast_date > ? AND broadcast_date <= ?
+            """,
+            [d30, d91, symbol, d182, ref_dt],
+        ).fetchone()
+        if pit:
+            pit_sums = (float(pit[0]), float(pit[1]), float(pit[2]))
 
-    return out
+    return _ownership_snapshot_from_inputs(q_rows, shares_out, bd_sums, pit_sums)
+
+
+def compute_all_ownership_snapshots_bulk(con, as_of: date | None = None) -> Dict[str, Dict[str, Optional[float]]]:
+    """Set-based bulk computation of all 22 Ownership metrics across every NSE symbol (replaces N+1 queries)."""
+    ref_dt = as_of or date.today()
+    d30 = ref_dt - timedelta(days=30)
+    d91 = ref_dt - timedelta(days=91)
+    d182 = ref_dt - timedelta(days=182)
+
+    q_by_sym: Dict[str, list[tuple]] = {}
+    q_rows = con.execute(
+        """
+        SELECT symbol, quarter_end, promoter_pct, promoter_pledged_pct, promoter_pledged_total_pct,
+               mf_pct, dii_pct, fii_pct, retail_pct, insurance_pct, no_of_shareholders
+        FROM ownership_quarterly
+        WHERE quarter_end <= ?
+        QUALIFY ROW_NUMBER() OVER (PARTITION BY symbol ORDER BY quarter_end DESC) <= 3
+        ORDER BY symbol, quarter_end DESC
+        """,
+        [ref_dt],
+    ).fetchall()
+    for row in q_rows:
+        sym = row[0]
+        if sym:
+            q_by_sym.setdefault(sym, []).append(row[1:])
+
+    shares_by_sym: Dict[str, float] = {}
+    for sym, sh in con.execute(
+        "SELECT nse_symbol, shares_outstanding FROM ref_security WHERE nse_symbol IS NOT NULL AND shares_outstanding > 0"
+    ).fetchall():
+        shares_by_sym[sym] = float(sh)
+
+    bd_by_sym: Dict[str, tuple[float, float, float]] = {}
+    for sym, b1, b3, b6 in con.execute(
+        """
+        SELECT symbol,
+            COALESCE(SUM(CASE WHEN deal_date > ? THEN CASE WHEN buy_sell = 'BUY' THEN quantity ELSE -quantity END ELSE 0 END), 0),
+            COALESCE(SUM(CASE WHEN deal_date > ? THEN CASE WHEN buy_sell = 'BUY' THEN quantity ELSE -quantity END ELSE 0 END), 0),
+            COALESCE(SUM(CASE WHEN buy_sell = 'BUY' THEN quantity ELSE -quantity END), 0)
+        FROM bulk_block_deals
+        WHERE deal_date > ? AND deal_date <= ?
+        GROUP BY symbol
+        """,
+        [d30, d91, d182, ref_dt],
+    ).fetchall():
+        if sym:
+            bd_by_sym[sym] = (float(b1), float(b3), float(b6))
+
+    pit_by_sym: Dict[str, tuple[float, float, float]] = {}
+    for sym, p1, p3, p6 in con.execute(
+        """
+        SELECT symbol,
+            COALESCE(SUM(CASE WHEN broadcast_date > ? THEN CASE WHEN transaction_type = 'BUY' THEN shares ELSE -shares END ELSE 0 END), 0),
+            COALESCE(SUM(CASE WHEN broadcast_date > ? THEN CASE WHEN transaction_type = 'BUY' THEN shares ELSE -shares END ELSE 0 END), 0),
+            COALESCE(SUM(CASE WHEN transaction_type = 'BUY' THEN shares ELSE -shares END), 0)
+        FROM insider_trades
+        WHERE broadcast_date > ? AND broadcast_date <= ?
+        GROUP BY symbol
+        """,
+        [d30, d91, d182, ref_dt],
+    ).fetchall():
+        if sym:
+            pit_by_sym[sym] = (float(p1), float(p3), float(p6))
+
+    all_syms = set(shares_by_sym) | set(q_by_sym) | set(bd_by_sym) | set(pit_by_sym)
+    return {
+        sym: _ownership_snapshot_from_inputs(
+            q_by_sym.get(sym, []),
+            shares_by_sym.get(sym),
+            bd_by_sym.get(sym),
+            pit_by_sym.get(sym),
+        )
+        for sym in all_syms
+    }
 

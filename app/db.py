@@ -8,7 +8,8 @@ from typing import Iterable
 
 import duckdb
 
-from app.config import data_path, settings
+from app import config
+from app.config import settings
 
 log = logging.getLogger(__name__)
 
@@ -21,7 +22,7 @@ def connect(*, read_only: bool = False, retries: int = 4, delay: float = 0.35) -
     windows between sync steps; callers that still fail should degrade gracefully
     (see app.main which renders 'sync in progress' badges instead of crashing).
     """
-    db_path = data_path(settings()["data"]["db_path"])
+    db_path = config.data_path(settings()["data"]["db_path"])
     db_path.parent.mkdir(parents=True, exist_ok=True)
     last_exc: Exception | None = None
     for attempt in range(max(1, retries)):

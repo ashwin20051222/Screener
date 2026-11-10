@@ -197,6 +197,13 @@ def backfill_prices(
         from ingest.technicals_job import run_technicals_job
         tech_res = run_technicals_job(con, incremental=True)
 
+    snap_res = None
+    try:
+        from app.query.snapshot import build_screener_snapshot
+        snap_res = build_screener_snapshot(con)
+    except Exception as exc:
+        snap_res = {"status": "fail", "error": str(exc)}
+
     summary = {
         "status": "partial" if blocked else "ok",
         "cm_days_ready": cm_collected,
@@ -208,6 +215,7 @@ def backfill_prices(
         "actions": actions_res,
         "fno_metrics": fno_res,
         "technicals": tech_res,
+        "snapshot": snap_res,
     }
     db.upsert_rows(con, "ingest_status", [{
         "id": f"backfill::{date.today()}",

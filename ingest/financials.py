@@ -190,34 +190,33 @@ def sync_financials_for_symbol(
 def _select_annual_history(con, symbol: str) -> tuple[str, List[Dict[str, Any]]]:
     """Selects consolidated annual statements first; falls back cleanly to standalone if consolidated absent."""
     stmt = "consolidated"
-    rows = con.execute(
+    rows = _clean_rows_from_cursor(con.execute(
         "SELECT * FROM fin_annual WHERE symbol = ? AND statement_type = 'consolidated' ORDER BY fiscal_year_end DESC LIMIT 6",
         [symbol],
-    ).fetchdf()
-    if len(rows) == 0:
+    ))
+    if not rows:
         stmt = "standalone"
-        rows = con.execute(
+        rows = _clean_rows_from_cursor(con.execute(
             "SELECT * FROM fin_annual WHERE symbol = ? AND statement_type = 'standalone' ORDER BY fiscal_year_end DESC LIMIT 6",
             [symbol],
-        ).fetchdf()
-    return stmt, rows.to_dict("records")
+        ))
+    return stmt, rows
 
 
-def compute_fundamental_metrics(
-    con,
-    symbol: str,
+def _clean_rows_from_cursor(cur) -> List[Dict[str, Any]]:
+    cols = [d[0] for d in cur.description]
+    return [dict(zip(cols, r)) for r in cur.fetchall()]
+
+
+def _compute_fundamentals_from_rows(
+    annuals: List[Dict[str, Any]],
+    q_rows: List[Dict[str, Any]],
+    stmt_used: str,
     close_price: Optional[float],
     shares_outstanding: Optional[int],
-    is_financial_institution: Optional[bool] = None,
+    is_fin: bool,
 ) -> Dict[str, Any]:
-    """Computes complete fundamental ratios, growth, margins, valuation, and FCF for a stock."""
-    stmt_used, annuals = _select_annual_history(con, symbol)
-    sec_row = con.execute(
-        "SELECT is_financial_institution, financial_template FROM ref_security WHERE nse_symbol = ? LIMIT 1",
-        [symbol],
-    ).fetchone()
-    is_fin = bool(is_financial_institution if is_financial_institution is not None else (sec_row[0] if sec_row else False))
-
+    """Pure computation of all fundamental ratios, growth, margins, valuation, and FCF."""
     out: Dict[str, Any] = {"statement_type_used": stmt_used if annuals else None}
     if not annuals:
         return out
@@ -417,11 +416,6 @@ def compute_fundamental_metrics(
         out["days_payable_outstanding"] = dpo_d
         out["cash_conversion_cycle"] = cash_conversion_cycle(dio_d, dso_d, dpo_d, is_fin)
 
-    # Quarterly & TTM PE
-    q_rows = con.execute(
-        "SELECT * FROM fin_quarterly WHERE symbol = ? AND statement_type = ? ORDER BY quarter_end DESC LIMIT 4",
-        [symbol, stmt_used],
-    ).fetchdf().to_dict("records")
     if q_rows:
         q0 = q_rows[0]
         for k in ("total_revenue_q", "net_income_q", "eps_q", "ebitda_q", "operating_and_other_expenses_q", "pbit_q", "pbt_q"):
@@ -431,5 +425,88 @@ def compute_fundamental_metrics(
             ttm_eps = sum(float(r["eps_q"]) for r in q_rows)
             out["ttm_pe_ratio"] = pe_ratio(close_price, ttm_eps)
 
+    return out
+
+
+def compute_fundamental_metrics(
+    con,
+    symbol: str,
+    close_price: Optional[float],
+    shares_outstanding: Optional[int],
+    is_financial_institution: Optional[bool] = None,
+) -> Dict[str, Any]:
+    """Computes complete fundamental ratios, growth, margins, valuation, and FCF for a stock."""
+    stmt_used, annuals = _select_annual_history(con, symbol)
+    sec_row = con.execute(
+        "SELECT is_financial_institution, financial_template FROM ref_security WHERE nse_symbol = ? LIMIT 1",
+        [symbol],
+    ).fetchone()
+    is_fin = bool(is_financial_institution if is_financial_institution is not None else (sec_row[0] if sec_row else False))
+    if not annuals:
+        return {"statement_type_used": None}
+    q_rows = _clean_rows_from_cursor(con.execute(
+        "SELECT * FROM fin_quarterly WHERE symbol = ? AND statement_type = ? ORDER BY quarter_end DESC LIMIT 4",
+        [symbol, stmt_used],
+    ))
+    return _compute_fundamentals_from_rows(annuals, q_rows, stmt_used, close_price, shares_outstanding, is_fin)
+
+
+def compute_all_fundamental_metrics_bulk(
+    con,
+    symbol_inputs: Dict[str, tuple[Optional[float], Optional[int], Optional[bool]]],
+) -> Dict[str, Dict[str, Any]]:
+    """Set-based bulk fundamentals computation across all symbols (replaces N+1 SQL queries)."""
+    if not symbol_inputs:
+        return {}
+
+    ann_cur = con.execute(
+        """
+        SELECT * FROM fin_annual
+        QUALIFY ROW_NUMBER() OVER (PARTITION BY symbol, statement_type ORDER BY fiscal_year_end DESC) <= 6
+        ORDER BY symbol, statement_type, fiscal_year_end DESC
+        """
+    )
+    ann_map: Dict[tuple[str, str], List[Dict[str, Any]]] = {}
+    for row in _clean_rows_from_cursor(ann_cur):
+        sym = row.get("symbol")
+        st = row.get("statement_type")
+        if sym and st:
+            ann_map.setdefault((sym, st), []).append(row)
+
+    q_cur = con.execute(
+        """
+        SELECT * FROM fin_quarterly
+        QUALIFY ROW_NUMBER() OVER (PARTITION BY symbol, statement_type ORDER BY quarter_end DESC) <= 4
+        ORDER BY symbol, statement_type, quarter_end DESC
+        """
+    )
+    q_map: Dict[tuple[str, str], List[Dict[str, Any]]] = {}
+    for row in _clean_rows_from_cursor(q_cur):
+        sym = row.get("symbol")
+        st = row.get("statement_type")
+        if sym and st:
+            q_map.setdefault((sym, st), []).append(row)
+
+    need_fin_flag = any(v[2] is None for v in symbol_inputs.values())
+    fin_flag_map: Dict[str, bool] = {}
+    if need_fin_flag:
+        for sym, is_fi in con.execute(
+            "SELECT nse_symbol, COALESCE(is_financial_institution, FALSE) FROM ref_security WHERE nse_symbol IS NOT NULL"
+        ).fetchall():
+            fin_flag_map[sym] = bool(is_fi)
+
+    out: Dict[str, Dict[str, Any]] = {}
+    for sym, (close_px, sh_out, is_fin_opt) in symbol_inputs.items():
+        if (sym, "consolidated") in ann_map:
+            stmt_used = "consolidated"
+            annuals = ann_map[(sym, "consolidated")]
+        elif (sym, "standalone") in ann_map:
+            stmt_used = "standalone"
+            annuals = ann_map[(sym, "standalone")]
+        else:
+            continue
+        is_fin = bool(is_fin_opt if is_fin_opt is not None else fin_flag_map.get(sym, False))
+        q_rows = q_map.get((sym, stmt_used), [])
+        out[sym] = _compute_fundamentals_from_rows(annuals, q_rows, stmt_used, close_px, sh_out, is_fin)
     return out
 

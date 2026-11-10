@@ -4,6 +4,13 @@ All notable milestones for **ScreenerDesk** (Indian Stock Screener Replica).
 
 ## [Unreleased — Fix Prompt #1]
 
+### Task F — Performance: Precomputed Snapshot & Fast API (`2026-11-10`)
+- Added `screener_snapshot` and `screener_snapshot_meta` tables (`app/schema.sql`), `app/query/snapshot.py`, `scripts/build_snapshot.py`, and `make snapshot`.
+- Replaced N+1 ownership and fundamentals loops (`app/query/db_store.py`) with bulk window/aggregate DuckDB SQL (`compute_all_ownership_snapshots_bulk`, `compute_all_fundamental_metrics_bulk`) while fixing `.fetchdf()` `NaN` propagation into strict `None`.
+- Materialized benchmarks (`BenchmarkEngine`) and Quant Special scores during snapshot builds at the end of every sync job (`sources.py`, `backfill.py`, `ownership.py`, `inbox.py`).
+- Added `GZipMiddleware` (`app/main.py`) and upgraded `GET /api/screener/dataset` (`app/api/routes.py`) with snapshot serving, `?universe=`, `?fields=`, `ETag`, and `304 Not Modified`.
+- Verified live latency dropped from `39.77s` / `4.33 MB` to `0.333s` / `182 KB` gzipped full market (`0.065s` / `15.1 KB` for `NIFTY100`), with `105 passed` offline (`tests/test_snapshot.py`).
+
 ### Task E — Targeted Resumable Quarterly & Deals Sync (`2026-11-10`)
 - Updated `sync_financials_for_symbol` (`ingest/financials.py`) with consolidated-first ordering, `max_annual=6` / `max_quarterly=4` targets, `xbrl_filing` checkpoints in `ingest_progress`, and clean `403`/`429` stops.
 - Upgraded `run_quarterly` (`ingest/sources.py`), `sync_deals_and_pit` (`ingest/ownership.py`), `scripts/sync_quarterly.py`, `scripts/sync_deals.py`, and `Makefile` (`make sync-quarterly UNIVERSE=... MAX=...` + `make sync-deals`) using index-priority ordering (`NIFTY100 -> NIFTY500 -> all`) instead of `LIMIT 50`.

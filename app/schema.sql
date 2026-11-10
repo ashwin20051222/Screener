@@ -443,3 +443,21 @@ CREATE TABLE IF NOT EXISTS ingest_progress (
     updated_at TIMESTAMP DEFAULT current_timestamp,
     PRIMARY KEY (job, item_key)
 );
+
+CREATE TABLE IF NOT EXISTS screener_snapshot (
+    security_id     VARCHAR PRIMARY KEY,
+    nse_symbol      VARCHAR,
+    metrics_json    VARCHAR NOT NULL,
+    provenance_json VARCHAR,
+    built_at        TIMESTAMP DEFAULT current_timestamp
+);
+
+CREATE TABLE IF NOT EXISTS screener_snapshot_meta (
+    id             VARCHAR PRIMARY KEY,
+    synced         BOOLEAN NOT NULL,
+    row_count      BIGINT NOT NULL,
+    etag           VARCHAR NOT NULL,
+    universes_json VARCHAR NOT NULL,
+    as_of_json     VARCHAR NOT NULL,
+    built_at       TIMESTAMP DEFAULT current_timestamp
+);

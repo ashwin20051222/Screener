@@ -6,7 +6,7 @@ PIP      := $(VENV)/bin/pip
 PYTHON   := $(VENV)/bin/python
 
 .DEFAULT_GOAL := help
-.PHONY: help venv install sync-daily sync-weekly sync-shp sync-quarterly sync-deals backfill synkinbox status coverage run web-build test clean
+.PHONY: help venv install sync-daily sync-weekly sync-shp sync-quarterly sync-deals backfill synkinbox snapshot status coverage run web-build test clean
 
 help: ## show this help
 	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z_-]+:.*?## / {printf "  \033[36m%-12s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST)
@@ -52,6 +52,9 @@ status: ## print db photo: per-source as-of dates, security counts, recent jobs
 
 coverage: ## measure per-filter DB coverage (all rows + NIFTY100) and write docs/DATA_COVERAGE.md
 	$(PYTHON) scripts/coverage.py
+
+snapshot: ## materialize precomputed full-market screener snapshot inside DuckDB
+	$(PYTHON) scripts/build_snapshot.py
 
 run: ## start the app at http://127.0.0.1:8787 (serves React UI + FastAPI API; host/port from config/settings.yaml)
 	$(PYTHON) -m app.main

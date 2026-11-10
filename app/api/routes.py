@@ -213,11 +213,29 @@ def get_universes():
     return get_universes_summary()
 
 
+from fastapi import Request, Response
+
+
 @router.get("/screener/dataset")
-def get_screener_dataset():
-    """Loads live DuckDB screener dataset with provenance metadata if database is synced."""
-    from app.query.db_store import load_market_dataset_from_db
-    return load_market_dataset_from_db()
+def get_screener_dataset(
+    universe: Optional[str] = None,
+    fields: Optional[str] = None,
+    request: Request = None,
+    response: Response = None,
+):
+    """Serves precomputed DuckDB screener snapshot with ETag/304, ?universe=, and ?fields=."""
+    from app.query.snapshot import load_snapshot_from_db
+
+    data = load_snapshot_from_db(universe=universe, fields=fields)
+    etag = data.get("etag")
+    if etag and request is not None:
+        inm = request.headers.get("if-none-match")
+        if inm and ("*" in inm or etag in {t.strip() for t in inm.split(",")}):
+            return Response(status_code=304, headers={"ETag": etag, "Cache-Control": "public, max-age=5"})
+    if etag and response is not None:
+        response.headers["ETag"] = etag
+        response.headers["Cache-Control"] = "public, max-age=5, stale-while-revalidate=60"
+    return data
 
 
 class ScoresComputeRequest(BaseModel):

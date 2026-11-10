@@ -1,6 +1,6 @@
 # DATA_COVERAGE.md — Live Database Filter Coverage
 
-> **Generated:** `2026-11-10T11:35:50+05:30`
+> **Generated:** `2026-11-10T11:44:13+05:30`
 > **Database Synced:** `True` | **All Listed Rows:** `2645` | **NIFTY100 Rows:** `100`
 > **Registry Filters Checked:** `255`
 
@@ -31,7 +31,7 @@
 | `shp` | 17 | 17 |
 | `unavailable` | 12 | 0 |
 | `weekly` | 2 | 1 |
-| `xbrl` | 137 | 126 |
+| `xbrl` | 137 | 97 |
 
 ## 3. Per-Filter Non-Null Coverage
 
@@ -40,28 +40,28 @@
 | `return_on_equity` | Return on Equity | Profitability | Computed-from-official | `xbrl` | 2 | 0.1% | 2 | 2.0% |
 | `return_on_assets` | Return on Assets | Profitability | Computed-from-official | `xbrl` | 2 | 0.1% | 2 | 2.0% |
 | `return_on_investment` | Return on Investment | Profitability | Computed-from-official | `xbrl` | 2 | 0.1% | 2 | 2.0% |
-| `roce` | ROCE | Profitability | Computed-from-official | `xbrl` | 2 | 0.1% | 2 | 2.0% |
+| `roce` | ROCE | Profitability | Computed-from-official | `xbrl` | 1 | 0.0% | 1 | 1.0% |
 | `net_profit_margin` | Net Profit Margin | Profitability | Computed-from-official | `xbrl` | 2 | 0.1% | 2 | 2.0% |
 | `ebitda_margin` | EBITDA Margin | Profitability | Computed-from-official | `xbrl` | 2 | 0.1% | 2 | 2.0% |
 | `operating_profit_margin` | Operating Profit Margin | Profitability | Computed-from-official | `xbrl` | 2 | 0.1% | 2 | 2.0% |
-| `cash_flow_margin` | Cash Flow Margin | Profitability | Computed-from-official | `xbrl` | 2 | 0.1% | 2 | 2.0% |
+| `cash_flow_margin` | Cash Flow Margin | Profitability | Computed-from-official | `xbrl` | 1 | 0.0% | 1 | 1.0% |
 | `cost_of_goods_sold` | Cost of Goods Sold | Profitability | Official-direct | `xbrl` | 2 | 0.1% | 2 | 2.0% |
 | `5y_avg_ebitda_margin` | 5Y Avg EBITDA Margin | Profitability | Computed-from-official | `xbrl` | 1 | 0.0% | 1 | 1.0% |
 | `5y_avg_net_profit_margin` | 5Y Avg Net Profit Margin | Profitability | Computed-from-official | `xbrl` | 1 | 0.0% | 1 | 1.0% |
 | `5y_avg_return_on_equity` | 5Y Avg Return on Equity | Profitability | Computed-from-official | `xbrl` | 1 | 0.0% | 1 | 1.0% |
 | `5y_avg_return_on_assets` | 5Y Avg Return on Assets | Profitability | Computed-from-official | `xbrl` | 1 | 0.0% | 1 | 1.0% |
 | `5y_avg_return_on_investment` | 5Y Avg Return on Investment | Profitability | Computed-from-official | `xbrl` | 0 | 0.0% | 0 | 0.0% |
-| `5y_avg_cash_flow_margin` | 5Y Avg Cash Flow Margin | Profitability | Computed-from-official | `xbrl` | 1 | 0.0% | 1 | 1.0% |
+| `5y_avg_cash_flow_margin` | 5Y Avg Cash Flow Margin | Profitability | Computed-from-official | `xbrl` | 0 | 0.0% | 0 | 0.0% |
 | `5y_avg_operating_profit_margin` | 5Y Avg Operating Profit Margin | Profitability | Computed-from-official | `xbrl` | 1 | 0.0% | 1 | 1.0% |
 | `1y_forward_revenue_growth` | 1Y Forward Revenue Growth | Growth | Unavailable | `unavailable` | 0 | 0.0% | 0 | 0.0% |
-| `1y_hist_op_cash_flow_growth` | 1Y Hist Op. Cash Flow Growth | Growth | Computed-from-official | `xbrl` | 2 | 0.1% | 2 | 2.0% |
+| `1y_hist_op_cash_flow_growth` | 1Y Hist Op. Cash Flow Growth | Growth | Computed-from-official | `xbrl` | 0 | 0.0% | 0 | 0.0% |
 | `1y_forward_ebitda_growth` | 1Y Forward EBITDA Growth | Growth | Unavailable | `unavailable` | 0 | 0.0% | 0 | 0.0% |
 | `1y_historical_eps_growth` | 1Y Historical EPS Growth | Growth | Computed-from-official | `xbrl` | 1 | 0.0% | 1 | 1.0% |
 | `1y_historical_revenue_growth` | 1Y Historical Revenue Growth | Growth | Computed-from-official | `xbrl` | 2 | 0.1% | 2 | 2.0% |
 | `1y_fwd_op_cash_flow_growth` | 1Y Fwd Op. Cash Flow Growth | Growth | Unavailable | `unavailable` | 0 | 0.0% | 0 | 0.0% |
 | `5y_historical_ebitda_growth` | 5Y Historical EBITDA Growth | Growth | Computed-from-official | `xbrl` | 1 | 0.0% | 1 | 1.0% |
-| `5y_hist_op_cash_flow_growth` | 5Y Hist Op. Cash Flow Growth | Growth | Computed-from-official | `xbrl` | 1 | 0.0% | 1 | 1.0% |
-| `3y_historical_dividend_growth` | 3Y Historical Dividend Growth | Growth | Computed-from-official | `xbrl` | 2 | 0.1% | 2 | 2.0% |
+| `5y_hist_op_cash_flow_growth` | 5Y Hist Op. Cash Flow Growth | Growth | Computed-from-official | `xbrl` | 0 | 0.0% | 0 | 0.0% |
+| `3y_historical_dividend_growth` | 3Y Historical Dividend Growth | Growth | Computed-from-official | `xbrl` | 0 | 0.0% | 0 | 0.0% |
 | `5y_historical_eps_growth` | 5Y Historical EPS Growth | Growth | Computed-from-official | `xbrl` | 1 | 0.0% | 1 | 1.0% |
 | `5y_historical_revenue_growth` | 5Y Historical Revenue Growth | Growth | Computed-from-official | `xbrl` | 1 | 0.0% | 1 | 1.0% |
 | `1y_historical_ebitda_growth` | 1Y Historical EBITDA Growth | Growth | Computed-from-official | `xbrl` | 2 | 0.1% | 2 | 2.0% |
@@ -69,18 +69,18 @@
 | `pe_ratio` | PE Ratio | Valuation | Computed-from-official | `xbrl` | 2 | 0.1% | 2 | 2.0% |
 | `ttm_pe_ratio` | TTM PE Ratio | Valuation | Computed-from-official | `xbrl` | 2 | 0.1% | 2 | 2.0% |
 | `forward_pe_ratio` | Forward PE Ratio | Valuation | Unavailable | `unavailable` | 0 | 0.0% | 0 | 0.0% |
-| `pb_ratio` | PB Ratio | Valuation | Computed-from-official | `xbrl` | 2 | 0.1% | 2 | 2.0% |
+| `pb_ratio` | PB Ratio | Valuation | Computed-from-official | `xbrl` | 1 | 0.0% | 1 | 1.0% |
 | `ps_ratio` | PS Ratio | Valuation | Computed-from-official | `xbrl` | 2 | 0.1% | 2 | 2.0% |
 | `forward_ps_ratio` | Forward PS Ratio | Valuation | Unavailable | `unavailable` | 0 | 0.0% | 0 | 0.0% |
-| `dividend_yield` | Dividend Yield | Valuation | Computed-from-official | `xbrl` | 2 | 0.1% | 2 | 2.0% |
+| `dividend_yield` | Dividend Yield | Valuation | Computed-from-official | `xbrl` | 0 | 0.0% | 0 | 0.0% |
 | `ev_ebitda_ratio` | EV/EBITDA Ratio | Valuation | Computed-from-official | `xbrl` | 2 | 0.1% | 2 | 2.0% |
 | `ev_ebit_ratio` | EV / EBIT Ratio | Valuation | Computed-from-official | `xbrl` | 2 | 0.1% | 2 | 2.0% |
 | `ev_revenue_ratio` | EV / Revenue Ratio | Valuation | Computed-from-official | `xbrl` | 2 | 0.1% | 2 | 2.0% |
-| `ev_free_cash_flow` | EV / Free Cash Flow | Valuation | Computed-from-official | `xbrl` | 2 | 0.1% | 2 | 2.0% |
-| `ev_invested_capital` | EV / Invested Capital | Valuation | Computed-from-official | `xbrl` | 2 | 0.1% | 2 | 2.0% |
+| `ev_free_cash_flow` | EV / Free Cash Flow | Valuation | Computed-from-official | `xbrl` | 1 | 0.0% | 1 | 1.0% |
+| `ev_invested_capital` | EV / Invested Capital | Valuation | Computed-from-official | `xbrl` | 1 | 0.0% | 1 | 1.0% |
 | `enterprise_value` | Enterprise Value | Valuation | Computed-from-official | `xbrl` | 2 | 0.1% | 2 | 2.0% |
-| `price_free_cash_flow` | Price / Free Cash Flow | Valuation | Computed-from-official | `xbrl` | 2 | 0.1% | 2 | 2.0% |
-| `price_cfo` | Price / CFO | Valuation | Computed-from-official | `xbrl` | 2 | 0.1% | 2 | 2.0% |
+| `price_free_cash_flow` | Price / Free Cash Flow | Valuation | Computed-from-official | `xbrl` | 1 | 0.0% | 1 | 1.0% |
+| `price_cfo` | Price / CFO | Valuation | Computed-from-official | `xbrl` | 1 | 0.0% | 1 | 1.0% |
 | `price_sales` | Price / Sales | Valuation | Computed-from-official | `xbrl` | 2 | 0.1% | 2 | 2.0% |
 | `pe_premium_vs_sector` | PE Premium vs Sector | Valuation | Computed-from-official | `xbrl` | 2 | 0.1% | 2 | 2.0% |
 | `pb_premium_vs_sector` | PB Premium vs Sector | Valuation | Computed-from-official | `xbrl` | 1 | 0.0% | 1 | 1.0% |
@@ -163,20 +163,20 @@
 | `1d_change_in_volume` | 1D Change in Volume | Price and Volume | Computed-from-official | `history` | 0 | 0.0% | 0 | 0.0% |
 | `1w_change_in_volume` | 1W Change in Volume | Price and Volume | Computed-from-official | `history` | 0 | 0.0% | 0 | 0.0% |
 | `face_value` | Face value | Price and Volume | Official-direct | `weekly` | 2645 | 100.0% | 100 | 100.0% |
-| `current_ratio` | Current Ratio | Financial Ratios | Computed-from-official | `xbrl` | 2 | 0.1% | 2 | 2.0% |
-| `quick_ratio` | Quick Ratio | Financial Ratios | Computed-from-official | `xbrl` | 2 | 0.1% | 2 | 2.0% |
-| `debt_to_equity` | Debt to Equity | Financial Ratios | Computed-from-official | `xbrl` | 2 | 0.1% | 2 | 2.0% |
-| `long_term_debt_to_equity` | Long Term Debt to Equity | Financial Ratios | Computed-from-official | `xbrl` | 2 | 0.1% | 2 | 2.0% |
+| `current_ratio` | Current Ratio | Financial Ratios | Computed-from-official | `xbrl` | 1 | 0.0% | 1 | 1.0% |
+| `quick_ratio` | Quick Ratio | Financial Ratios | Computed-from-official | `xbrl` | 1 | 0.0% | 1 | 1.0% |
+| `debt_to_equity` | Debt to Equity | Financial Ratios | Computed-from-official | `xbrl` | 1 | 0.0% | 1 | 1.0% |
+| `long_term_debt_to_equity` | Long Term Debt to Equity | Financial Ratios | Computed-from-official | `xbrl` | 0 | 0.0% | 0 | 0.0% |
 | `interest_coverage_ratio` | Interest Coverage Ratio | Financial Ratios | Computed-from-official | `xbrl` | 2 | 0.1% | 2 | 2.0% |
-| `cash_conversion_cycle` | Cash Conversion Cycle | Financial Ratios | Computed-from-official | `xbrl` | 2 | 0.1% | 2 | 2.0% |
-| `net_income_liabilities` | Net Income / Liabilities | Financial Ratios | Computed-from-official | `xbrl` | 2 | 0.1% | 2 | 2.0% |
+| `cash_conversion_cycle` | Cash Conversion Cycle | Financial Ratios | Computed-from-official | `xbrl` | 0 | 0.0% | 0 | 0.0% |
+| `net_income_liabilities` | Net Income / Liabilities | Financial Ratios | Computed-from-official | `xbrl` | 1 | 0.0% | 1 | 1.0% |
 | `working_capital_turnover_ratio` | Working Capital Turnover Ratio | Financial Ratios | Computed-from-official | `xbrl` | 2 | 0.1% | 2 | 2.0% |
 | `inventory_turnover_ratio` | Inventory Turnover Ratio | Financial Ratios | Computed-from-official | `xbrl` | 2 | 0.1% | 2 | 2.0% |
 | `asset_turnover_ratio` | Asset Turnover Ratio | Financial Ratios | Computed-from-official | `xbrl` | 2 | 0.1% | 2 | 2.0% |
 | `days_of_inventory_outstanding` | Days of Inventory Outstanding | Financial Ratios | Computed-from-official | `xbrl` | 2 | 0.1% | 2 | 2.0% |
-| `days_of_sales_outstanding` | Days of Sales Outstanding | Financial Ratios | Computed-from-official | `xbrl` | 2 | 0.1% | 2 | 2.0% |
-| `days_payable_outstanding` | Days Payable Outstanding | Financial Ratios | Computed-from-official | `xbrl` | 2 | 0.1% | 2 | 2.0% |
-| `earning_power` | Earning Power | Financial Ratios | Computed-from-official | `xbrl` | 2 | 0.1% | 2 | 2.0% |
+| `days_of_sales_outstanding` | Days of Sales Outstanding | Financial Ratios | Computed-from-official | `xbrl` | 0 | 0.0% | 0 | 0.0% |
+| `days_payable_outstanding` | Days Payable Outstanding | Financial Ratios | Computed-from-official | `xbrl` | 0 | 0.0% | 0 | 0.0% |
+| `earning_power` | Earning Power | Financial Ratios | Computed-from-official | `xbrl` | 1 | 0.0% | 1 | 1.0% |
 | `price_momentum_rank` | Price Momentum Rank | Special | Approximate | `history` | 0 | 0.0% | 0 | 0.0% |
 | `fundamental_score` | Fundamental Score | Special | Approximate | `xbrl` | 2 | 0.1% | 2 | 2.0% |
 | `value_momentum_rank` | Value Momentum Rank | Special | Approximate | `xbrl` | 2 | 0.1% | 2 | 2.0% |
@@ -221,43 +221,43 @@
 | `1w_change_in_obv` | 1W Change in On Balance Volume | Technical Indicators | Computed-from-official | `history` | 0 | 0.0% | 0 | 0.0% |
 | `1w_change_in_ad_line` | 1W Change in AD Line | Technical Indicators | Computed-from-official | `history` | 0 | 0.0% | 0 | 0.0% |
 | `super_trend` | Super Trend | Technical Indicators | Computed-from-official | `history` | 0 | 0.0% | 0 | 0.0% |
-| `book_value` | Book Value | Balance Sheet & Cash Flow | Official-direct | `xbrl` | 2 | 0.1% | 2 | 2.0% |
-| `cash_short_term_investments` | Cash and Short-term Investments | Balance Sheet & Cash Flow | Official-direct | `xbrl` | 2 | 0.1% | 2 | 2.0% |
-| `total_receivables` | Total Receivables | Balance Sheet & Cash Flow | Official-direct | `xbrl` | 2 | 0.1% | 2 | 2.0% |
-| `total_inventory` | Total Inventory | Balance Sheet & Cash Flow | Official-direct | `xbrl` | 2 | 0.1% | 2 | 2.0% |
-| `other_current_assets` | Other Current Assets | Balance Sheet & Cash Flow | Official-direct | `xbrl` | 2 | 0.1% | 2 | 2.0% |
-| `total_current_assets` | Total Current Assets | Balance Sheet & Cash Flow | Official-direct | `xbrl` | 2 | 0.1% | 2 | 2.0% |
-| `net_loans` | Net Loans | Balance Sheet & Cash Flow | Official-direct | `xbrl` | 2 | 0.1% | 2 | 2.0% |
-| `net_ppe` | Net Property Plant Equipment | Balance Sheet & Cash Flow | Official-direct | `xbrl` | 2 | 0.1% | 2 | 2.0% |
-| `goodwill_intangibles` | Goodwill and Intangibles | Balance Sheet & Cash Flow | Official-direct | `xbrl` | 2 | 0.1% | 2 | 2.0% |
-| `long_term_investments` | Long Term Investments | Balance Sheet & Cash Flow | Official-direct | `xbrl` | 2 | 0.1% | 2 | 2.0% |
+| `book_value` | Book Value | Balance Sheet & Cash Flow | Official-direct | `xbrl` | 1 | 0.0% | 1 | 1.0% |
+| `cash_short_term_investments` | Cash and Short-term Investments | Balance Sheet & Cash Flow | Official-direct | `xbrl` | 1 | 0.0% | 1 | 1.0% |
+| `total_receivables` | Total Receivables | Balance Sheet & Cash Flow | Official-direct | `xbrl` | 0 | 0.0% | 0 | 0.0% |
+| `total_inventory` | Total Inventory | Balance Sheet & Cash Flow | Official-direct | `xbrl` | 1 | 0.0% | 1 | 1.0% |
+| `other_current_assets` | Other Current Assets | Balance Sheet & Cash Flow | Official-direct | `xbrl` | 1 | 0.0% | 1 | 1.0% |
+| `total_current_assets` | Total Current Assets | Balance Sheet & Cash Flow | Official-direct | `xbrl` | 1 | 0.0% | 1 | 1.0% |
+| `net_loans` | Net Loans | Balance Sheet & Cash Flow | Official-direct | `xbrl` | 0 | 0.0% | 0 | 0.0% |
+| `net_ppe` | Net Property Plant Equipment | Balance Sheet & Cash Flow | Official-direct | `xbrl` | 1 | 0.0% | 1 | 1.0% |
+| `goodwill_intangibles` | Goodwill and Intangibles | Balance Sheet & Cash Flow | Official-direct | `xbrl` | 1 | 0.0% | 1 | 1.0% |
+| `long_term_investments` | Long Term Investments | Balance Sheet & Cash Flow | Official-direct | `xbrl` | 0 | 0.0% | 0 | 0.0% |
 | `other_assets` | Other Assets | Balance Sheet & Cash Flow | Official-direct | `xbrl` | 0 | 0.0% | 0 | 0.0% |
-| `total_assets` | Total Assets | Balance Sheet & Cash Flow | Official-direct | `xbrl` | 2 | 0.1% | 2 | 2.0% |
-| `accounts_payable` | Accounts Payable | Balance Sheet & Cash Flow | Official-direct | `xbrl` | 2 | 0.1% | 2 | 2.0% |
-| `total_deposits` | Total Deposits | Balance Sheet & Cash Flow | Official-direct | `xbrl` | 2 | 0.1% | 2 | 2.0% |
+| `total_assets` | Total Assets | Balance Sheet & Cash Flow | Official-direct | `xbrl` | 1 | 0.0% | 1 | 1.0% |
+| `accounts_payable` | Accounts Payable | Balance Sheet & Cash Flow | Official-direct | `xbrl` | 0 | 0.0% | 0 | 0.0% |
+| `total_deposits` | Total Deposits | Balance Sheet & Cash Flow | Official-direct | `xbrl` | 0 | 0.0% | 0 | 0.0% |
 | `other_current_liabilities` | Other Current Liabilities | Balance Sheet & Cash Flow | Official-direct | `xbrl` | 0 | 0.0% | 0 | 0.0% |
-| `total_current_liabilities` | Total Current Liabilities | Balance Sheet & Cash Flow | Official-direct | `xbrl` | 2 | 0.1% | 2 | 2.0% |
-| `total_long_term_debt` | Total Long Term Debt | Balance Sheet & Cash Flow | Official-direct | `xbrl` | 2 | 0.1% | 2 | 2.0% |
-| `total_debt` | Total Debt | Balance Sheet & Cash Flow | Official-direct | `xbrl` | 2 | 0.1% | 2 | 2.0% |
-| `deferred_income_tax` | Deferred Income Tax | Balance Sheet & Cash Flow | Official-direct | `xbrl` | 2 | 0.1% | 2 | 2.0% |
-| `minority_interest` | Minority Interest | Balance Sheet & Cash Flow | Official-direct | `xbrl` | 2 | 0.1% | 2 | 2.0% |
+| `total_current_liabilities` | Total Current Liabilities | Balance Sheet & Cash Flow | Official-direct | `xbrl` | 1 | 0.0% | 1 | 1.0% |
+| `total_long_term_debt` | Total Long Term Debt | Balance Sheet & Cash Flow | Official-direct | `xbrl` | 0 | 0.0% | 0 | 0.0% |
+| `total_debt` | Total Debt | Balance Sheet & Cash Flow | Official-direct | `xbrl` | 1 | 0.0% | 1 | 1.0% |
+| `deferred_income_tax` | Deferred Income Tax | Balance Sheet & Cash Flow | Official-direct | `xbrl` | 1 | 0.0% | 1 | 1.0% |
+| `minority_interest` | Minority Interest | Balance Sheet & Cash Flow | Official-direct | `xbrl` | 0 | 0.0% | 0 | 0.0% |
 | `other_liabilities` | Other Liabilities | Balance Sheet & Cash Flow | Official-direct | `xbrl` | 0 | 0.0% | 0 | 0.0% |
-| `total_liabilities` | Total Liabilities | Balance Sheet & Cash Flow | Official-direct | `xbrl` | 2 | 0.1% | 2 | 2.0% |
-| `common_stock` | Common Stock | Balance Sheet & Cash Flow | Official-direct | `xbrl` | 2 | 0.1% | 2 | 2.0% |
-| `additional_paid_in_capital` | Additional Paid-in Capital | Balance Sheet & Cash Flow | Official-direct | `xbrl` | 2 | 0.1% | 2 | 2.0% |
-| `retained_earnings` | Retained Earnings | Balance Sheet & Cash Flow | Official-direct | `xbrl` | 2 | 0.1% | 2 | 2.0% |
-| `other_equity` | Other Equity | Balance Sheet & Cash Flow | Official-direct | `xbrl` | 2 | 0.1% | 2 | 2.0% |
-| `total_equity` | Total Equity | Balance Sheet & Cash Flow | Official-direct | `xbrl` | 2 | 0.1% | 2 | 2.0% |
-| `total_liabilities_shareholders_equity` | Total Liabilities & Shareholders Equity | Balance Sheet & Cash Flow | Official-direct | `xbrl` | 2 | 0.1% | 2 | 2.0% |
+| `total_liabilities` | Total Liabilities | Balance Sheet & Cash Flow | Official-direct | `xbrl` | 1 | 0.0% | 1 | 1.0% |
+| `common_stock` | Common Stock | Balance Sheet & Cash Flow | Official-direct | `xbrl` | 1 | 0.0% | 1 | 1.0% |
+| `additional_paid_in_capital` | Additional Paid-in Capital | Balance Sheet & Cash Flow | Official-direct | `xbrl` | 0 | 0.0% | 0 | 0.0% |
+| `retained_earnings` | Retained Earnings | Balance Sheet & Cash Flow | Official-direct | `xbrl` | 0 | 0.0% | 0 | 0.0% |
+| `other_equity` | Other Equity | Balance Sheet & Cash Flow | Official-direct | `xbrl` | 1 | 0.0% | 1 | 1.0% |
+| `total_equity` | Total Equity | Balance Sheet & Cash Flow | Official-direct | `xbrl` | 1 | 0.0% | 1 | 1.0% |
+| `total_liabilities_shareholders_equity` | Total Liabilities & Shareholders Equity | Balance Sheet & Cash Flow | Official-direct | `xbrl` | 1 | 0.0% | 1 | 1.0% |
 | `total_common_shares_outstanding` | Total Common Shares Outstanding | Balance Sheet & Cash Flow | Official-direct | `xbrl` | 2 | 0.1% | 2 | 2.0% |
 | `total_preferred_shares_outstanding` | Total Preferred Shares Outstanding | Balance Sheet & Cash Flow | Official-direct | `xbrl` | 0 | 0.0% | 0 | 0.0% |
-| `policy_liabilities` | Policy Liabilities | Balance Sheet & Cash Flow | Official-direct | `xbrl` | 2 | 0.1% | 2 | 2.0% |
+| `policy_liabilities` | Policy Liabilities | Balance Sheet & Cash Flow | Official-direct | `xbrl` | 0 | 0.0% | 0 | 0.0% |
 | `changes_in_working_capital` | Changes in Working Capital | Balance Sheet & Cash Flow | Official-direct | `xbrl` | 0 | 0.0% | 0 | 0.0% |
-| `cash_flow_operating_activities` | Cash Flow from Operating Activities | Balance Sheet & Cash Flow | Official-direct | `xbrl` | 2 | 0.1% | 2 | 2.0% |
-| `capital_expenditures` | Capital Expenditures | Balance Sheet & Cash Flow | Official-direct | `xbrl` | 2 | 0.1% | 2 | 2.0% |
-| `cash_investing_activities` | Cash from Investing Activities | Balance Sheet & Cash Flow | Official-direct | `xbrl` | 2 | 0.1% | 2 | 2.0% |
-| `total_cash_dividends_paid` | Total Cash Dividends Paid | Balance Sheet & Cash Flow | Official-direct | `xbrl` | 2 | 0.1% | 2 | 2.0% |
-| `cash_financing_activities` | Cash from Financing Activities | Balance Sheet & Cash Flow | Official-direct | `xbrl` | 2 | 0.1% | 2 | 2.0% |
+| `cash_flow_operating_activities` | Cash Flow from Operating Activities | Balance Sheet & Cash Flow | Official-direct | `xbrl` | 1 | 0.0% | 1 | 1.0% |
+| `capital_expenditures` | Capital Expenditures | Balance Sheet & Cash Flow | Official-direct | `xbrl` | 0 | 0.0% | 0 | 0.0% |
+| `cash_investing_activities` | Cash from Investing Activities | Balance Sheet & Cash Flow | Official-direct | `xbrl` | 1 | 0.0% | 1 | 1.0% |
+| `total_cash_dividends_paid` | Total Cash Dividends Paid | Balance Sheet & Cash Flow | Official-direct | `xbrl` | 0 | 0.0% | 0 | 0.0% |
+| `cash_financing_activities` | Cash from Financing Activities | Balance Sheet & Cash Flow | Official-direct | `xbrl` | 1 | 0.0% | 1 | 1.0% |
 | `foreign_exchange_effects` | Foreign Exchange Effects | Balance Sheet & Cash Flow | Official-direct | `xbrl` | 0 | 0.0% | 0 | 0.0% |
 | `net_change_in_cash` | Net Change in Cash | Balance Sheet & Cash Flow | Official-direct | `xbrl` | 0 | 0.0% | 0 | 0.0% |
 | `expense_ratio` | Expense Ratio | ETFs | Official-direct | `amfi` | 0 | 0.0% | 0 | 0.0% |
@@ -273,18 +273,18 @@
 | `taxes_other_items` | Taxes & Other Items | Income Statement | Official-direct | `xbrl` | 2 | 0.1% | 2 | 2.0% |
 | `net_income` | Net Income | Income Statement | Official-direct | `xbrl` | 2 | 0.1% | 2 | 2.0% |
 | `earnings_per_share` | Earnings Per Share | Income Statement | Official-direct | `xbrl` | 2 | 0.1% | 2 | 2.0% |
-| `dividend_per_share` | Dividend Per Share | Income Statement | Official-direct | `xbrl` | 2 | 0.1% | 2 | 2.0% |
-| `payout_ratio` | Payout Ratio | Income Statement | Computed-from-official | `xbrl` | 2 | 0.1% | 2 | 2.0% |
-| `power_fuel_cost` | Power & Fuel Cost | Income Statement | Official-direct | `xbrl` | 2 | 0.1% | 2 | 2.0% |
+| `dividend_per_share` | Dividend Per Share | Income Statement | Official-direct | `xbrl` | 0 | 0.0% | 0 | 0.0% |
+| `payout_ratio` | Payout Ratio | Income Statement | Computed-from-official | `xbrl` | 0 | 0.0% | 0 | 0.0% |
+| `power_fuel_cost` | Power & Fuel Cost | Income Statement | Official-direct | `xbrl` | 0 | 0.0% | 0 | 0.0% |
 | `raw_materials` | Raw Materials | Income Statement | Official-direct | `xbrl` | 2 | 0.1% | 2 | 2.0% |
 | `operating_other_expenses` | Operating & Other expenses | Income Statement | Official-direct | `xbrl` | 2 | 0.1% | 2 | 2.0% |
 | `employee_cost` | Employee Cost | Income Statement | Official-direct | `xbrl` | 2 | 0.1% | 2 | 2.0% |
-| `selling_administrative_expenses` | Selling & Administrative Expenses | Income Statement | Official-direct | `xbrl` | 2 | 0.1% | 2 | 2.0% |
-| `research_development` | Research & Development | Income Statement | Official-direct | `xbrl` | 2 | 0.1% | 2 | 2.0% |
-| `interest_income` | Interest Income | Income Statement | Official-direct | `xbrl` | 2 | 0.1% | 2 | 2.0% |
+| `selling_administrative_expenses` | Selling & Administrative Expenses | Income Statement | Official-direct | `xbrl` | 0 | 0.0% | 0 | 0.0% |
+| `research_development` | Research & Development | Income Statement | Official-direct | `xbrl` | 0 | 0.0% | 0 | 0.0% |
+| `interest_income` | Interest Income | Income Statement | Official-direct | `xbrl` | 0 | 0.0% | 0 | 0.0% |
 | `total_interest_expense` | Total Interest Expense | Income Statement | Official-direct | `xbrl` | 2 | 0.1% | 2 | 2.0% |
-| `net_interest_income` | Net Interest Income | Income Statement | Computed-from-official | `xbrl` | 2 | 0.1% | 2 | 2.0% |
-| `loan_loss_provision` | Loan Loss Provision | Income Statement | Official-direct | `xbrl` | 2 | 0.1% | 2 | 2.0% |
+| `net_interest_income` | Net Interest Income | Income Statement | Computed-from-official | `xbrl` | 0 | 0.0% | 0 | 0.0% |
+| `loan_loss_provision` | Loan Loss Provision | Income Statement | Official-direct | `xbrl` | 0 | 0.0% | 0 | 0.0% |
 | `total_revenue_q` | Total revenue (Q) | Income Statement | Official-direct | `xbrl` | 2 | 0.1% | 2 | 2.0% |
 | `net_income_q` | Net Income (Q) | Income Statement | Official-direct | `xbrl` | 2 | 0.1% | 2 | 2.0% |
 | `eps_q` | EPS (Q) | Income Statement | Official-direct | `xbrl` | 2 | 0.1% | 2 | 2.0% |

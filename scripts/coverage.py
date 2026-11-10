@@ -17,7 +17,7 @@ import yaml
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
-from app.query.db_store import load_market_dataset_from_db  # noqa: E402
+from app.query.snapshot import load_snapshot_from_db  # noqa: E402
 
 
 def _pct(count: int, total: int) -> float:
@@ -31,7 +31,7 @@ def compute_coverage_report(dataset: Dict[str, Any] | None = None) -> Dict[str, 
     filters: Dict[str, Dict[str, Any]] = reg.get("filters", {})
 
     if dataset is None:
-        dataset = load_market_dataset_from_db()
+        dataset = load_snapshot_from_db()
 
     all_rows: List[Dict[str, Any]] = dataset.get("rows") or []
     universes: Dict[str, List[str]] = dataset.get("universes") or {}
