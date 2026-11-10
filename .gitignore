@@ -12,6 +12,7 @@ data/processed/
 data/inbox/*
 !data/inbox/README.txt
 *.db
+*.db.wal
 *.duckdb
 *.duckdb.wal
 

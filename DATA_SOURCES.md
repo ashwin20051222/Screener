@@ -107,12 +107,17 @@ display in a local tool is the intended and compliant use). On **403/429 we stop
   - **Total Expense Ratio (TER):** `https://www.amfiindia.com/ter-of-mf-schemes` (interactive web table; official CSV drops `TER_*.csv` ingested automatically via `data/inbox/`)
 - Fairness: 1 request / ≥5 s on `www.nseindia.com`, never parallelised, no retries on 403. All endpoints have matching manual `data/inbox/` file patterns (`ingest/inbox.py`).
 
-## 6. Ingest status + provenance
+## 6. Ingest status, resumability & snapshot provenance
 
 - Every fetched file is kept byte-exact under `data/raw/<source>/` with a SHA-256 recorded in
   the `raw_files` table — any number shown in the UI is traceable to a dated official file.
-- Every job writes a row to `ingest_status` (`ok|skip|fail|partial`); `/api/meta/status`
-  exposes per-source as-of dates, which is what every value tooltip greys out with.
+- Long backfill, SHP, and quarterly XBRL jobs checkpoint every item in `ingest_progress` (`job`,
+  `item_key`, `status: ok|holiday|skip|fail`, `updated_at`), can be stopped anytime and resumed via
+  `make backfill`, `make sync-shp`, `make sync-quarterly`, or `make sync-all`, and surface per-source
+  progress + `fin_quarantine` counts via `make status`.
+- Every job updates the precomputed DuckDB `screener_snapshot` table (`make snapshot`) so
+  `/api/screener/dataset` serves gzipped, ETag-cached rows cleanly in `< 0.5s` while `/api/meta/status`
+  surfaces per-source as-of dates in UI tooltips.
 - Manual imports via `data/inbox/` are treated as first-class sources with the same
   provenance (`raw_files` rows marked "manual import").
 

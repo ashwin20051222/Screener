@@ -1,8 +1,8 @@
 # METRICS.md — Metrics & Filter Registry Specification
 
-> **Version:** 5.0 (Phase 5 / `replica-v1`)
+> **Version:** 5.1 (`replica-v1.1` — Fix Prompt #1)
 > **Source of Truth:** `registry/filters.yaml` & `config/scores.yaml`
-> **Total Filters:** 255 across 13 Categories
+> **Total Filters:** 255 across 13 Categories (precomputed into DuckDB `screener_snapshot`)
 
 ---
 

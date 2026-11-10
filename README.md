@@ -10,11 +10,16 @@ official sources"** rather than estimated. Quant ranks use transparent local app
 ## Quick start
 
 ```bash
-make install      # creates .venv (python 3.12) + installs Python requirements
-make web-build    # builds the React SPA into apps/web/dist/
-make sync-weekly  # first-time data pull (masters + classifications); needs network ONCE
-make sync-daily   # pulls yesterday's exchange bhavcopies + corporate actions
-make run          # serves both the React SPA and API at http://127.0.0.1:8787
+make install          # creates .venv (python 3.12) + installs Python requirements
+make web-build        # builds the React SPA into apps/web/dist/
+make sync-weekly      # first-time data pull (masters, 9 index lists + Total Market 754 sectors)
+make sync-daily       # pulls yesterday's exchange bhavcopies + corporate actions + PR MCAP shares
+make backfill DAYS=400# historical CM bhavcopies + adjusted technicals (resumable; DAYS=1300 for 5Y CAGR)
+make sync-shp         # unblock Market Cap (bulk PR MCAP + resumable SHP XBRL; UNIVERSE=nifty100)
+make sync-quarterly   # targeted resumable SHP (3Q) + Ind-AS XBRL (6Y/4Q) (UNIVERSE=nifty100)
+make sync-deals       # bulk/block deals + 6M SEBI PIT insider disclosures
+make sync-all         # end-to-end resumable sync -> snapshot -> docs/DATA_COVERAGE.md
+make run              # serves React SPA + fast ETag/GZip API at http://127.0.0.1:8787
 ```
 
 After the first sync the app runs **fully offline**: price/master data is cached in
@@ -29,12 +34,19 @@ speculation.
 
 | Command | What it does |
 |---|---|
-| `make sync-daily` | previous published bhavcopies (NSE CM + FO, BSE CM) + corp actions; walks back between holidays automatically |
-| `make sync-weekly` | security masters (NSE eq/ETF, F&O lots), index constituents, AMFI market-cap classification, manual FBIL rate check, inbox-processing first |
-| `make synkinbox` | only processes manual drops in `data/inbox/` (read its README) |
-| `make status` | prints per-source as-of dates, security counts, recent job results |
-| `make web-build` | installs/builds production frontend bundle (`apps/web/dist`) |
-| `make test` | offline pytest suite (no network) |
+| `make sync-all` | resumable full pipeline (`weekly -> daily -> backfill -> shp -> quarterly -> deals -> snapshot -> coverage`, `UNIVERSE=nifty100\|nifty500\|all`) |
+| `make sync-daily` | previous published bhavcopies (NSE CM + FO, BSE CM), PR `mcap*.csv` shares, bulk deals, and vectorised technicals |
+| `make sync-weekly` | inbox first, equity/SME/ETF masters, F&O lots, 9 index lists, Nifty Total Market 754 industries, AMFI, manual FBIL rate check |
+| `make backfill` | resumable historical NSE CM (`DAYS=400\|1300`) + 10D FO bhavcopies + split/bonus adjustment + vectorised technicals |
+| `make sync-shp` | Market Cap unblock via bulk PR MCAP + targeted resumable SHP shares extraction |
+| `make sync-quarterly` | targeted resumable 3Q SHP + 6Y/4Q Ind-AS XBRL filings ordered by `UNIVERSE`, refreshing `docs/DATA_COVERAGE.md` |
+| `make sync-deals` | bulk/block deals + 6 months (`DEAL_DAYS=183`) of SEBI PIT insider disclosures |
+| `make snapshot` | precompute full-market benchmarks, Quant Special scores & row JSON into `screener_snapshot` (`< 0.5s` GZip API) |
+| `make coverage` | audit per-filter DB coverage & unmapped industries into `docs/DATA_COVERAGE.md` |
+| `make synkinbox` | process manual official drops in `data/inbox/` and refresh technicals + snapshot |
+| `make status` | print per-source as-of dates, security counts, `fin_quarantine`, and `ingest_progress` resume state |
+| `make web-build` | install/build production frontend bundle (`apps/web/dist`) |
+| `make test` | offline pytest suite (fixtures only, zero network) |
 
 Official-site blocks? BSE's master API and FBIL download portal deny bots. The designed
 answer is the **manual-import inbox** — download the official file in your browser, drop it
@@ -43,15 +55,17 @@ in `data/inbox/`. Full route list + rationale in [`DATA_SOURCES.md`](DATA_SOURCE
 ## Layout
 
 ```
-registry/     filters.yaml — single source of truth for all 255 filters across 13 categories + custom formulas
-config/       endpoints.yaml, settings.yaml, sector_map.yaml, scores.yaml
-app/          FastAPI app serving built SPA (/), /status, /health, /api/filters, /api/screener/*, /api/scores/*
+registry/     filters.yaml — single source of truth for all 255 filters (with `feeds` tags) across 13 categories
+config/       endpoints.yaml, settings.yaml, sector_map.yaml (22 NSE industries), scores.yaml
+app/          FastAPI app serving built SPA (/), /status, /health, /api/universes, /api/filters, /api/screener/dataset (snapshot + GZip + ETag), /api/scores/*
               metrics/ (formulas, technicals, benchmarks, custom parser, quant scores)
-              query/ (DuckDB snapshot builder & filter/sort engine), universe/ (Excel upload & 5-tier matcher)
+              query/ (DuckDB bulk loader, screener_snapshot builder/slicer & filter engine), universe/ (Excel upload & 5-tier matcher)
 apps/web/     Vite + React 18 + TypeScript SPA (dist/ served directly by FastAPI)
 ingest/       http, udiff, nse, bse, amfi, fbil, inbox, adjuster, reconcile, fno_metrics,
-              ownership, xbrl, financials, technicals_job, etf, sources
-scripts/      sync_daily.py, sync_weekly.py, sync_inbox.py, db_info.py
+              ownership, xbrl, financials, technicals_job, backfill, master_enrichment, etf, sources
+scripts/      sync_all.py, sync_daily.py, sync_weekly.py, sync_shp.py, sync_quarterly.py, sync_deals.py,
+              backfill.py, sync_inbox.py, build_snapshot.py, coverage.py, db_info.py
+docs/         DATA_COVERAGE.md (live per-filter, per-feed, and sector/unmapped audit report)
 tests/        offline pytest suite (golden metrics, matcher, XBRL, F&O, ownership, technicals, quant scores, 6,500-stock perf)
 data/         raw/<source>/ (official files, traceable), cache/, inbox/, processed/, screener.db (DuckDB)
 docs          README, DATA_SOURCES, DATA_AVAILABILITY, METRICS, ASSUMPTIONS, CHANGELOG, CHECKLIST, VISUAL_QA
@@ -74,7 +88,7 @@ docs          README, DATA_SOURCES, DATA_AVAILABILITY, METRICS, ASSUMPTIONS, CHA
 
 ## Roadmap
 
-All build phases (Phases 0–5, Steps 1–8 in [`CHECKLIST.md`](CHECKLIST.md)) are **complete** and tagged `replica-v1`.
+All build phases (Phases 0–5, [`CHECKLIST.md`](CHECKLIST.md)) and Fix Prompt #1 hardening (`Tasks A–H`) are **complete** and tagged `replica-v1.1`.
 
 ## Dev notes
 

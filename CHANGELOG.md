@@ -2,7 +2,12 @@
 
 All notable milestones for **ScreenerDesk** (Indian Stock Screener Replica).
 
-## [Unreleased — Fix Prompt #1]
+## [replica-v1.1] — 2026-11-10 (Fix Prompt #1: Universe Wiring, Honest Counts & Data Sync)
+
+### Task H — End-to-End Orchestration, Regression Tests, Docs & Live QA (`2026-11-10`)
+- Added `scripts/sync_all.py` and `make sync-all` (`UNIVERSE=nifty100|nifty500|all`, `DAYS=400`) chaining weekly, daily, backfill, SHP, quarterly, deals, snapshot build, and coverage report generation with full `ingest_progress` resume support.
+- Added `tests/test_fix1_end_to_end.py` covering registry/web `feeds` synchronization, multi-universe union, empty selection = all listed, `Unclassified` fallback, dynamic counts, ETag invalidation, holiday skipping, and `403` aborts (`112 passed` full suite).
+- Updated `README.md`, `DATA_SOURCES.md`, `DATA_AVAILABILITY.md`, `METRICS.md`, `PROJECT_STATE.md`; verified live FastAPI + SPA HTTP latencies (`0.435s` full `2,645`-stock dataset gzipped to `185 KB`, `0.053s` `NIFTY100`) and REA Chromium QA screenshot `fix1_final_live.png`; tagged `replica-v1.1`.
 
 ### Task G — Official Sector Classification & Unmapped Industry Audit (`2026-11-10`)
 - Audited NSE/BSE public classification sources via REA Chromium & polite HTTP (`DATA_SOURCES.md`, `config/endpoints.yaml`): added official `ind_niftytotalmarket_list.csv` (`754` equities across `22` official NSE industry labels) and documented HTTP `403` manual-inbox boundaries on BSE `List_Scrips.html` and per-symbol `quote-equity`.

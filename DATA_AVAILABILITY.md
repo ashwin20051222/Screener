@@ -79,3 +79,25 @@ Every metric in the screener is classified into exactly one of four availability
 | **AMFI** | Half-yearly Market Cap classification XLSX (`CATEGORIZATION` header), `NAVAll.txt` (8-column semicolon daily ETF/MF NAVs), monthly TER CSV | Half-yearly (Jan/Jul), Daily (NAVs), Monthly (TER) | Automated parsers + `data/inbox/NAVAll.txt` & `data/inbox/TER_*.csv` fallback |
 | **FBIL** | 3-Month Term MIBOR rate (`F&O Fair Value` benchmark) | Daily | Manual entry via `data/inbox/fbil_mibor.json` (browser/WAF gated; F&O Fair Value degrades gracefully to `Unavailable` if absent) |
 | **SEBI / Exchange Filings** | PIT insider trades & Bulk/Block institutional deals | Daily / event-driven | Automated via NSE corporate filings endpoints (`corporates-pit`, `snapshot-capital-market-largedeal`) + `data/inbox/` fallback |
+
+---
+
+## 4. Feeding Jobs (`feeds`), Sector Applicability & Live Coverage Audit (`replica-v1.1`)
+
+Every filter in [`registry/filters.yaml`](registry/filters.yaml) (and `apps/web/src/data/filters.json`) declares its exact producing feed (`feeds`), allowing the Add Filters modal and Table headers to show exact remediation commands instead of generic placeholders when empty:
+
+| `feeds` Key | Target Sync Command | Filters | Notes |
+|---|---|---|---|
+| `weekly` | `make sync-weekly` | 2 | `face_value` (equity master) & Nifty Total Market 754 sector/industry map (`Unclassified` if unmapped/unlisted) |
+| `daily` | `make sync-daily` | 3 | EOD Close, Daily Volume, Market Cap (`close * shares_outstanding / 1e7` unblocked via NSE `PR.zip` `mcap*.csv`) |
+| `shp` | `make sync-shp` / `make sync-quarterly` | 17 | Promoter/DII/FII/MF/Retail/Insurance %, Pledge %, Shareholder count, 3M/6M deltas |
+| `xbrl` | `make sync-quarterly` | 137 | Consolidated-first Annual (6Y) & Quarterly (4Q) financials, profitability, growth, valuation & ratios (`fin_quarantine` validated) |
+| `deals` | `make sync-deals` | 6 | 1M/3M/6M cumulative Bulk/Block deals & SEBI PIT insider trades (% of issued shares) |
+| `history` | `make backfill DAYS=400` | 49 | Multi-month/5Y returns (`DAYS=1300`), VWAP, SMA/EMA, RSI/ADX/MACD/SuperTrend/SAR (`"insufficient history"` until window filled) |
+| `fno` | `make sync-daily` / `make backfill FO_DAYS=10` | 24 | NSE/BSE F&O basis, rollover, PCR, OI/volume changes, top call/put strikes |
+| `amfi` | `make sync-weekly` | 2 | ETF Expense Ratio (TER) & Tracking Error (AMFI 6-month avg market cap kept separate as `amfi_avg_mcap_crs`) |
+| `manual` | `data/inbox/` | 3 | FBIL 3M MIBOR F&O Fair Value, Fair Value Spread & ETF TER CSV drops |
+| `unavailable` | N/A | 12 | Analyst sell-side consensus ratings & forward estimates (`"Not available from official sources"`) |
+
+- **Bank & Insurer Exclusions:** Ratios inapplicable to banking/insurance filings (`current_ratio`, `quick_ratio`, `debt_to_equity`, `long_term_debt_to_equity`, `working_capital_turnover_ratio`, `inventory_turnover_ratio`, `days_of_inventory_outstanding`, `days_of_sales_outstanding`, `days_payable_outstanding`, `cash_conversion_cycle`) display `"n/a for this sector"` / `"n/a (sector)"` rather than implying missing sync.
+- **Unmapped / Unlisted Sectors:** Equities outside Nifty indices / Nifty Total Market CSVs (and without a manual BSE `ListofScripData*.csv` inbox drop) always render as `"Unclassified"` — never defaulted to `"Industrials"` or `"General"`. Run `make coverage` anytime to refresh [`docs/DATA_COVERAGE.md`](docs/DATA_COVERAGE.md).

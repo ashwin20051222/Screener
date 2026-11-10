@@ -1,8 +1,8 @@
 # PROJECT_STATE.md — Continuity File
 
-> **Current Phase:** Fix Prompt #1 — **Task G Complete** (`fix-1g`); proceeding to **Task H** (`Makefile sync-all, Tests, Docs & Tag replica-v1.1`).
-> **Last Updated:** 2026-11-10T11:57:05+05:30
-> **Tags:** `baseline-prototype`, `ui-replica-v1`, `replica-v1`.
+> **Current Phase:** Fix Prompt #1 Complete (**Tasks A–H** done, tagged **`replica-v1.1`**).
+> **Last Updated:** 2026-11-10T12:02:45+05:30
+> **Tags:** `baseline-prototype`, `ui-replica-v1`, `replica-v1`, `replica-v1.1`.
 
 ---
 
@@ -107,7 +107,12 @@
   - Expanded `config/sector_map.yaml` to map all `22` official NSE macro/industry labels cleanly onto the canonical UI sectors (fixing `Automobile and Auto Components`, `Metals & Mining`, `Oil Gas & Consumable Fuels`, and exact-matching `Media Entertainment & Publication` -> `Communication Services`).
   - Extracted `classify_security_industries` & `get_unmapped_industries` (`ingest/master_enrichment.py`), added `sync_total_market_industries` (`ingest/nse.py` + `config/endpoints.yaml`, wired in `ingest/sources.py`), upgraded `sync_scrip_master_from_inbox_csv` (`ingest/bse.py`) to parse official `Industry` from manual BSE CSV drops, and fixed `ingest/http.py` `Session` default `python-requests` User-Agent replacement.
   - Added Section 4 (`Sector Distribution & Unmapped Industry Log`) to `scripts/coverage.py` / `docs/DATA_COVERAGE.md`: verified **`100 / 100` Nifty 100** and **`749 / 2,645` all-listed equities** cleanly classified across all 11 sectors (`0` unmapped official labels; remaining `1,896` equities honestly shown as `Unclassified`). Offline suite `108 passed`.
-- **Next:** Task H — `make sync-all` target, expanded Fix Prompt #1 tests, doc finalization, live UI QA screenshots, and git tag `replica-v1.1`.
+- **Task H (Fix Prompt #1) Complete (`fix-1h` — `replica-v1.1`):**
+  - Added [`scripts/sync_all.py`](scripts/sync_all.py) and `make sync-all` (`UNIVERSE=nifty100`, `DAYS=400`) chaining weekly, daily, backfill, shp, quarterly, deals, snapshot, and coverage cleanly with `ingest_progress` resume & `403`/`429` stops.
+  - Added [`tests/test_fix1_end_to_end.py`](tests/test_fix1_end_to_end.py) covering registry/JSON `feeds:` sync (`255` filters), deduplicated multi-universe unions, empty selection, dynamic sector/row counts, `Unclassified` fallback, ETag mutation invalidation, backfill `404` holiday skip + `403` abort, and quarterly resume.
+  - Finalized `README.md`, `DATA_SOURCES.md`, `DATA_AVAILABILITY.md`, `METRICS.md`, `CHANGELOG.md`, `PROJECT_STATE.md`, and live Playwright + HTTP QA (`0.435s` full `2,645`-stock GZip dataset, `0.053s` `NIFTY100`, `304` ETag revalidation, `fix1_final_live.png`).
+  - Tagged **`replica-v1.1`**.
+- **Next:** Ready for user feature/customization requests one by one.
 
 ---
 
@@ -122,7 +127,7 @@
 
 ## 4. Verification Check
 
-- Full pytest suite: `99 passed` (`.venv/bin/pytest -v tests/`).
-- Frontend production build: `npm run build` (`vite build`) passed in `apps/web` (`2089` modules).
-- Live FastAPI + SPA server verified on `http://127.0.0.1:8787` (`/`, `/health`, `/status`, `/api/filters`, `/api/scores/weights`, `/api/screener/dataset`).
-- Tagged `replica-v1`.
+- Full pytest suite: `112 passed in 6.88s` (`make test`, `0` failed, `0` skipped).
+- Frontend production build: `npm run build` (`vite build`) passed in `apps/web` (`2089` modules, `2.39s`).
+- Live FastAPI + SPA server verified on `http://127.0.0.1:8787` (`/` `0.025s`, `/api/universes` `0.035s`, full `/api/screener/dataset` `0.435s` / `185 KB` gzip, `?universe=NIFTY100` `0.053s` / `15.1 KB` gzip, `304` revalidation `0.094s`; `fix1_final_live.png` verified via REA Chromium capture).
+- Tagged `replica-v1.1`.
