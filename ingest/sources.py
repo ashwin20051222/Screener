@@ -140,36 +140,95 @@ def run_weekly(con=None) -> dict:
     return summary
 
 
-def run_quarterly(con=None, *, max_symbols: int = 50) -> dict:
-    """Quarterly: Shareholding patterns & Ind-AS XBRL financial statements for active index constituents."""
+def run_quarterly(
+    con=None,
+    *,
+    universe: str = "nifty100",
+    max_symbols: int | None = None,
+    resume: bool = True,
+) -> dict:
+    """Quarterly: Targeted resumable SHP (3 quarters) + Ind-AS XBRL (6Y annual, 4Q quarterly)."""
     t0 = time.time()
     own = con is None
     con = con or db.connect()
     db.init_schema(con)
     run_date = date.today()
-    summary = {"shp_synced": 0, "fin_synced": 0}
+    summary = {
+        "status": "ok",
+        "universe": universe,
+        "shp_synced": 0,
+        "fin_synced": 0,
+        "skipped_resume": 0,
+        "requests_made": 0,
+        "blocked": False,
+        "fin_quarantine_count": 0,
+    }
     try:
         from ingest.financials import sync_financials_for_symbol
-        from ingest.ownership import sync_shareholding_for_symbol
+        from ingest.http import bootstrap_nse_session
+        from ingest.ownership import ordered_universe_symbols, sync_shareholding_for_symbol
 
-        syms = [
-            r[0] for r in con.execute(
-                "SELECT DISTINCT nse_symbol FROM ref_security WHERE nse_symbol IS NOT NULL LIMIT ?",
-                [max_symbols],
-            ).fetchall()
-        ]
+        syms = ordered_universe_symbols(con, universe)
+        if max_symbols is not None:
+            syms = syms[:max_symbols]
+
+        done_q = db.get_progress_keys(con, "quarterly", statuses=("ok",)) if resume else set()
+        session = bootstrap_nse_session()
+
         for sym in syms:
-            r_shp = sync_shareholding_for_symbol(con, sym, max_quarters=2)
+            if sym in done_q:
+                summary["skipped_resume"] += 1
+                continue
+
+            r_shp = sync_shareholding_for_symbol(con, sym, max_quarters=3, session=session)
+            summary["requests_made"] += 1 + int(r_shp.get("quarters", 0))
+            if r_shp.get("status") == "blocked":
+                db.mark_progress(con, "quarterly", sym, "fail", r_shp.get("message", "403/429"))
+                log.error(
+                    "NSE returned 403/429 during SHP sync for %s. Stopping immediately.\n"
+                    "Manual fallback: place SHP_<sym>.xml / INDAS_<sym>.xml in data/inbox/ and run `make synkinbox`.",
+                    sym,
+                )
+                summary["blocked"] = True
+                summary["status"] = "partial"
+                break
             if r_shp.get("quarters", 0) > 0:
                 summary["shp_synced"] += 1
-            r_fin = sync_financials_for_symbol(con, sym, max_filings=2)
+
+            r_fin = sync_financials_for_symbol(con, sym, max_annual=6, max_quarterly=4, session=session, resume=resume)
+            summary["requests_made"] += int(r_fin.get("requests", 0))
+            if r_fin.get("status") == "blocked":
+                db.mark_progress(con, "quarterly", sym, "fail", r_fin.get("message", "403/429"))
+                log.error(
+                    "NSE returned 403/429 during XBRL financials sync for %s. Stopping immediately.\n"
+                    "Manual fallback: drop INDAS_*.xml in data/inbox/ and run `make synkinbox`.",
+                    sym,
+                )
+                summary["blocked"] = True
+                summary["status"] = "partial"
+                break
             if r_fin.get("filings", 0) > 0:
                 summary["fin_synced"] += 1
-        _mark(con, "quarterly", run_date, "ok", summary["shp_synced"] + summary["fin_synced"], str(summary)[:400], t0)
+
+            db.mark_progress(con, "quarterly", sym, "ok", f"shp={r_shp.get('quarters', 0)},fin={r_fin.get('filings', 0)}")
+
+        q_row = con.execute("SELECT COUNT(*) FROM fin_quarantine").fetchone()
+        summary["fin_quarantine_count"] = int(q_row[0]) if q_row else 0
+        summary["elapsed_seconds"] = round(time.time() - t0, 2)
+        _mark(
+            con,
+            "quarterly",
+            run_date,
+            "partial" if summary["blocked"] else "ok",
+            summary["shp_synced"] + summary["fin_synced"],
+            str(summary)[:400],
+            t0,
+        )
     except Exception as e:
         log.exception("quarterly sync failed")
         _mark(con, "quarterly", run_date, "fail", 0, f"{type(e).__name__}: {e}", t0)
         summary["error"] = str(e)
+        summary["status"] = "fail"
     finally:
         if own:
             con.close()

@@ -101,6 +101,22 @@ const FALLBACK_INDEX_UNIVERSES: UniverseMeta[] = [
   { id: 'niftysmallcap250', label: 'Nifty Smallcap 250', slug: 'NIFTYSMALLCAP250', count: 0, as_of: null },
 ];
 
+const BANK_INSURER_INAPPLICABLE_IDS = new Set([
+  'cost_of_goods_sold',
+  'current_ratio',
+  'quick_ratio',
+  'debt_to_equity',
+  'long_term_debt_to_equity',
+  'interest_coverage_ratio',
+  'cash_conversion_cycle',
+  'inventory_turnover_ratio',
+  'days_of_inventory_outstanding',
+  'days_payable_outstanding',
+  'working_capital_turnover_ratio',
+  'total_inventory',
+  'accounts_payable',
+]);
+
 const CANONICAL_SECTOR_ORDER = Object.keys(SECTORS_CONFIG);
 
 export const App: React.FC = () => {
@@ -1329,18 +1345,22 @@ export const App: React.FC = () => {
                       const val = stock.v[colId];
                       const fDef = ALL_FILTERS_MAP.get(colId);
                       const prov = stock._provenance || {};
+                      const isBankOrInsurer = /bank|insur/i.test(`${stock.sector} ${stock.sub}`);
+                      const isSectorNa = (val === null || val === undefined) && isBankOrInsurer && BANK_INSURER_INAPPLICABLE_IDS.has(colId);
                       const cellTooltip = val === null || val === undefined
                         ? (
-                          isSynced && fDef?.feeds === 'history' && (prov.px_days ?? 0) > 0
-                            ? `${fDef.name}: null — insufficient history (${prov.px_days} trading days stored)`
-                            : `${fDef?.name || colId}: ${formatMissingFeedReason(fDef?.feeds)}`
+                          isSectorNa
+                            ? `${fDef?.name || colId}: n/a for this sector`
+                            : (isSynced && fDef?.feeds === 'history' && (prov.px_days ?? 0) > 0
+                              ? `${fDef.name}: null — insufficient history (${prov.px_days} trading days stored)`
+                              : `${fDef?.name || colId}: ${formatMissingFeedReason(fDef?.feeds)}`)
                         )
                         : colId === 'market_cap'
                           ? `Market Cap: ${formatIndianNumber(val)} Rs Cr | Shares: ${prov.shares_source || 'official'} (${prov.shares_as_of || 'n/a'}) | Price: ${prov.price_source || 'NSE'} (${prov.price_as_of || 'n/a'})`
                           : `${fDef?.name || colId}: ${formatIndianNumber(val)} | Source: ${prov.price_source || fDef?.feeds || 'official'} | As of: ${prov.price_as_of || 'fixture'}`;
                       return (
                         <td key={colId} title={cellTooltip}>
-                          {formatIndianNumber(val)}
+                          {isSectorNa ? 'n/a (sector)' : formatIndianNumber(val)}
                         </td>
                       );
                     })}

@@ -5,6 +5,7 @@ fundamental ratios aggregator. Consolidated statements first with standalone fal
 from __future__ import annotations
 
 import hashlib
+import json
 import logging
 from datetime import date
 from typing import Any, Dict, List, Optional
@@ -86,32 +87,104 @@ def ingest_financial_xbrl_bytes(
     return res
 
 
-def sync_financials_for_symbol(con, symbol: str, *, max_filings: int = 4) -> dict:
-    """Fetches NSE quarterly & annual Ind-AS XBRL filings (consolidated preferred over standalone)."""
-    s = bootstrap_nse_session()
+def sync_financials_for_symbol(
+    con,
+    symbol: str,
+    *,
+    max_annual: int = 6,
+    max_quarterly: int = 4,
+    max_filings: int | None = None,
+    session=None,
+    resume: bool = True,
+) -> dict:
+    """Fetches NSE quarterly & annual Ind-AS XBRL filings (consolidated preferred, checkpointed)."""
+    s = session or bootstrap_nse_session()
+    done_keys = db.get_progress_keys(con, "xbrl_filing", statuses=("ok",)) if resume else set()
     saved = 0
-    for period in ("Annual", "Quarterly"):
+    skipped = 0
+    quarantined = 0
+    blocked = False
+    requests_made = 0
+
+    for period, default_limit in (("Annual", max_annual), ("Quarterly", max_quarterly)):
+        limit = max_filings if max_filings is not None else default_limit
         url = f"https://www.nseindia.com/api/corporates-financial-results?index=equities&symbol={symbol}&period={period}"
-        data = fetch_json(url, source="nse-api", session=s)
+        r_meta = http.fetch(url, source="nse-api", session=s)
+        requests_made += 1
+        if r_meta.blocked():
+            return {"status": "blocked", "symbol": symbol, "filings": saved, "requests": requests_made, "message": r_meta.error}
+        if not r_meta.ok():
+            continue
+        try:
+            data = json.loads(r_meta.bytes)
+        except Exception:
+            continue
         if not isinstance(data, list):
             continue
-        # Sort consolidated first, then most recent
-        data.sort(key=lambda x: (0 if "consolidat" in str(x.get("consolidated", "")).lower() and "non" not in str(x.get("consolidated", "")).lower() else 1))
-        for item in data[:max_filings]:
+
+        # Sort consolidated first, then keep up to limit filings
+        data.sort(
+            key=lambda x: (
+                0 if "consolidat" in str(x.get("consolidated", "")).lower()
+                and "non" not in str(x.get("consolidated", "")).lower() else 1
+            )
+        )
+        for item in data[:limit]:
             x_url = item.get("xbrl")
             if not x_url:
                 continue
-            r = http.fetch(x_url, source="nse-xbrl", session=s, save_name=f"FIN_{symbol}_{period}_{item.get('toDate','')}.xml")
+            stmt_tp = (
+                "consolidated"
+                if "consolidat" in str(item.get("consolidated", "")).lower()
+                and "non" not in str(item.get("consolidated", "")).lower()
+                else "standalone"
+            )
+            fkey = f"{symbol}::{period}::{item.get('toDate', '')}::{stmt_tp}"
+            if resume and fkey in done_keys:
+                skipped += 1
+                continue
+            r = http.fetch(
+                x_url,
+                source="nse-xbrl",
+                session=s,
+                save_name=f"FIN_{symbol}_{period}_{item.get('toDate', '')}.xml",
+            )
+            requests_made += 1
+            if r.blocked():
+                db.mark_progress(con, "xbrl_filing", fkey, "fail", r.error or "http:403")
+                blocked = True
+                return {
+                    "status": "blocked",
+                    "symbol": symbol,
+                    "filings": saved,
+                    "skipped": skipped,
+                    "quarantined": quarantined,
+                    "requests": requests_made,
+                    "message": r.error or "http:403",
+                }
             if r.ok():
-                stmt_tp = (
-                    "consolidated"
-                    if "consolidat" in str(item.get("consolidated", "")).lower() and "non" not in str(item.get("consolidated", "")).lower()
-                    else "standalone"
-                )
                 tpl = "banks" if item.get("bank") == "Y" else None
-                ingest_financial_xbrl_bytes(con, r.bytes, symbol=symbol, isin=item.get("isin"), statement_type=stmt_tp, template_type=tpl)
+                res_ing = ingest_financial_xbrl_bytes(
+                    con,
+                    r.bytes,
+                    symbol=symbol,
+                    isin=item.get("isin"),
+                    statement_type=stmt_tp,
+                    template_type=tpl,
+                )
                 saved += 1
-    return {"status": "ok", "symbol": symbol, "filings": saved}
+                if res_ing.get("status") == "quarantined":
+                    quarantined += 1
+                db.mark_progress(con, "xbrl_filing", fkey, "ok", res_ing.get("status", "ok"))
+
+    return {
+        "status": "partial" if blocked else "ok",
+        "symbol": symbol,
+        "filings": saved,
+        "skipped": skipped,
+        "quarantined": quarantined,
+        "requests": requests_made,
+    }
 
 
 def _select_annual_history(con, symbol: str) -> tuple[str, List[Dict[str, Any]]]:
@@ -359,3 +432,4 @@ def compute_fundamental_metrics(
             out["ttm_pe_ratio"] = pe_ratio(close_price, ttm_eps)
 
     return out
+

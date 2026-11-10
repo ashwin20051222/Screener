@@ -119,3 +119,64 @@ def test_balance_sheet_integrity_quarantine(db_con):
     assert db_con.execute("SELECT count(*) FROM fin_annual WHERE symbol = 'BROKENCORP'").fetchone()[0] == 0
     q_row = db_con.execute("SELECT symbol, diff FROM fin_quarantine WHERE symbol = 'BROKENCORP'").fetchone()
     assert q_row[0] == "BROKENCORP" and q_row[1] == pytest.approx(2000.0)
+
+
+def test_targeted_quarterly_sync_checkpoint_resume_and_403_abort(db_con, monkeypatch):
+    from ingest import sources, ownership as own_mod, financials as fin_mod
+    from ingest.http import FetchResult
+    import ingest.http as http_mod
+    import json as _json
+
+    db.upsert_rows(db_con, "ref_security", [
+        {"security_id": "INE1", "isin": "INE1", "nse_symbol": "AAA", "name": "AAA"},
+        {"security_id": "INE2", "isin": "INE2", "nse_symbol": "BBB", "name": "BBB"},
+        {"security_id": "INE3", "isin": "INE3", "nse_symbol": "CCC", "name": "CCC"},
+    ], keys=["security_id"])
+    db.upsert_rows(db_con, "ref_index_constituent", [
+        {"index_name": "NIFTY100", "symbol": "CCC", "as_of": date(2026, 11, 10)},
+        {"index_name": "NIFTY100", "symbol": "AAA", "as_of": date(2026, 11, 10)},
+    ], keys=["index_name", "symbol", "as_of"])
+
+    db.mark_progress(db_con, "quarterly", "AAA", "ok", "already synced")
+    called_urls = []
+    xml_ok = _indas_xml("CCC", "2026-03-31", "Consolidated", 1e11, 1e10, 5e11, 2e11, 3e11)
+
+    def fake_fetch(url, **kwargs):
+        called_urls.append(url)
+        if "corporate-share-holdings-master" in url and "symbol=CCC" in url:
+            return FetchResult(200, _json.dumps([
+                {"date": "2026-09-30", "xbrl": "https://xbrl.test/shp_ccc_3.xml"},
+                {"date": "2026-06-30", "xbrl": "https://xbrl.test/shp_ccc_2.xml"},
+                {"date": "2026-03-31", "xbrl": "https://xbrl.test/shp_ccc_1.xml"},
+                {"date": "2025-12-31", "xbrl": "https://xbrl.test/shp_ccc_0.xml"},
+            ]).encode(), url)
+        if "shp_ccc_" in url:
+            shp_xml = b'<xbrli:xbrl xmlns:xbrli="http://www.xbrl.org/2003/instance"><ShareholdingOfPromoterAndPromoterGroup_ContextI><ShareholdingAsAPercentageOfTotalNumberOfShares>0.51</ShareholdingAsAPercentageOfTotalNumberOfShares></ShareholdingOfPromoterAndPromoterGroup_ContextI></xbrli:xbrl>'
+            return FetchResult(200, shp_xml, url)
+        if "corporates-financial-results" in url and "symbol=CCC" in url:
+            if "period=Annual" in url:
+                return FetchResult(200, _json.dumps([{"toDate": "2026-03-31", "consolidated": "Consolidated", "xbrl": "https://xbrl.test/fin_ccc.xml"}]).encode(), url)
+            return FetchResult(200, b"[]", url)
+        if "fin_ccc.xml" in url:
+            return FetchResult(200, xml_ok, url)
+        if "symbol=BBB" in url:
+            return FetchResult(403, None, url, error="http:403")
+        return FetchResult(404, None, url, error="http:404")
+
+    monkeypatch.setattr(http_mod, "bootstrap_nse_session", lambda: object())
+    monkeypatch.setattr(own_mod, "bootstrap_nse_session", lambda: object())
+    monkeypatch.setattr(fin_mod, "bootstrap_nse_session", lambda: object())
+    monkeypatch.setattr(http_mod, "fetch", fake_fetch)
+
+    # Mark quarterly resume checkpoint skip + limit to NIFTY100 -> skips AAA, runs CCC (max_quarters=3 -> only 3 shp_ccc calls!), then stops cleanly
+    res = sources.run_quarterly(db_con, universe="nifty100", resume=True)
+    assert res["skipped_resume"] == 1
+    assert res["shp_synced"] == 1
+    assert res["fin_synced"] == 1
+    shp_fetches = [u for u in called_urls if "shp_ccc_" in u]
+    assert len(shp_fetches) == 3  # fetched 3 quarters for 6M delta, ignoring 4th!
+
+    # Now test universe='all' hitting BBB -> stops immediately on 403
+    res_all = sources.run_quarterly(db_con, universe="all", resume=True)
+    assert res_all["blocked"] is True and res_all["status"] == "partial"
+

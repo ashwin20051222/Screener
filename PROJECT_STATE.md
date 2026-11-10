@@ -1,7 +1,7 @@
 # PROJECT_STATE.md — Continuity File
 
-> **Current Phase:** Fix Prompt #1 — **Task D Complete** (`fix-1d`); proceeding to **Task E** (`Targeted Resumable Quarterly & Deals Sync`).
-> **Last Updated:** 2026-11-10T11:28:30+05:30
+> **Current Phase:** Fix Prompt #1 — **Task E Complete** (`fix-1e`); proceeding to **Task F** (`Performance: Snapshot Serving`).
+> **Last Updated:** 2026-11-10T11:36:30+05:30
 > **Tags:** `baseline-prototype`, `ui-replica-v1`, `replica-v1`.
 
 ---
@@ -91,7 +91,12 @@
   - Implemented `ingest/backfill.py`, `scripts/backfill.py`, and `make backfill DAYS=400` (`DAYS=1300` for 5Y CAGR, `FO_DAYS=10` for F&O delta history), skipping weekends, stored dates, and raw-cache archives, recording `404` holidays in `ingest_progress`, and aborting cleanly on `403`/`429`/reset with manual `data/inbox/` guidance.
   - Upgraded `ingest/technicals_job.py` (`run_technicals_job`) to bulk DataFrame loading + incremental symbol skip (`MAX(date)` vs `tech_daily` & `corp_action`) + `db.upsert_df` batch writes + `NIFTY50` (`NSE-INDEX`) benchmark support; enforced `None` (`insufficient history`, never `0`) on single-day/short histories.
   - Extended `ingest/inbox.py` for nested bhavcopy archives (`*bhav*.zip`) with automatic checkpoint + post-inbox technicals refresh; exposed `px_days` in `db_store.py` & `"insufficient history"` tooltips in `App.tsx`.
-- **Next:** Task E — Targeted resumable quarterly fundamentals/ownership sync (`make sync-quarterly UNIVERSE=nifty100|nifty500|all MAX=...`) and `make sync-deals`.
+- **Task E (Fix Prompt #1) Complete (`fix-1e`):**
+  - Updated `sync_financials_for_symbol` (`ingest/financials.py`) to sort Consolidated before Standalone and target `max_annual=6`, `max_quarterly=4`, checkpointing each filing (`xbrl_filing`) in `ingest_progress` and aborting cleanly on HTTP `403`/`429`.
+  - Added `sync_deals_and_pit` (`ingest/ownership.py`), `scripts/sync_deals.py` (`make sync-deals`), and targeted resumable `run_quarterly(universe, max_symbols, resume)` (`ingest/sources.py`) + `scripts/sync_quarterly.py` (`make sync-quarterly UNIVERSE=nifty100|nifty500|all MAX=...`, auto-regenerating `docs/DATA_COVERAGE.md` and exposing `fin_quarantine_count` in `make status`).
+  - Surfaced `n/a for this sector` / `n/a (sector)` hints and tooltips for bank/insurer-inapplicable ratios in `StockDetailDrawer.tsx` & `App.tsx`, and rebuilt `apps/web/dist`.
+  - Live verified (`make sync-deals` + `make sync-quarterly UNIVERSE=nifty100 MAX=2`): `78` bulk/block deal rows, `ABB` & `ADANIENSOL` SHP (3Q) + Ind-AS XBRL filings synced in `143.33s` (`32` requests, `0` quarantined), populating `17/17` `shp`, `6/6` `deals`, and `126/137` `xbrl` filters (`103 passed`).
+- **Next:** Task F — Precomputed `screener_snapshot` table + set-based SQL + GZip/ETag `< 1.5s` API.
 
 ---
 

@@ -9,6 +9,27 @@ interface StockDetailDrawerProps {
   filterMap: Map<string, FilterDefinition>;
 }
 
+const BANK_INSURER_INAPPLICABLE = new Set([
+  'cost_of_goods_sold',
+  'current_ratio',
+  'quick_ratio',
+  'debt_to_equity',
+  'long_term_debt_to_equity',
+  'interest_coverage_ratio',
+  'cash_conversion_cycle',
+  'inventory_turnover_ratio',
+  'days_of_inventory_outstanding',
+  'days_payable_outstanding',
+  'working_capital_turnover_ratio',
+  'total_inventory',
+  'accounts_payable',
+]);
+
+function isBankOrInsurer(stock: StockRow): boolean {
+  const s = `${stock.sector} ${stock.sub}`.toLowerCase();
+  return s.includes('bank') || s.includes('insurance') || s.includes('insur');
+}
+
 const QUANT_METRICS = [
   { id: 'fundamental_score', label: 'Fundamental Score (1-10)', weight: 'Val 25% · Prof 30% · Growth 25% · Health 20%' },
   { id: 'price_momentum_rank', label: 'Price Momentum Rank', weight: '60% Abs 12M Return + 40% Rel Sub-sector Return' },
@@ -82,10 +103,11 @@ export const StockDetailDrawer: React.FC<StockDetailDrawerProps> = ({
           {keyMetrics.map(m => {
             const val = stock.v[m.id];
             const def = filterMap.get(m.id);
+            const sectorNa = (val === null || val === undefined) && isBankOrInsurer(stock) && BANK_INSURER_INAPPLICABLE.has(m.id);
             return (
               <div
                 key={m.id}
-                title={`Formula: ${def?.formula || m.label}\nSource: ${m.src}\nNull rule: ${def?.null_rule || 'Standard'}`}
+                title={`Formula: ${def?.formula || m.label}\nSource: ${m.src}\nNull rule: ${sectorNa ? 'n/a for this sector' : (def?.null_rule || 'Standard')}`}
                 style={{
                   background: 'var(--panel-secondary)',
                   padding: '9px 10px',
@@ -96,8 +118,8 @@ export const StockDetailDrawer: React.FC<StockDetailDrawerProps> = ({
                 <div style={{ fontSize: '11px', color: 'var(--text-secondary)', marginBottom: '3px' }}>
                   {m.label}
                 </div>
-                <div style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-primary)' }}>
-                  {val === null || val === undefined ? '—' : formatIndianNumber(val)}
+                <div style={{ fontSize: '14px', fontWeight: 600, color: sectorNa ? 'var(--text-muted)' : 'var(--text-primary)' }}>
+                  {val === null || val === undefined ? (sectorNa ? 'n/a for this sector' : '—') : formatIndianNumber(val)}
                 </div>
                 <div style={{ fontSize: '10px', color: 'var(--text-muted)', marginTop: '2px' }}>
                   {m.src}

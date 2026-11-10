@@ -6,7 +6,7 @@ PIP      := $(VENV)/bin/pip
 PYTHON   := $(VENV)/bin/python
 
 .DEFAULT_GOAL := help
-.PHONY: help venv install sync-daily sync-weekly sync-shp backfill synkinbox status coverage run web-build test clean
+.PHONY: help venv install sync-daily sync-weekly sync-shp sync-quarterly sync-deals backfill synkinbox status coverage run web-build test clean
 
 help: ## show this help
 	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z_-]+:.*?## / {printf "  \033[36m%-12s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST)
@@ -35,6 +35,14 @@ DAYS ?= 400
 FO_DAYS ?= 10
 backfill: ## resumable historical bhavcopy backfill + adjusted technicals (DAYS=400 or DAYS=1300)
 	$(PYTHON) scripts/backfill.py --days $(DAYS) --fo-days $(FO_DAYS)
+
+MAX ?=
+sync-quarterly: ## targeted resumable SHP (3Q) + Ind-AS XBRL (6Y/4Q) sync (UNIVERSE=nifty100|nifty500|all MAX=...)
+	$(PYTHON) scripts/sync_quarterly.py --universe $(UNIVERSE) $(if $(MAX),--max $(MAX),)
+
+DEAL_DAYS ?= 183
+sync-deals: ## sync Bulk/Block deals and 6 months of SEBI PIT insider trades
+	$(PYTHON) scripts/sync_deals.py --days $(DEAL_DAYS)
 
 synkinbox: ## process only the manual-import drop zone (data/inbox/)
 	$(PYTHON) scripts/sync_inbox.py

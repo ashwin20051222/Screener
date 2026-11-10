@@ -464,12 +464,20 @@ def parse_deals_csv_bytes(payload: bytes, *, deal_type: str = "BULK", exchange: 
     return out
 
 
-def sync_bulk_block_deals(con) -> dict:
-    s = bootstrap_nse_session()
+def sync_bulk_block_deals(con, *, session=None) -> dict:
+    s = session or bootstrap_nse_session()
     url = "https://www.nseindia.com/api/snapshot-capital-market-largedeal"
-    data = fetch_json(url, source="nse-api", session=s)
+    r = http.fetch(url, source="nse-api", session=s)
+    if r.blocked():
+        return {"status": "blocked", "message": r.error or "http:403"}
+    if not r.ok():
+        return {"status": "fail", "message": f"largedeal API unavailable ({r.error})"}
+    try:
+        data = json.loads(r.bytes)
+    except Exception:
+        return {"status": "fail", "message": "largedeal non-JSON payload"}
     if not isinstance(data, dict):
-        return {"status": "fail", "message": "largedeal API unavailable"}
+        return {"status": "fail", "message": "largedeal API unexpected structure"}
     rows = parse_largedeals_json(data, exchange="NSE")
     n = db.upsert_rows(
         con, "bulk_block_deals", rows,
@@ -559,12 +567,14 @@ def parse_pit_json_or_csv(payload: bytes) -> List[Dict[str, Any]]:
     return out
 
 
-def sync_insider_trades(con, days_back: int = 30) -> dict:
-    s = bootstrap_nse_session()
+def sync_insider_trades(con, days_back: int = 183, *, session=None) -> dict:
+    s = session or bootstrap_nse_session()
     frm = (date.today() - timedelta(days=days_back)).strftime("%d-%m-%Y")
     to_ = date.today().strftime("%d-%m-%Y")
     url = f"https://www.nseindia.com/api/corporates-pit?index=equities&from_date={frm}&to_date={to_}"
-    r = http.fetch(url, source="nse-pit", session=s, save_name=f"pit_{date.today().strftime('%y%m%d')}.json")
+    r = http.fetch(url, source="nse-pit", session=s, save_name=f"pit_{date.today().strftime('%y%m%d')}_{days_back}d.json")
+    if r.blocked():
+        return {"status": "blocked", "message": r.error or "http:403"}
     if not r.ok():
         return {"status": "fail", "message": f"PIT fetch failed ({r.error})"}
     rows = parse_pit_json_or_csv(r.bytes)
@@ -572,7 +582,33 @@ def sync_insider_trades(con, days_back: int = 30) -> dict:
         con, "insider_trades", rows,
         keys=["broadcast_date", "symbol", "acquirer_name", "transaction_type", "shares"],
     )
-    return {"status": "ok", "rows": n}
+    return {"status": "ok", "rows": n, "days_back": days_back}
+
+
+def sync_deals_and_pit(con, *, days_back: int = 183) -> dict:
+    """Fetches bulk/block deals + 6 months (default 183 days) of SEBI PIT insider trades cleanly."""
+    t0 = datetime.now()
+    s = bootstrap_nse_session()
+    res_deals = sync_bulk_block_deals(con, session=s)
+    if res_deals.get("status") == "blocked":
+        log.error("NSE 403/429 on deals API. Manual drop: data/inbox/bulk_deals_*.csv & block_deals_*.csv -> make synkinbox.")
+        return {"status": "partial", "blocked": True, "bulk_block": res_deals, "insider_pit": {"status": "skipped"}}
+    res_pit = sync_insider_trades(con, days_back=days_back, session=s)
+    if res_pit.get("status") == "blocked":
+        log.error("NSE 403/429 on PIT API. Manual drop: data/inbox/CF-Insider-Trading-*.csv -> make synkinbox.")
+    total_rows = int(res_deals.get("rows", 0)) + int(res_pit.get("rows", 0))
+    blocked = res_pit.get("status") == "blocked"
+    db.upsert_rows(con, "ingest_status", [{
+        "id": f"sync_deals::{date.today()}",
+        "job": "sync_deals",
+        "run_date": date.today(),
+        "status": "partial" if blocked else "ok",
+        "rows": total_rows,
+        "message": f"bulk_block={res_deals.get('rows', 0)} pit_{days_back}d={res_pit.get('rows', 0)}",
+        "started_at": t0,
+        "finished_at": datetime.now(),
+    }], keys=["id"])
+    return {"status": "partial" if blocked else "ok", "blocked": blocked, "bulk_block": res_deals, "insider_pit": res_pit}
 
 
 # ------------------------------------------------------------------ Ownership Metrics Aggregator

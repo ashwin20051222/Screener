@@ -4,6 +4,13 @@ All notable milestones for **ScreenerDesk** (Indian Stock Screener Replica).
 
 ## [Unreleased — Fix Prompt #1]
 
+### Task E — Targeted Resumable Quarterly & Deals Sync (`2026-11-10`)
+- Updated `sync_financials_for_symbol` (`ingest/financials.py`) with consolidated-first ordering, `max_annual=6` / `max_quarterly=4` targets, `xbrl_filing` checkpoints in `ingest_progress`, and clean `403`/`429` stops.
+- Upgraded `run_quarterly` (`ingest/sources.py`), `sync_deals_and_pit` (`ingest/ownership.py`), `scripts/sync_quarterly.py`, `scripts/sync_deals.py`, and `Makefile` (`make sync-quarterly UNIVERSE=... MAX=...` + `make sync-deals`) using index-priority ordering (`NIFTY100 -> NIFTY500 -> all`) instead of `LIMIT 50`.
+- Added `fin_quarantine_count` & `ingest_progress` breakdown to `make status` (`sources.status_report`) and auto-refreshed `docs/DATA_COVERAGE.md` after quarterly sync.
+- Rendered explicit `"n/a for this sector"` / `"n/a (sector)"` cells and tooltips for bank/insurer-excluded ratios (`StockDetailDrawer.tsx`, `App.tsx`).
+- Verified live on `ABB` + `ADANIENSOL` (`143.33s`, `32` requests, `0` quarantined; `17/17` `shp`, `6/6` `deals`, `126/137` `xbrl` filters active) and offline `make test` (`103 passed`).
+
 ### Task D — Historical Bhavcopy Backfill & Vectorised Technicals (`2026-11-10`)
 - Added `ingest/backfill.py`, `scripts/backfill.py`, and `make backfill DAYS=400` (`DAYS=1300`, `FO_DAYS=10`), resumable via `ingest_progress`, skipping weekends/cached/stored dates, recording `404` holidays, and stopping immediately on `403`/`429`/network reset with `data/inbox/` instructions.
 - Rewrote `run_technicals_job` (`ingest/technicals_job.py`) for bulk DataFrame loading, incremental skipping, `NIFTY50` index benchmark preference, and `db.upsert_df` batch writes.
