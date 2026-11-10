@@ -54,7 +54,7 @@ display in a local tool is the intended and compliant use). On **403/429 we stop
 | Dataset | URL | Status (2026-10-25) | Notes |
 |---|---|---|---|
 | NSE equity master | `https://nsearchives.nseindia.com/content/equities/EQUITY_L.csv` | ✅ OK | header has spaces after commas; columns SYMBOL, NAME OF COMPANY, SERIES, DATE OF LISTING, PAID UP VALUE, MARKET LOT, FACE VALUE, ISIN NUMBER |
-| NSE SME master | `https://nsearchives.nseindia.com/content/equities/SME_EQUITY_L.csv` | ⏳ pending | same host/pattern; verified at first weekly run; SME screening flagged `is_sme` when wired (step 3+) |
+| NSE SME master | `https://nsearchives.nseindia.com/content/equities/SME_EQUITY_L.csv` | ✅ OK (verified 2026-11-10) | same columns as `EQUITY_L.csv` with series `SM`; parsed with `is_sme: True` |
 | NSE ETF list | `https://nsearchives.nseindia.com/content/equities/eq_etfseclist.csv` | ✅ OK | drives the `is_etf` flag + ETF pseudo-sector |
 | NSE F&O lot sizes | `https://nsearchives.nseindia.com/content/fo/fo_mktlots.csv` | ✅ OK | drives `fno_eligible` (7.6) |
 | NSE index constituents | `https://nsearchives.nseindia.com/content/indices/ind_{slug}list.csv` | ✅ OK | verified live: `ind_nifty50list.csv`, `ind_nifty500list.csv`, `ind_niftymidcap100list.csv`, `ind_niftysmallcap100list.csv`. The underscore variant (`ind_nifty50_list.csv`) is **404** — always the no-underscore form. Needed slugs: nifty50, niftynext50, nifty100, nifty200, nifty500, niftymidcap100, niftymidcap150, niftysmallcap100, niftysmallcap250 |
@@ -95,12 +95,15 @@ display in a local tool is the intended and compliant use). On **403/429 we stop
   `/api/corporates-corporateActions?index=equities&from_date=&to_date=` → HTTP 200 JSON.
 - **Corporate actions** (ex-date, record date, purpose, face value): ✅ working — daily job at
   06:30 IST, window −45/+10 days. This feeds dividend/split/bonus awareness.
-- **Deferred to step 7** (verified URLs to be discovered then; endpoints table kept in
-  `endpoints.yaml` with `TBD-at-step7` paths):
-  - bulk/block deals (`report-detail/display-bulk-and-block-deals` page family)
-  - shareholding pattern (quarterly ownership)
-  - financial results / XBRL filings (`companies-listing/corporate-filings`)
-- Fairness: 1 request / ≥5 s on this host, never parallelised, no retries on 403.
+- **Verified live 2026-11-10 (all returning HTTP 200 JSON + XBRL links under polite session):**
+  - **Bulk & Block deals:** `/api/snapshot-capital-market-largedeal` (`BULK_DEALS_DATA`, `BLOCK_DEALS_DATA`; fields `buySell`, `clientName`, `date`, `qty`, `symbol`, `watp`, `remarks`) — ✅ OK
+  - **Insider Trading (SEBI PIT):** `/api/corporates-pit?index=equities&from_date=...&to_date=...` — ✅ OK
+  - **Shareholding patterns:** `/api/corporate-share-holdings-master?index=equities&symbol=<SYM>` → returns `xbrl` XML URL on `nsearchives.nseindia.com` (`SHP_*_WEB.xml` with fraction decimals like `0.5044` = `50.44%`, exact contexts `MutualFundsOrUTI_ContextI`, `InstitutionsDomestic_ContextI`, `InstitutionsForeign_ContextI`, `InsuranceCompanies_ContextI`, `ShareholdingOfPromoterAndPromoterGroup_ContextI`, and `NumberOfShareholders`) — ✅ OK
+  - **Financial results (Ind-AS XBRL):** `/api/corporates-financial-results?index=equities&symbol=<SYM>&period=Quarterly|Annual` → returns metadata (`consolidated` vs `Non-Consolidated`, `bank` flag) + `xbrl` XML link (`OneD`, `FourD`, `OneI` contexts; monetary items in raw INR divided by `1e7` into Rs Cr) — ✅ OK
+- **ETF NAV & TER (AMFI, verified live 2026-11-10):**
+  - **Daily NAVs (`NAVAll.txt`):** `https://www.amfiindia.com/spages/NAVAll.txt` → ✅ OK (HTTP 200, 8 semicolon-delimited columns including `Plan;Option;Net Asset Value;Date`)
+  - **Total Expense Ratio (TER):** `https://www.amfiindia.com/ter-of-mf-schemes` (interactive web table; official CSV drops `TER_*.csv` ingested automatically via `data/inbox/`)
+- Fairness: 1 request / ≥5 s on `www.nseindia.com`, never parallelised, no retries on 403. All endpoints have matching manual `data/inbox/` file patterns (`ingest/inbox.py`).
 
 ## 6. Ingest status + provenance
 

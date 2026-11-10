@@ -48,6 +48,6 @@ def test_build_scheduler_registers_jobs_when_auto_sync_on(monkeypatch):
     sched = schedmod.build_scheduler()
     try:
         jobs = {j.id: j.trigger for j in sched.get_jobs()}  # jobs register without .start()
-        assert set(jobs) == {"daily_eod", "weekly_masters"}
+        assert set(jobs) == {"daily_eod", "weekly_masters", "quarterly_filings"}
     finally:
         sched.remove_all_jobs()

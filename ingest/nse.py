@@ -61,6 +61,13 @@ def sync_cm_bhavcopy(con, d: date) -> dict:
     return res
 
 
+def sync_cm_bhavcopy_from_bytes(con, payload: bytes, d: date) -> dict:
+    """Manual-import entryway used by ingest/inbox.py for a dropped CM bhavcopy."""
+    res = cm_bhav_from_bytes(con, payload, d)
+    _mark_bytes(con, "NSE", "(manual CM bhavcopy)", payload, res.get("rows", 0), None)
+    return res
+
+
 # ------------------------------------------------------------------ FO bhavcopy
 
 def fo_bhav_from_bytes(con, payload: bytes, d: date, url: str = "") -> dict:

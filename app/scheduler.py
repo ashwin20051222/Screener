@@ -87,6 +87,10 @@ def build_scheduler() -> BackgroundScheduler:
         sched.add_job(sources.run_weekly, "cron", id="weekly_masters",
                       **_cron_fields(cfg["weekly_job_cron"]),
                       max_instances=1, coalesce=True, misfire_grace_time=7200)
+        if cfg.get("quarterly_job_cron"):
+            sched.add_job(sources.run_quarterly, "cron", id="quarterly_filings",
+                          **_cron_fields(cfg["quarterly_job_cron"]),
+                          max_instances=1, coalesce=True, misfire_grace_time=7200)
         log.info("auto_sync on: daily cron %r + weekly masters cron %r (IST)",
                  cfg["eod_job_cron"], cfg["weekly_job_cron"])
     else:

@@ -86,6 +86,42 @@ def _process_one(con, p: Path) -> dict:
             return bse_mod.sync_scrip_master_from_inbox_csv(con, p)
         if name.lower() == "fbil_mibor.json":
             return __import__("ingest.fbil", fromlist=["sync_manual_rate"]).sync_manual_rate(con)
+        if name.upper().startswith("SHP_") and name.lower().endswith(".xml"):
+            from ingest.ownership import sync_shareholding_xbrl_from_bytes
+            return sync_shareholding_xbrl_from_bytes(con, p.read_bytes())
+        if name.lower().startswith("bulk_deals") and name.lower().endswith(".csv"):
+            from ingest.ownership import parse_deals_csv_bytes
+            from app import db as _db
+            rows = parse_deals_csv_bytes(p.read_bytes(), deal_type="BULK")
+            n = _db.upsert_rows(con, "bulk_block_deals", rows,
+                                keys=["deal_date", "exchange", "deal_type", "symbol", "client_name", "buy_sell", "quantity"])
+            return {"status": "ok", "rows": n}
+        if name.lower().startswith("block_deals") and name.lower().endswith(".csv"):
+            from ingest.ownership import parse_deals_csv_bytes
+            from app import db as _db
+            rows = parse_deals_csv_bytes(p.read_bytes(), deal_type="BLOCK")
+            n = _db.upsert_rows(con, "bulk_block_deals", rows,
+                                keys=["deal_date", "exchange", "deal_type", "symbol", "client_name", "buy_sell", "quantity"])
+            return {"status": "ok", "rows": n}
+        if ("insider" in name.lower() or name.lower().startswith("pit_")) and name.lower().endswith(".csv"):
+            from ingest.ownership import parse_pit_json_or_csv
+            from app import db as _db
+            rows = parse_pit_json_or_csv(p.read_bytes())
+            n = _db.upsert_rows(con, "insider_trades", rows,
+                                keys=["broadcast_date", "symbol", "acquirer_name", "transaction_type", "shares"])
+            return {"status": "ok", "rows": n}
+        if (name.upper().startswith("INDAS_") or name.upper().startswith("FIN_")) and name.lower().endswith(".xml"):
+            from ingest.financials import ingest_financial_xbrl_bytes
+            return ingest_financial_xbrl_bytes(con, p.read_bytes())
+        if name.lower() == "navall.txt":
+            from ingest.etf import sync_amfi_nav_from_bytes
+            return sync_amfi_nav_from_bytes(con, p.read_bytes())
+        if name.lower().startswith("ter_") and name.lower().endswith(".csv"):
+            from ingest.etf import parse_ter_csv_bytes
+            from app import db as _db
+            rows = parse_ter_csv_bytes(p.read_bytes())
+            n = _db.upsert_rows(con, "etf_meta", rows, keys=["symbol"])
+            return {"status": "ok", "rows": n}
         return {"status": "skip", "message": "unrecognized file pattern"}
     except Exception as e:  # never drop a row silently; keep file for retry
         log.exception("inbox import failed for %s", name)

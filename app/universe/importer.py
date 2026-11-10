@@ -137,3 +137,4 @@ def generate_template_headers(extra_fields: Optional[List[str]] = None) -> List[
     if extra_fields:
         base.extend(extra_fields)
     return base
+

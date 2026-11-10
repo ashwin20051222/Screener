@@ -68,6 +68,19 @@ def run_daily(con=None) -> dict:
                     break  # do not hammer a failing host today
 
         summary["corp_actions"] = nse_mod.sync_corporate_actions(con)
+        try:
+            from ingest import ownership as own_mod
+            summary["bulk_block_deals"] = own_mod.sync_bulk_block_deals(con)
+            summary["insider_trades"] = own_mod.sync_insider_trades(con, days_back=7)
+        except Exception as exc:
+            summary["deals_pit_error"] = str(exc)
+        try:
+            from ingest.fno_metrics import compute_fno_metrics_for_date
+            from ingest.technicals_job import run_technicals_job
+            summary["fno_metrics"] = compute_fno_metrics_for_date(con)
+            summary["technicals"] = run_technicals_job(con)
+        except Exception as exc:
+            summary["compute_error"] = str(exc)
         _mark(con, "daily", run_date, "ok", 0, str(summary)[:400], t0)
     except Exception as e:
         log.exception("daily sync failed")
@@ -84,7 +97,7 @@ def source_cm_source(name: str) -> str:
 
 
 def run_weekly(con=None) -> dict:
-    """Weekly: inbox first (manual drops win), masters, index lists, F&O lots, AMFI check, FBIL."""
+    """Weekly: inbox first (manual drops win), masters, SME master, index lists, F&O lots, AMFI, ETF NAV, FBIL."""
     t0 = time.time()
     own = con is None
     con = con or db.connect()
@@ -95,16 +108,63 @@ def run_weekly(con=None) -> dict:
         inbox_res = process_inbox(con)
         summary["inbox"] = inbox_res
         summary["equity_master"] = nse_mod.sync_equity_master(con)
+        summary["sme_master"] = nse_mod.sync_sme_master(con)
         summary["etf_master"] = nse_mod.sync_etf_master(con)
         summary["fno_lots"] = nse_mod.sync_fno_lots(con)
         summary["indices"] = nse_mod.sync_index_constituents(con)
         summary["bse_master_from_bhav"] = bse_mod.sync_master_from_bhavcopy(con)
+        try:
+            from ingest.master_enrichment import enrich_securities_from_constituents
+            summary["sector_enrichment"] = enrich_securities_from_constituents(con)
+        except Exception as exc:
+            summary["sector_enrichment_error"] = str(exc)
         summary["amfi"] = amfi_mod.sync_categorisation(con)
+        try:
+            from ingest.etf import sync_amfi_nav
+            summary["etf_nav"] = sync_amfi_nav(con)
+        except Exception as exc:
+            summary["etf_nav_error"] = str(exc)
         summary["fbil"] = fbil_mod.sync_manual_rate(con)
         _mark(con, "weekly", run_date, "ok", 0, str(summary)[:400], t0)
     except Exception as e:
         log.exception("weekly sync failed")
         _mark(con, "weekly", run_date, "fail", 0, f"{type(e).__name__}: {e}", t0)
+        summary["error"] = str(e)
+    finally:
+        if own:
+            con.close()
+    return summary
+
+
+def run_quarterly(con=None, *, max_symbols: int = 50) -> dict:
+    """Quarterly: Shareholding patterns & Ind-AS XBRL financial statements for active index constituents."""
+    t0 = time.time()
+    own = con is None
+    con = con or db.connect()
+    db.init_schema(con)
+    run_date = date.today()
+    summary = {"shp_synced": 0, "fin_synced": 0}
+    try:
+        from ingest.financials import sync_financials_for_symbol
+        from ingest.ownership import sync_shareholding_for_symbol
+
+        syms = [
+            r[0] for r in con.execute(
+                "SELECT DISTINCT nse_symbol FROM ref_security WHERE nse_symbol IS NOT NULL LIMIT ?",
+                [max_symbols],
+            ).fetchall()
+        ]
+        for sym in syms:
+            r_shp = sync_shareholding_for_symbol(con, sym, max_quarters=2)
+            if r_shp.get("quarters", 0) > 0:
+                summary["shp_synced"] += 1
+            r_fin = sync_financials_for_symbol(con, sym, max_filings=2)
+            if r_fin.get("filings", 0) > 0:
+                summary["fin_synced"] += 1
+        _mark(con, "quarterly", run_date, "ok", summary["shp_synced"] + summary["fin_synced"], str(summary)[:400], t0)
+    except Exception as e:
+        log.exception("quarterly sync failed")
+        _mark(con, "quarterly", run_date, "fail", 0, f"{type(e).__name__}: {e}", t0)
         summary["error"] = str(e)
     finally:
         if own:

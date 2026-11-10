@@ -66,7 +66,7 @@ sources:
     tos_note: "same as nse_cm_bhavcopy"
 
   nse_sme_equity_master:
-    status: pending                  # same host/pattern as EQUITY_L; verify at first weekly sync
+    status: ok                       # verified live 2026-11-10, HTTP 200 CSV (series SM)
     kind: security-master-sme
     cadence: weekly
     url: "https://nsearchives.nseindia.com/content/equities/SME_EQUITY_L.csv"
@@ -151,18 +151,42 @@ sources:
         cadence: daily
         kind: corporate-actions      # ex-date, record date, purpose, face value (dividend/split/bonus-sec)
       bulk_deals:
-        path: "TBD-at-step7 (page: report-detail/display-bulk-and-block-deals)"
+        status: ok                   # verified live 2026-11-10 (HTTP 200 JSON)
+        path: "/api/snapshot-capital-market-largedeal"
         cadence: daily
         kind: bulk-deals
+      insider_pit:
+        status: ok                   # verified live 2026-11-10 (HTTP 200 JSON)
+        path: "/api/corporates-pit?index=equities&from_date={dd-mm-yyyy}&to_date={dd-mm-yyyy}"
+        cadence: daily
+        kind: insider-trades
       shareholding:
-        path: "TBD-at-step7 (company page APIs)"
+        status: ok                   # verified live 2026-11-10 (HTTP 200 JSON + XBRL XML links on nsearchives)
+        path: "/api/corporate-share-holdings-master?index=equities&symbol={symbol}"
         cadence: quarterly
         kind: ownership
       financial_results:
-        path: "TBD-at-step7 (companies-listing/corporate-filings XBRL downloads)"
+        status: ok                   # verified live 2026-11-10 (HTTP 200 JSON + Ind-AS XBRL XML links on nsearchives)
+        path: "/api/corporates-financial-results?index=equities&symbol={symbol}&period={Annual|Quarterly}"
         cadence: quarterly
         kind: filings
     tos_note: "same as nse_cm_bhavcopy; we additionally keep 1 request / 5 s on this host and never parallelise"
+
+  # ---------------- ETF NAV & TER (Step 4.7) ----------------
+  amfi_nav_all:
+    status: ok                       # verified live 2026-11-10 (HTTP 200, 8 semicolon cols incl. Plan;Option)
+    kind: etf-nav
+    cadence: daily_eod
+    url: "https://www.amfiindia.com/spages/NAVAll.txt"
+    tos_note: "public AMFI daily NAV release; keep attribution"
+
+  amfi_ter:
+    status: manual-export            # https://www.amfiindia.com/ter-of-mf-schemes (web portal; inbox drop TER_*.csv supported)
+    kind: etf-ter
+    cadence: monthly
+    page: "https://www.amfiindia.com/ter-of-mf-schemes"
+    fallback: "Drop official scheme TER export TER_*.csv into data/inbox/"
+    tos_note: "web interactive portal; manual CSV export drop supported"
 
   # ---------------- B derivs (pending) ----------------
   bse_fo_bhavcopy:
