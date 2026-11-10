@@ -25,7 +25,7 @@ from app.config import data_path, settings
 
 log = logging.getLogger(__name__)
 
-_DEFAULT_UA = "ScreenerDesk/0.1 (offline-local screener; personal use) requests"
+_DEFAULT_UA = "ScreenerDesk/0.1 (local offline screener; personal use)"
 
 
 class _HostThrottle:

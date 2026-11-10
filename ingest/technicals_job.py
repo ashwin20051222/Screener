@@ -130,8 +130,8 @@ def compute_technicals_for_symbol(
             if alpha_val is not None and sd_ex > 0:
                 sharpe_val = sharpe_ratio(alpha_val, sd_ex)
 
-    win_52w_h = highs[-252:] if len(highs) >= 2 else highs
-    win_52w_l = lows[-252:] if len(lows) >= 2 else lows
+    win_52w_h = highs[-252:] if len(highs) >= 2 else []
+    win_52w_l = lows[-252:] if len(lows) >= 2 else []
     high_52 = max(win_52w_h) if win_52w_h else None
     low_52 = min(win_52w_l) if win_52w_l else None
     away_h = ((high_52 / cur_c) - 1.0) * 100.0 if high_52 and cur_c > 0 else None
@@ -200,9 +200,46 @@ def compute_technicals_for_symbol(
     }
 
 
-def run_technicals_job(con, source: str = "NSE") -> dict:
-    """Computes technicals across all securities present in px_daily and upserts into tech_daily."""
-    rows = con.execute(
+def run_technicals_job(con, source: str = "NSE", *, incremental: bool = True) -> dict:
+    """Computes technicals across all securities in a vectorised incremental batch pass."""
+    import pandas as pd
+
+    max_px_rows = con.execute(
+        "SELECT symbol, MAX(date) FROM px_daily WHERE source = ? AND close IS NOT NULL GROUP BY symbol",
+        [source],
+    ).fetchall()
+    if not max_px_rows:
+        return {"status": "skip", "rows": 0, "skipped_incremental": 0}
+
+    max_tech_map = dict(
+        con.execute("SELECT symbol, MAX(date) FROM tech_daily GROUP BY symbol").fetchall()
+    )
+    act_rows = con.execute(
+        "SELECT symbol, ex_date, purpose FROM corp_action ORDER BY ex_date"
+    ).fetchall()
+    actions_by_sym: Dict[str, List[Dict[str, Any]]] = {}
+    max_act_by_sym: Dict[str, Any] = {}
+    for sym, ex_dt, purp in act_rows:
+        actions_by_sym.setdefault(sym, []).append({"ex_date": ex_dt, "purpose": purp})
+        if ex_dt and (sym not in max_act_by_sym or ex_dt > max_act_by_sym[sym]):
+            max_act_by_sym[sym] = ex_dt
+
+    dirty_syms: List[str] = []
+    skipped_inc = 0
+    for sym, m_px_dt in max_px_rows:
+        t_dt = max_tech_map.get(sym)
+        a_dt = max_act_by_sym.get(sym)
+        if incremental and t_dt is not None and m_px_dt <= t_dt and (a_dt is None or a_dt <= t_dt):
+            skipped_inc += 1
+        else:
+            dirty_syms.append(sym)
+
+    if not dirty_syms:
+        return {"status": "ok", "rows": 0, "skipped_incremental": skipped_inc}
+
+    # Load all price history for dirty symbols in one bulk DataFrame fetch + benchmark series
+    dirty_set = set(dirty_syms)
+    px_df = con.execute(
         """
         SELECT symbol, date, open, high, low, close, volume
         FROM px_daily
@@ -210,30 +247,40 @@ def run_technicals_job(con, source: str = "NSE") -> dict:
         ORDER BY symbol, date
         """,
         [source],
-    ).fetchall()
-    if not rows:
-        return {"status": "skip", "rows": 0}
+    ).fetchdf()
 
-    act_rows = con.execute(
-        "SELECT symbol, ex_date, purpose FROM corp_action ORDER BY ex_date"
-    ).fetchall()
-    actions_by_sym: Dict[str, List[Dict[str, Any]]] = {}
-    for sym, ex_dt, purp in act_rows:
-        actions_by_sym.setdefault(sym, []).append({"ex_date": ex_dt, "purpose": purp})
+    idx_df = con.execute(
+        """
+        SELECT symbol, date, close
+        FROM px_daily
+        WHERE source = 'NSE-INDEX' AND symbol = 'NIFTY50' AND close IS NOT NULL
+        ORDER BY date
+        """
+    ).fetchdf()
+    if len(idx_df) >= 2:
+        nifty_closes = [float(x) for x in idx_df["close"].tolist()]
+    else:
+        n50_df = px_df[px_df["symbol"] == "NIFTY 50"]
+        if len(n50_df) == 0:
+            n50_df = px_df[px_df["symbol"] == "NIFTYBEES"]
+        nifty_closes = [float(x) for x in n50_df["close"].tolist()]
 
-    by_sym: Dict[str, List[Dict[str, Any]]] = {}
-    for sym, dt, o, h, l, c, v in rows:
-        by_sym.setdefault(sym, []).append({
-            "symbol": sym, "date": dt, "open": o, "high": h, "low": l, "close": c, "volume": v
-        })
-
-    nifty_closes = [r["close"] for r in by_sym.get("NIFTY 50", [])] or [r["close"] for r in by_sym.get("NIFTYBEES", [])]
-
-    out = []
-    for sym, ohlcv in by_sym.items():
-        snap = compute_technicals_for_symbol(ohlcv, actions_by_sym.get(sym, []), nifty_closes=nifty_closes or None)
+    # Pre-group OHLCV once via DataFrame iteration instead of per-symbol DuckDB queries
+    filtered_df = px_df[px_df["symbol"].isin(dirty_set)]
+    out: List[Dict[str, Any]] = []
+    for sym, grp in filtered_df.groupby("symbol", sort=False):
+        ohlcv = grp.to_dict("records")
+        snap = compute_technicals_for_symbol(
+            ohlcv,
+            actions_by_sym.get(str(sym), []),
+            nifty_closes=nifty_closes or None,
+        )
         if snap:
             out.append(snap)
 
-    n = db.upsert_rows(con, "tech_daily", out, keys=["symbol", "date"])
-    return {"status": "ok", "rows": n}
+    if not out:
+        return {"status": "ok", "rows": 0, "skipped_incremental": skipped_inc}
+
+    out_df = pd.DataFrame(out)
+    n = db.upsert_df(con, "tech_daily", out_df, keys=["symbol", "date"])
+    return {"status": "ok", "rows": n, "skipped_incremental": skipped_inc}

@@ -1330,7 +1330,11 @@ export const App: React.FC = () => {
                       const fDef = ALL_FILTERS_MAP.get(colId);
                       const prov = stock._provenance || {};
                       const cellTooltip = val === null || val === undefined
-                        ? `${fDef?.name || colId}: ${formatMissingFeedReason(fDef?.feeds)}`
+                        ? (
+                          isSynced && fDef?.feeds === 'history' && (prov.px_days ?? 0) > 0
+                            ? `${fDef.name}: null — insufficient history (${prov.px_days} trading days stored)`
+                            : `${fDef?.name || colId}: ${formatMissingFeedReason(fDef?.feeds)}`
+                        )
                         : colId === 'market_cap'
                           ? `Market Cap: ${formatIndianNumber(val)} Rs Cr | Shares: ${prov.shares_source || 'official'} (${prov.shares_as_of || 'n/a'}) | Price: ${prov.price_source || 'NSE'} (${prov.price_as_of || 'n/a'})`
                           : `${fDef?.name || colId}: ${formatIndianNumber(val)} | Source: ${prov.price_source || fDef?.feeds || 'official'} | As of: ${prov.price_as_of || 'fixture'}`;

@@ -4,6 +4,11 @@ All notable milestones for **ScreenerDesk** (Indian Stock Screener Replica).
 
 ## [Unreleased — Fix Prompt #1]
 
+### Task D — Historical Bhavcopy Backfill & Vectorised Technicals (`2026-11-10`)
+- Added `ingest/backfill.py`, `scripts/backfill.py`, and `make backfill DAYS=400` (`DAYS=1300`, `FO_DAYS=10`), resumable via `ingest_progress`, skipping weekends/cached/stored dates, recording `404` holidays, and stopping immediately on `403`/`429`/network reset with `data/inbox/` instructions.
+- Rewrote `run_technicals_job` (`ingest/technicals_job.py`) for bulk DataFrame loading, incremental skipping, `NIFTY50` index benchmark preference, and `db.upsert_df` batch writes.
+- Added nested bhavcopy archive & post-inbox technicals support (`ingest/inbox.py`) and `px_days` / `"insufficient history"` provenance tooltips (`app/query/db_store.py`, `apps/web/src/App.tsx`).
+
 ### Task C — Market Cap Unblock & Resumable Checkpointing (`2026-11-10`)
 - Added `ingest_progress` checkpoint table (`app/schema.sql`, `app/db.py`) and enforced `>= 5.0s` NSE throttling + clean HTTP/2 `curl` fallback for `nsearchives.nseindia.com` (`ingest/http.py`).
 - Discovered & wired NSE bulk Press Release archive (`PR{ddmmyy}.zip` -> `mcap{ddmmyyyy}.csv` `Issue Size` for 3,257 securities + `pd*.csv` `Nifty 50` daily close) in `ingest/nse.py` and `ingest/inbox.py` (cache-first, zero per-symbol scraping needed for Market Cap).

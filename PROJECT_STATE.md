@@ -1,7 +1,7 @@
 # PROJECT_STATE.md — Continuity File
 
-> **Current Phase:** Fix Prompt #1 — **Task C Complete** (`fix-1c`); proceeding to **Task D** (`Price History Backfill & Vectorised Technicals`).
-> **Last Updated:** 2026-11-10T11:23:30+05:30
+> **Current Phase:** Fix Prompt #1 — **Task D Complete** (`fix-1d`); proceeding to **Task E** (`Targeted Resumable Quarterly & Deals Sync`).
+> **Last Updated:** 2026-11-10T11:28:30+05:30
 > **Tags:** `baseline-prototype`, `ui-replica-v1`, `replica-v1`.
 
 ---
@@ -87,7 +87,11 @@
   - Implemented bulk `sync_nse_pr_mcap` + inbox `PR*.zip`/`mcap*.csv` + `niftyindices.com` mirror fallback in `ingest/nse.py`, plus SHP shares extraction & resumable `sync_shp_batch` (`ingest/ownership.py`) + `make sync-shp UNIVERSE=nifty100`.
   - Exposed AMFI 6-month average market cap strictly under its own `amfi_avg_mcap_crs` card in `StockDetailDrawer.tsx` + Market Cap shares provenance tooltips in `App.tsx`.
   - Verified live `make sync-shp UNIVERSE=nifty100`: `2,644 / 2,645` securities have `shares_outstanding`, yielding **`100.0%` (`100/100`) Market Cap coverage on Nifty 100**.
-- **Next:** Task D — Resumable `make backfill DAYS=400|1300`, 10-day F&O backfill, split/bonus adjustment, and vectorised technicals job.
+- **Task D (Fix Prompt #1) Complete (`fix-1d`):**
+  - Implemented `ingest/backfill.py`, `scripts/backfill.py`, and `make backfill DAYS=400` (`DAYS=1300` for 5Y CAGR, `FO_DAYS=10` for F&O delta history), skipping weekends, stored dates, and raw-cache archives, recording `404` holidays in `ingest_progress`, and aborting cleanly on `403`/`429`/reset with manual `data/inbox/` guidance.
+  - Upgraded `ingest/technicals_job.py` (`run_technicals_job`) to bulk DataFrame loading + incremental symbol skip (`MAX(date)` vs `tech_daily` & `corp_action`) + `db.upsert_df` batch writes + `NIFTY50` (`NSE-INDEX`) benchmark support; enforced `None` (`insufficient history`, never `0`) on single-day/short histories.
+  - Extended `ingest/inbox.py` for nested bhavcopy archives (`*bhav*.zip`) with automatic checkpoint + post-inbox technicals refresh; exposed `px_days` in `db_store.py` & `"insufficient history"` tooltips in `App.tsx`.
+- **Next:** Task E — Targeted resumable quarterly fundamentals/ownership sync (`make sync-quarterly UNIVERSE=nifty100|nifty500|all MAX=...`) and `make sync-deals`.
 
 ---
 

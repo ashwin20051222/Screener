@@ -143,3 +143,72 @@ def test_technicals_job_with_corp_actions_and_nifty(db_con):
     assert snap[3] is not None  # beta over 104+ weekly points (550 days -> 110 weekly points!)
     assert snap[4] is not None  # alpha
     assert snap[6] is not None and snap[7] is not None
+
+    # Re-run with incremental=True -> skips both symbols cleanly without recompute
+    res_inc = run_technicals_job(db_con, source="NSE", incremental=True)
+    assert res_inc["rows"] == 0
+    assert res_inc["skipped_incremental"] == 2
+
+
+def test_backfill_holidays_cache_skip_resume_abort_and_short_history(db_con, tmp_path, monkeypatch):
+    from app import config
+    from ingest import backfill as bf_mod
+    from ingest.http import FetchResult
+    import io, zipfile
+
+    monkeypatch.setattr(config, "data_path", lambda rel: tmp_path / rel)
+    # Seed 10 days of NEWIPO directly into px_daily to verify short history returns None (not 0) for SMA200/1Y return
+    new_px = []
+    for i in range(10):
+        new_px.append({
+            "source": "NSE", "date": date(2026, 11, 2) - timedelta(days=9 - i),
+            "symbol": "NEWIPO", "series": "EQ", "open": 100.0 + i, "high": 102.0 + i,
+            "low": 99.0 + i, "close": 101.0 + i, "volume": 10000,
+        })
+    db.upsert_rows(db_con, "px_daily", new_px, keys=["source", "symbol", "date", "series"])
+
+    def _make_udiff_zip(d: date, close_px: float) -> bytes:
+        buf = io.BytesIO()
+        csv_txt = (
+            "TradDt,BizDt,Sgmt,Src,FinInstrmTp,FinInstrmId,ISIN,TckrSymb,SctySrs,XpryDt,FininstrmActlXpryDt,"
+            "StrkPric,OptnTp,FinInstrmNm,OpnPric,HghPric,LwPric,ClsPric,LastPric,PrvsClsgPric,UndrlygPric,SttlmPric,"
+            "OpnIntrst,ChngInOpnIntrst,TtlTradgVol,TtlTrfVal,TtlNbOfTxsExctd,SsnId,NewBrdLotQty,Rmks,Rsvd1,Rsvd2,Rsvd3,Rsvd4\n"
+            f"{d},{d},CM,NSE,STK,1,INE001,INFY,EQ,,,0,,INFOSYS,{close_px},{close_px+1},{close_px-1},{close_px},{close_px},{close_px-0.5},,,0,0,50000,50000000,100,F,1,,,,,\n"
+        )
+        with zipfile.ZipFile(buf, "w") as z:
+            z.writestr(f"BhavCopy_NSE_CM_0_0_0_{d.strftime('%Y%m%d')}_F_0000.csv", csv_txt)
+        return buf.getvalue()
+
+    calls = []
+    def fake_fetch(url, **kwargs):
+        calls.append(url)
+        if "20261106" in url:  # Friday -> 404 holiday
+            return FetchResult(404, None, url, error="http:404")
+        if "20261105" in url:  # Thursday -> ok
+            return FetchResult(200, _make_udiff_zip(date(2026, 11, 5), 1500.0), url)
+        if "20261104" in url:  # Wednesday -> 403 stop immediately
+            return FetchResult(403, None, url, error="http:403")
+        return FetchResult(404, None, url, error="http:404")
+
+    monkeypatch.setattr(bf_mod.http, "fetch", fake_fetch)
+    res = bf_mod.backfill_prices(
+        db_con, trading_days=5, fo_days=0, resume=True, sync_actions=False, start_date=date(2026, 11, 8),  # Sunday -> skip Sat/Sun
+    )
+    assert res["blocked"] is True
+    # Weekends (Nov 7, Nov 8) skipped without network; Nov 6 holiday (404), Nov 5 ok, Nov 4 403 -> stopped
+    assert not any("20261107" in u or "20261108" in u for u in calls)
+    assert any("20261106" in u for u in calls)
+    assert res["cm_holidays_marked"] >= 1
+    prog_hol = db.get_progress_keys(db_con, "backfill_cm", statuses=("holiday",))
+    assert "2026-11-06" in prog_hol
+
+    # Insufficient history check: NEWIPO has sma_10d populated, sma_200d and ret_1y strictly None (never 0)
+    short_row = db_con.execute(
+        "SELECT sma_10d, sma_200d, ret_1d, ret_1y, away_52w_high FROM tech_daily WHERE symbol = 'NEWIPO'"
+    ).fetchone()
+    assert short_row[0] is not None
+    assert short_row[1] is None
+    assert short_row[2] is not None
+    assert short_row[3] is None
+    assert short_row[4] is not None  # >= 2 days present
+

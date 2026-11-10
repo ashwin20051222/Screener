@@ -159,6 +159,13 @@ def load_market_dataset_from_db(con=None) -> Dict[str, Any]:
             if r[1]:
                 px_by_isin.setdefault(r[1], r)
 
+        px_days_map: Dict[str, int] = dict(
+            con.execute(
+                "SELECT symbol, COUNT(DISTINCT date) FROM px_daily WHERE source = 'NSE' GROUP BY symbol"
+            ).fetchall()
+        )
+        max_px_days = max(px_days_map.values()) if px_days_map else 0
+
         # Latest tech_daily per symbol
         tech_df = con.execute(
             "SELECT * FROM tech_daily QUALIFY ROW_NUMBER() OVER (PARTITION BY symbol ORDER BY date DESC) = 1"
@@ -236,6 +243,7 @@ def load_market_dataset_from_db(con=None) -> Dict[str, Any]:
                     "price_as_of": str(px[2]) if px else None,
                     "shares_source": sh_src,
                     "shares_as_of": str(sh_asof) if sh_asof else None,
+                    "px_days": int(px_days_map.get(sym, 0)) if sym else 0,
                 },
             }
 
@@ -349,6 +357,7 @@ def load_market_dataset_from_db(con=None) -> Dict[str, Any]:
                 "masters": str(max_master_dt) if max_master_dt else None,
                 "filings": str(max_fin_dt or max_shp_dt) if (max_fin_dt or max_shp_dt) else None,
                 "amfi": str(max_amfi_dt) if max_amfi_dt else None,
+                "max_px_days": int(max_px_days),
             },
         }
     finally:

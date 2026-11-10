@@ -46,13 +46,22 @@ def process_inbox(con) -> list[dict]:
     inbox.mkdir(parents=True, exist_ok=True)
     processed.mkdir(parents=True, exist_ok=True)
     results = []
+    has_new_px = False
     for p in sorted(inbox.iterdir()):
         if p.is_dir() or p.name.startswith("."):
             continue
         res = _process_one(con, p)
         results.append({"file": p.name, **res})
         if res.get("status") == "ok":
+            if res.get("px_updated") or PAT_NSE_CM.match(p.name) or PAT_BSE_CM.match(p.name):
+                has_new_px = True
             shutil.move(str(p), processed / p.name)
+    if has_new_px:
+        try:
+            from ingest.technicals_job import run_technicals_job
+            run_technicals_job(con, incremental=True)
+        except Exception as exc:
+            log.warning("Post-inbox technicals refresh failed: %s", exc)
     return results
 
 
@@ -61,9 +70,29 @@ def _process_one(con, p: Path) -> dict:
     try:
         m = PAT_NSE_CM.match(name) or PAT_BSE_CM.match(name)
         if m and name.lower().endswith(".zip"):
+            from app import db as _db
             d = datetime.strptime(m.group(1), "%Y%m%d").date()
             res = nse_mod.sync_cm_bhavcopy_from_bytes(con, p.read_bytes(), d)
+            _db.mark_progress(con, "backfill_cm", str(d), "ok", f"inbox {name}")
+            res["px_updated"] = True
             return res
+        if "bhav" in name.lower() and name.lower().endswith(".zip") and not PAT_NSE_FO.match(name):
+            import zipfile as _zf
+            from app import db as _db
+            total_rows = 0
+            imported = 0
+            with _zf.ZipFile(p) as z:
+                for inner in z.namelist():
+                    base = inner.rsplit("/", 1)[-1]
+                    mi = PAT_NSE_CM.match(base) or PAT_BSE_CM.match(base)
+                    if mi:
+                        d_in = datetime.strptime(mi.group(1), "%Y%m%d").date()
+                        r_in = nse_mod.sync_cm_bhavcopy_from_bytes(con, z.read(inner), d_in) if "NSE" in base.upper() else bse_mod.sync_cm_bhavcopy_from_bytes(con, z.read(inner), d_in)
+                        _db.mark_progress(con, "backfill_cm", str(d_in), "ok", f"inbox archive {base}")
+                        total_rows += int(r_in.get("rows", 0))
+                        imported += 1
+            if imported > 0:
+                return {"status": "ok", "rows": total_rows, "archives_imported": imported, "px_updated": True}
         if PAT_BSE_CM.match(name):
             d = datetime.strptime(PAT_BSE_CM.match(name).group(1), "%Y%m%d").date()
             res = bse_mod.sync_cm_bhavcopy_from_bytes(con, p.read_bytes(), d)
