@@ -64,6 +64,31 @@ def compute_coverage_report(dataset: Dict[str, Any] | None = None) -> Dict[str, 
             "nifty100_pct": _pct(cnt_100, n_100),
         })
 
+    by_sector: Dict[str, Dict[str, int]] = {}
+    for r in all_rows:
+        sec = str(r.get("sector") or "Unclassified")
+        by_sector.setdefault(sec, {"all": 0, "nifty100": 0})
+        by_sector[sec]["all"] += 1
+    for r in nifty100_rows:
+        sec = str(r.get("sector") or "Unclassified")
+        by_sector.setdefault(sec, {"all": 0, "nifty100": 0})
+        by_sector[sec]["nifty100"] += 1
+
+    unmapped_industries: List[Dict[str, Any]] = []
+    try:
+        from app import config as _cfg
+        import duckdb as _ddb
+        db_p = _cfg.data_path(_cfg.settings()["data"]["db_path"])
+        if db_p.exists():
+            _con = _ddb.connect(str(db_p), read_only=True)
+            try:
+                from ingest.master_enrichment import get_unmapped_industries
+                unmapped_industries = get_unmapped_industries(_con)
+            finally:
+                _con.close()
+    except Exception:
+        pass
+
     return {
         "generated_at": datetime.now(timezone.utc).astimezone().isoformat(timespec="seconds"),
         "synced": bool(dataset.get("synced")),
@@ -71,6 +96,8 @@ def compute_coverage_report(dataset: Dict[str, Any] | None = None) -> Dict[str, 
         "nifty100_rows": n_100,
         "universes": {k: len(v) for k, v in sorted(universes.items())},
         "by_feed": dict(sorted(by_feed.items())),
+        "by_sector": dict(sorted(by_sector.items(), key=lambda kv: (-kv[1]["all"], kv[0]))),
+        "unmapped_industries": unmapped_industries,
         "filters": entries,
     }
 
@@ -117,6 +144,25 @@ def render_markdown(report: Dict[str, Any]) -> str:
             f"| `{e['id']}` | {e['name']} | {e['category']} | {e['availability']} | `{e['feeds']}` | "
             f"{e['all_non_null']} | {e['all_pct']:.1f}% | {e['nifty100_non_null']} | {e['nifty100_pct']:.1f}% |"
         )
+    lines.extend([
+        "",
+        "## 4. Sector Distribution & Unmapped Industry Log",
+        "",
+        "| UI Sector | All Rows | NIFTY100 Rows |",
+        "|---|---|---|",
+    ])
+    for sec, counts in (report.get("by_sector") or {}).items():
+        lines.append(f"| {sec} | {counts['all']} | {counts['nifty100']} |")
+
+    unmapped = report.get("unmapped_industries") or []
+    lines.extend(["", "### Unmapped Official Exchange Industries", ""])
+    if unmapped:
+        lines.append("| Official Industry Label | Security Count |")
+        lines.append("|---|---|")
+        for u in unmapped:
+            lines.append(f"| `{u['industry']}` | {u['count']} |")
+    else:
+        lines.append("_All official exchange industry labels present in DB are mapped cleanly in `config/sector_map.yaml`._")
     lines.append("")
     return "\n".join(lines)
 

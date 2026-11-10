@@ -4,6 +4,12 @@ All notable milestones for **ScreenerDesk** (Indian Stock Screener Replica).
 
 ## [Unreleased — Fix Prompt #1]
 
+### Task G — Official Sector Classification & Unmapped Industry Audit (`2026-11-10`)
+- Audited NSE/BSE public classification sources via REA Chromium & polite HTTP (`DATA_SOURCES.md`, `config/endpoints.yaml`): added official `ind_niftytotalmarket_list.csv` (`754` equities across `22` official NSE industry labels) and documented HTTP `403` manual-inbox boundaries on BSE `List_Scrips.html` and per-symbol `quote-equity`.
+- Expanded `config/sector_map.yaml` covering all `22` official NSE industry strings (`Automobile and Auto Components`, `Metals & Mining`, `Oil Gas & Consumable Fuels`, exact `Media Entertainment & Publication` -> `Communication Services`), strictly leaving unmapped/unclassified stocks as `Unclassified`.
+- Added `classify_security_industries` / `get_unmapped_industries` (`ingest/master_enrichment.py`), `sync_total_market_industries` (`ingest/nse.py`, wired in `ingest/sources.py`), optional `Industry`/`Sector Name` extraction in BSE manual inbox imports (`ingest/bse.py`), and fixed `ingest/http.py` overwriting default `python-requests` UA cleanly with `ScreenerDesk/0.1`.
+- Added Section 4 (`Sector Distribution & Unmapped Industry Log`) to `scripts/coverage.py` & `docs/DATA_COVERAGE.md`; verified `100/100` Nifty 100 and `749/2,645` all-listed equities classified (`0` unmapped official strings) and `108 passed` (`tests/test_sector_mapping.py`).
+
 ### Task F — Performance: Precomputed Snapshot & Fast API (`2026-11-10`)
 - Added `screener_snapshot` and `screener_snapshot_meta` tables (`app/schema.sql`), `app/query/snapshot.py`, `scripts/build_snapshot.py`, and `make snapshot`.
 - Replaced N+1 ownership and fundamentals loops (`app/query/db_store.py`) with bulk window/aggregate DuckDB SQL (`compute_all_ownership_snapshots_bulk`, `compute_all_fundamental_metrics_bulk`) while fixing `.fetchdf()` `NaN` propagation into strict `None`.

@@ -1,7 +1,7 @@
 # PROJECT_STATE.md — Continuity File
 
-> **Current Phase:** Fix Prompt #1 — **Task F Complete** (`fix-1f`); proceeding to **Task G** (`Official Sector Classification`).
-> **Last Updated:** 2026-11-10T11:44:45+05:30
+> **Current Phase:** Fix Prompt #1 — **Task G Complete** (`fix-1g`); proceeding to **Task H** (`Makefile sync-all, Tests, Docs & Tag replica-v1.1`).
+> **Last Updated:** 2026-11-10T11:57:05+05:30
 > **Tags:** `baseline-prototype`, `ui-replica-v1`, `replica-v1`.
 
 ---
@@ -102,7 +102,12 @@
   - Hooked `build_screener_snapshot` onto completion of `run_daily`, `run_weekly`, `run_quarterly`, `backfill_prices`, `sync_shp_batch`, `sync_deals_and_pit`, and `process_inbox`, plus updated `scripts/coverage.py` to read from snapshot.
   - Added `GZipMiddleware` (`app/main.py`) and upgraded `GET /api/screener/dataset` (`app/api/routes.py`) with `?universe=`, `?fields=`, `ETag`, and `304 Not Modified`.
   - Measured speedup on live `2,645`-stock DB: `39.77s / 4.33 MB` -> **`0.333s` full market (`182 KB` GZipped, `119x` faster)** and **`0.065s` NIFTY100 (`15.1 KB` GZipped)**; offline suite `105 passed`.
-- **Next:** Task G — Official all-listed sector/industry classification + expanded `sector_map.yaml`.
+- **Task G (Fix Prompt #1) Complete (`fix-1g`):**
+  - Audited official sector/industry availability with REA Chromium & polite HTTP: `www.niftyindices.com/IndexConstituent/ind_niftytotalmarket_list.csv` (`HTTP 200`, `754` equities across `22` official NSE industries), while `www.bseindia.com/corporates/List_Scrips.html` and `www.nseindia.com/api/quote-equity` return `403` and remain strictly manual/unscraped (`DATA_SOURCES.md`).
+  - Expanded `config/sector_map.yaml` to map all `22` official NSE macro/industry labels cleanly onto the canonical UI sectors (fixing `Automobile and Auto Components`, `Metals & Mining`, `Oil Gas & Consumable Fuels`, and exact-matching `Media Entertainment & Publication` -> `Communication Services`).
+  - Extracted `classify_security_industries` & `get_unmapped_industries` (`ingest/master_enrichment.py`), added `sync_total_market_industries` (`ingest/nse.py` + `config/endpoints.yaml`, wired in `ingest/sources.py`), upgraded `sync_scrip_master_from_inbox_csv` (`ingest/bse.py`) to parse official `Industry` from manual BSE CSV drops, and fixed `ingest/http.py` `Session` default `python-requests` User-Agent replacement.
+  - Added Section 4 (`Sector Distribution & Unmapped Industry Log`) to `scripts/coverage.py` / `docs/DATA_COVERAGE.md`: verified **`100 / 100` Nifty 100** and **`749 / 2,645` all-listed equities** cleanly classified across all 11 sectors (`0` unmapped official labels; remaining `1,896` equities honestly shown as `Unclassified`). Offline suite `108 passed`.
+- **Next:** Task H — `make sync-all` target, expanded Fix Prompt #1 tests, doc finalization, live UI QA screenshots, and git tag `replica-v1.1`.
 
 ---
 

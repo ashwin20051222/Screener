@@ -140,13 +140,15 @@ def sync_scrip_master_from_inbox_csv(con, path) -> dict:
                     return j
         return None
 
-    i_code = find("SCRIPT CODE", "SCRIP CODE", "CODE")
+    i_code = find("SECURITY CODE", "SCRIPT CODE", "SCRIP CODE", "CODE")
     i_isin = find("ISIN NO", "ISIN", "ISIN CODE")
-    i_name = find("SCRIPT NAME", "SCRIP NAME", "NAME OF COMPANY", "NAME")
+    i_name = find("ISSUER NAME", "SECURITY NAME", "SCRIPT NAME", "SCRIP NAME", "NAME OF COMPANY", "NAME")
     i_fv = find("FACE VALUE", "FACE VAL.")
+    i_ind = find("INDUSTRY", "SECTOR NAME", "SUBSECTOR", "BASIC INDUSTRY")
     if i_code is None or i_name is None:
         return {"status": "fail", "message": f"unrecognized scrip master header: {hdr[:10]}"}
     out = []
+    ind_pairs: list[tuple[str, str]] = []
     for row in rows[1:]:
         if len(row) <= max(x for x in [i_code, i_name] if x is not None):
             continue
@@ -155,6 +157,7 @@ def sync_scrip_master_from_inbox_csv(con, path) -> dict:
             continue
         isin = row[i_isin].strip() if i_isin is not None and len(row) > i_isin else ""
         fv = _f(row[i_fv]) if i_fv is not None and len(row) > i_fv else None
+        raw_ind = row[i_ind].strip() if i_ind is not None and len(row) > i_ind and row[i_ind].strip() else None
         out.append({
             "security_id": isin if isin else f"BSE:{code}",
             "isin": isin or None,
@@ -163,7 +166,13 @@ def sync_scrip_master_from_inbox_csv(con, path) -> dict:
             "face_value": fv,
             "listing_status": "listed",
         })
+        if raw_ind:
+            ind_pairs.append((code, raw_ind))
     n = db.upsert_rows(con, "ref_security", out, keys=["security_id"])
+    cls_res = None
+    if ind_pairs:
+        from ingest.master_enrichment import classify_security_industries
+        cls_res = classify_security_industries(con, ind_pairs, key_col="bse_code", overwrite=True)
     db.upsert_rows(con, "raw_files", [{
         "sha256": hashlib.sha256(payload).hexdigest(),
         "source": "BSE",
@@ -173,7 +182,7 @@ def sync_scrip_master_from_inbox_csv(con, path) -> dict:
         "rows": n,
         "notes": "manual inbox import",
     }], keys=["sha256"])
-    return {"status": "ok", "rows": n, "file": str(path)}
+    return {"status": "ok", "rows": n, "classified": cls_res, "file": str(path)}
 
 
 def _f(v):

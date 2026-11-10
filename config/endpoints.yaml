@@ -95,6 +95,14 @@ sources:
     slugs_needed: [nifty50, niftynext50, nifty100, nifty200, nifty500, niftymidcap100, niftymidcap150, niftysmallcap100, niftysmallcap250]
     tos_note: "same as nse_cm_bhavcopy (official NSE indices list files; also mirrored on niftyindices.com)"
 
+  nse_total_market_industries:
+    status: ok                       # verified 2026-11-10: 754 equities with official NSE Industry column
+    kind: industry-classification
+    cadence: weekly
+    url: "https://nsearchives.nseindia.com/content/indices/ind_niftytotalmarket_list.csv"
+    mirror_url: "https://www.niftyindices.com/IndexConstituent/ind_niftytotalmarket_list.csv"
+    tos_note: "official Nifty Total Market CSV (expands official Industry classification beyond Nifty 500; unmapped/missing stocks stay Unclassified)"
+
   nse_pr_mcap:
     status: ok                       # verified live 2026-11-10 (HTTP/2 200: 698 KB PR091126.zip -> mcap09112026.csv with 3,257 shares rows)
     kind: shares-outstanding-bulk

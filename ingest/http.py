@@ -119,7 +119,8 @@ def fetch(
     defaults = endpoints().get("common_defaults") or {}
 
     s = session or requests.Session()
-    s.headers.setdefault("User-Agent", _DEFAULT_UA)
+    if "python-requests" in (s.headers.get("User-Agent") or "").lower() or not s.headers.get("User-Agent"):
+        s.headers["User-Agent"] = _DEFAULT_UA
     s.headers.setdefault("Accept-Language", "en-US,en;q=0.9")
     if "Accept" not in s.headers:
         s.headers["Accept"] = "*/*"

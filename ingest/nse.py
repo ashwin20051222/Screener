@@ -346,6 +346,32 @@ def sync_index_constituents(con, slugs: list[str] | None = None) -> dict:
     return results
 
 
+def sync_total_market_industries_from_bytes(con, payload: bytes, url: str = "(niftytotalmarket csv)") -> dict:
+    """Propagates official NSE Industry labels from Nifty Total Market (~750 equities) into ref_security."""
+    from ingest.master_enrichment import classify_security_industries
+
+    parsed = _parse_index_list(payload)
+    pairs = [(x["symbol"], x["industry"]) for x in parsed if x.get("symbol") and x.get("industry")]
+    res = classify_security_industries(con, pairs, key_col="nse_symbol", overwrite=True)
+    _mark_bytes(con, "NSE-INDICES", url, payload, res.get("updated", 0), None)
+    return {"status": "ok", "parsed": len(parsed), **res}
+
+
+def sync_total_market_industries(con) -> dict:
+    """Fetches ind_niftytotalmarket_list.csv (750 equities) via official niftyindices.com (nsearchives fallback)."""
+    ep = endpoints()["sources"].get("nse_total_market_industries") or {}
+    mirror = ep.get("mirror_url", "https://www.niftyindices.com/IndexConstituent/ind_niftytotalmarket_list.csv")
+    primary = ep.get("url", "https://nsearchives.nseindia.com/content/indices/ind_niftytotalmarket_list.csv")
+    url = mirror
+    r = http.fetch(mirror, source="nse-indices", save_name="ind_niftytotalmarket_list.csv")
+    if not r.ok() and primary:
+        r = http.fetch(primary, source="nse-indices", save_name="ind_niftytotalmarket_list.csv")
+        url = primary
+    if not r.ok():
+        return {"status": "skip", "message": r.error or "fetch failed"}
+    return sync_total_market_industries_from_bytes(con, r.bytes, url=url)
+
+
 def sync_index_list_from_bytes(con, payload: bytes, filename_hint: str = "") -> dict:
     import re as _re
     parsed = _parse_index_list(payload)

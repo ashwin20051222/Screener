@@ -125,6 +125,7 @@ def run_weekly(con=None) -> dict:
         try:
             from ingest.master_enrichment import enrich_securities_from_constituents
             summary["sector_enrichment"] = enrich_securities_from_constituents(con)
+            summary["total_market_industries"] = nse_mod.sync_total_market_industries(con)
         except Exception as exc:
             summary["sector_enrichment_error"] = str(exc)
         summary["amfi"] = amfi_mod.sync_categorisation(con)

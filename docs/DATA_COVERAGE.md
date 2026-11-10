@@ -1,6 +1,6 @@
 # DATA_COVERAGE.md — Live Database Filter Coverage
 
-> **Generated:** `2026-11-10T11:44:13+05:30`
+> **Generated:** `2026-11-10T11:56:42+05:30`
 > **Database Synced:** `True` | **All Listed Rows:** `2645` | **NIFTY100 Rows:** `100`
 > **Registry Filters Checked:** `255`
 
@@ -91,8 +91,8 @@
 | `ps_premium_vs_sub_sector` | PS Premium vs Sub-sector | Valuation | Computed-from-official | `xbrl` | 2 | 0.1% | 2 | 2.0% |
 | `dividend_yield_vs_sub_sector` | Dividend Yield vs Sub-sector | Valuation | Computed-from-official | `xbrl` | 0 | 0.0% | 0 | 0.0% |
 | `sector_dividend_yield` | Sector Dividend Yield | Valuation | Computed-from-official | `xbrl` | 0 | 0.0% | 0 | 0.0% |
-| `sector_pb` | Sector PB | Valuation | Computed-from-official | `xbrl` | 97 | 3.7% | 14 | 14.0% |
-| `sector_pe` | Sector PE | Valuation | Computed-from-official | `xbrl` | 116 | 4.4% | 20 | 20.0% |
+| `sector_pb` | Sector PB | Valuation | Computed-from-official | `xbrl` | 169 | 6.4% | 14 | 14.0% |
+| `sector_pe` | Sector PE | Valuation | Computed-from-official | `xbrl` | 196 | 7.4% | 20 | 20.0% |
 | `mutual_fund_holding` | Mutual Fund Holding | Ownership | Official-direct | `shp` | 2 | 0.1% | 2 | 2.0% |
 | `domestic_institutional_holding` | Domestic Institutional Holding | Ownership | Official-direct | `shp` | 2 | 0.1% | 2 | 2.0% |
 | `foreign_institutional_holding` | Foreign Institutional Holding | Ownership | Official-direct | `shp` | 2 | 0.1% | 2 | 2.0% |
@@ -292,3 +292,24 @@
 | `operating_and_other_expenses_q` | Operating and Other Expenses (Q) | Income Statement | Official-direct | `xbrl` | 2 | 0.1% | 2 | 2.0% |
 | `pbit_q` | PBIT (Q) | Income Statement | Computed-from-official | `xbrl` | 2 | 0.1% | 2 | 2.0% |
 | `pbt_q` | PBT (Q) | Income Statement | Computed-from-official | `xbrl` | 2 | 0.1% | 2 | 2.0% |
+
+## 4. Sector Distribution & Unmapped Industry Log
+
+| UI Sector | All Rows | NIFTY100 Rows |
+|---|---|---|
+| Unclassified | 1896 | 0 |
+| Industrials | 169 | 14 |
+| Consumer Discretionary | 144 | 14 |
+| Financials | 117 | 23 |
+| Materials | 84 | 13 |
+| Health Care | 68 | 8 |
+| Consumer Staples | 44 | 7 |
+| Information Technology | 40 | 6 |
+| Utilities | 27 | 6 |
+| Communication Services | 20 | 2 |
+| Energy | 19 | 6 |
+| Real Estate | 17 | 1 |
+
+### Unmapped Official Exchange Industries
+
+_All official exchange industry labels present in DB are mapped cleanly in `config/sector_map.yaml`._
