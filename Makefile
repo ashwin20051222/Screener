@@ -6,7 +6,7 @@ PIP      := $(VENV)/bin/pip
 PYTHON   := $(VENV)/bin/python
 
 .DEFAULT_GOAL := help
-.PHONY: help venv install sync-daily sync-weekly synkinbox status run test clean
+.PHONY: help venv install sync-daily sync-weekly synkinbox status coverage run web-build test clean
 
 help: ## show this help
 	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z_-]+:.*?## / {printf "  \033[36m%-12s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST)
@@ -32,6 +32,9 @@ synkinbox: ## process only the manual-import drop zone (data/inbox/)
 
 status: ## print db photo: per-source as-of dates, security counts, recent jobs
 	$(PYTHON) scripts/db_info.py
+
+coverage: ## measure per-filter DB coverage (all rows + NIFTY100) and write docs/DATA_COVERAGE.md
+	$(PYTHON) scripts/coverage.py
 
 run: ## start the app at http://127.0.0.1:8787 (serves React UI + FastAPI API; host/port from config/settings.yaml)
 	$(PYTHON) -m app.main

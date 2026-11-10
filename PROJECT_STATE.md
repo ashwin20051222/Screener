@@ -1,8 +1,8 @@
 # PROJECT_STATE.md — Continuity File
 
-> **Current Phase:** Phase 5 Complete — Tagged `replica-v1`.
-> **Last Updated:** 2026-11-10T10:40:00+05:30
-> **Tags:** `baseline-prototype` (at commit 0d3b083), `ui-replica-v1` (at commit eb6772b), `replica-v1`.
+> **Current Phase:** Fix Prompt #1 — **Task A Complete** (`STOP GATE A` — awaiting approval for Task B).
+> **Last Updated:** 2026-11-10T11:00:00+05:30
+> **Tags:** `baseline-prototype`, `ui-replica-v1`, `replica-v1`.
 
 ---
 
@@ -75,7 +75,12 @@
 
 ## 2. Next Up
 
-- Complete (`replica-v1` delivered). Ready for standalone feature customization requests via prompt Section 14.
+- **Task A (Fix Prompt #1) Complete — Stopped at STOP GATE A:**
+  - Verified live runtime baseline: `make status` reports `0` securities; `/api/screener/dataset` returns `synced: False`, `row_count: 0`, `universes_count: 0`.
+  - Added `feeds:` classification (`daily|weekly|history|shp|xbrl|fno|amfi|deals|manual|unavailable`) to all `255` filters in `registry/filters.yaml`.
+  - Created `scripts/coverage.py` and `make coverage` target; generated baseline `docs/DATA_COVERAGE.md` (`0%` non-null across all `255` filters pre-sync).
+  - Verified all diagnosis items `D1–D8` with exact file/line evidence in `AUDIT.md` Section 5.
+  - Proposed implementation plan for **Tasks B–H** (with `>= 5s` spacing time estimates) awaiting user approval before starting Task B.
 
 ---
 

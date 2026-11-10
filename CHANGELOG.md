@@ -2,6 +2,14 @@
 
 All notable milestones for **ScreenerDesk** (Indian Stock Screener Replica).
 
+## [Unreleased — Fix Prompt #1]
+
+### Task A — Baseline Reproduction, Coverage Tooling & Diagnosis Audit (`2026-11-10`)
+- Verified live app serving and baseline DB state (`synced: False`, `row_count: 0`, `universes_count: 0`).
+- Added explicit `feeds:` provenance job tags (`amfi`, `daily`, `deals`, `fno`, `history`, `manual`, `shp`, `unavailable`, `weekly`, `xbrl`) across all `255` filters in `registry/filters.yaml`.
+- Added `scripts/coverage.py` and `make coverage` target generating per-filter All vs `NIFTY100` coverage reports in `docs/DATA_COVERAGE.md`.
+- Confirmed diagnosis items `D1–D8` with exact code locations and evidence in `AUDIT.md` Section 5 and drafted the Tasks B–H implementation plan.
+
 ## [replica-v1] — 2026-11-10 (Phases 4 & 5 Complete)
 
 ### Added — Phase 5 (Quant Scores, Hardening, Packaging)
@@ -31,3 +39,4 @@ All notable milestones for **ScreenerDesk** (Indian Stock Screener Replica).
 
 ## [baseline-prototype] — 2026-11-09 (Phase 0 Audit & Ingestion Core)
 - Audited `screener.html` (`AUDIT.md`, `SCREENSHOT_MAP.md`), inventoried REA tools (`TOOLS.md`), scaffolded DuckDB schema and polite HTTP ingestion core (`ingest/http.py`, `app/db.py`, `app/scheduler.py`).
+

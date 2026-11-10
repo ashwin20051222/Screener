@@ -11,14 +11,14 @@ filters:
     - common_equity
     null_rule: Null if avg2(common_equity) <= 0 or missing
     direction_of_goodness: higher_is_better
-    glossary: Return on Equity (ROE) measures how efficiently management generates
-      profits from shareholders' equity capital. Calculated as Net Profit divided
-      by the 2-year average common equity.
+    glossary: Return on Equity (ROE) measures how efficiently management generates profits from shareholders'
+      equity capital. Calculated as Net Profit divided by the 2-year average common equity.
     availability: Computed-from-official
     in_screenshot: true
     locked_in_original: false
     needs_official_source: true
     frequency: Annual/TTM
+    feeds: xbrl
   return_on_assets:
     id: return_on_assets
     name: Return on Assets
@@ -30,14 +30,14 @@ filters:
     - total_assets
     null_rule: Null if avg2(total_assets) <= 0 or missing
     direction_of_goodness: higher_is_better
-    glossary: Return on Assets (ROA) evaluates how efficiently a company's total assets
-      generate earnings. Calculated as Net Profit divided by the 2-year average total
-      assets.
+    glossary: Return on Assets (ROA) evaluates how efficiently a company's total assets generate earnings.
+      Calculated as Net Profit divided by the 2-year average total assets.
     availability: Computed-from-official
     in_screenshot: true
     locked_in_original: false
     needs_official_source: true
     frequency: Annual/TTM
+    feeds: xbrl
   return_on_investment:
     id: return_on_investment
     name: Return on Investment
@@ -51,14 +51,15 @@ filters:
     - other_long_term_liabilities
     null_rule: Null if average invested capital <= 0 or missing
     direction_of_goodness: higher_is_better
-    glossary: Return on Investment (ROI) gauges profitability generated from all long-term
-      capital deployed (equity plus long-term debt and liabilities). Calculated as
-      Net Income over the 2-year average invested capital.
+    glossary: Return on Investment (ROI) gauges profitability generated from all long-term capital deployed
+      (equity plus long-term debt and liabilities). Calculated as Net Income over the 2-year average invested
+      capital.
     availability: Computed-from-official
     in_screenshot: true
     locked_in_original: false
     needs_official_source: true
     frequency: Annual/TTM
+    feeds: xbrl
   roce:
     id: roce
     name: ROCE
@@ -69,17 +70,17 @@ filters:
     - ebit
     - total_assets
     - current_liabilities
-    null_rule: Null if capital employed (total assets - current liabilities) <= 0
-      or missing
+    null_rule: Null if capital employed (total assets - current liabilities) <= 0 or missing
     direction_of_goodness: higher_is_better
-    glossary: Return on Capital Employed (ROCE) measures operating profitability relative
-      to net capital invested in the business. Calculated as Operating Profit (EBIT)
-      divided by Capital Employed (Total Assets minus Current Liabilities).
+    glossary: Return on Capital Employed (ROCE) measures operating profitability relative to net capital
+      invested in the business. Calculated as Operating Profit (EBIT) divided by Capital Employed (Total
+      Assets minus Current Liabilities).
     availability: Computed-from-official
     in_screenshot: true
     locked_in_original: false
     needs_official_source: true
     frequency: Annual/TTM
+    feeds: xbrl
   net_profit_margin:
     id: net_profit_margin
     name: Net Profit Margin
@@ -91,14 +92,15 @@ filters:
     - revenue
     null_rule: Null if revenue <= 0 or missing
     direction_of_goodness: higher_is_better
-    glossary: Net Profit Margin represents the percentage of top-line revenue that
-      translates into bottom-line profit after all operating costs, taxes, and interest
-      expenses. Calculated as Net Profit divided by Total Revenue.
+    glossary: Net Profit Margin represents the percentage of top-line revenue that translates into bottom-line
+      profit after all operating costs, taxes, and interest expenses. Calculated as Net Profit divided
+      by Total Revenue.
     availability: Computed-from-official
     in_screenshot: true
     locked_in_original: false
     needs_official_source: true
     frequency: Annual/Quarterly
+    feeds: xbrl
   ebitda_margin:
     id: ebitda_margin
     name: EBITDA Margin
@@ -110,14 +112,14 @@ filters:
     - revenue
     null_rule: Null if revenue <= 0 or missing
     direction_of_goodness: higher_is_better
-    glossary: EBITDA Margin measures operating profitability before the non-cash impact
-      of depreciation and amortization and capital structure financing costs. Calculated
-      as EBITDA divided by Total Revenue.
+    glossary: EBITDA Margin measures operating profitability before the non-cash impact of depreciation
+      and amortization and capital structure financing costs. Calculated as EBITDA divided by Total Revenue.
     availability: Computed-from-official
     in_screenshot: true
     locked_in_original: false
     needs_official_source: true
     frequency: Annual/Quarterly
+    feeds: xbrl
   operating_profit_margin:
     id: operating_profit_margin
     name: Operating Profit Margin
@@ -129,14 +131,14 @@ filters:
     - revenue
     null_rule: Null if revenue <= 0 or missing
     direction_of_goodness: higher_is_better
-    glossary: Operating Profit Margin indicates core business profitability by dividing
-      Operating Profit (EBIT) by Total Revenue, reflecting operational efficiency
-      before taxes and financing costs.
+    glossary: Operating Profit Margin indicates core business profitability by dividing Operating Profit
+      (EBIT) by Total Revenue, reflecting operational efficiency before taxes and financing costs.
     availability: Computed-from-official
     in_screenshot: false
     locked_in_original: false
     needs_official_source: true
     frequency: Annual/Quarterly
+    feeds: xbrl
   cash_flow_margin:
     id: cash_flow_margin
     name: Cash Flow Margin
@@ -148,14 +150,15 @@ filters:
     - revenue
     null_rule: Null if revenue <= 0 or missing
     direction_of_goodness: higher_is_better
-    glossary: Cash Flow Margin expresses operating cash generation as a percentage
-      of total revenue, assessing how effectively reported sales convert into real
-      cash inflows. Calculated as Operating Cash Flow divided by Total Revenue.
+    glossary: Cash Flow Margin expresses operating cash generation as a percentage of total revenue, assessing
+      how effectively reported sales convert into real cash inflows. Calculated as Operating Cash Flow
+      divided by Total Revenue.
     availability: Computed-from-official
     in_screenshot: true
     locked_in_original: false
     needs_official_source: true
     frequency: Annual
+    feeds: xbrl
   cost_of_goods_sold:
     id: cost_of_goods_sold
     name: Cost of Goods Sold
@@ -166,14 +169,14 @@ filters:
     - cost_of_goods_sold
     null_rule: Null for financial institutions and lenders, or if missing
     direction_of_goodness: lower_is_better
-    glossary: Cost of Goods Sold (COGS) represents the direct costs incurred in producing
-      or manufacturing the goods sold by a business during the fiscal period. Inapplicable
-      for banks and financial institutions.
+    glossary: Cost of Goods Sold (COGS) represents the direct costs incurred in producing or manufacturing
+      the goods sold by a business during the fiscal period. Inapplicable for banks and financial institutions.
     availability: Official-direct
     in_screenshot: true
     locked_in_original: false
     needs_official_source: true
     frequency: Annual
+    feeds: xbrl
   5y_avg_ebitda_margin:
     id: 5y_avg_ebitda_margin
     name: 5Y Avg EBITDA Margin
@@ -184,14 +187,14 @@ filters:
     - ebitda_margin
     null_rule: Null if fewer than 5 consecutive fiscal years of data are available
     direction_of_goodness: higher_is_better
-    glossary: 5-Year Average EBITDA Margin computes the arithmetic mean of the metric
-      over the past 5 full fiscal years (FY0 through FY-4) to smooth out cyclical
-      swings.
+    glossary: 5-Year Average EBITDA Margin computes the arithmetic mean of the metric over the past 5
+      full fiscal years (FY0 through FY-4) to smooth out cyclical swings.
     availability: Computed-from-official
     in_screenshot: true
     locked_in_original: false
     needs_official_source: true
     frequency: Annual
+    feeds: xbrl
   5y_avg_net_profit_margin:
     id: 5y_avg_net_profit_margin
     name: 5Y Avg Net Profit Margin
@@ -202,14 +205,14 @@ filters:
     - net_profit_margin
     null_rule: Null if fewer than 5 consecutive fiscal years of data are available
     direction_of_goodness: higher_is_better
-    glossary: 5-Year Average Net Profit Margin computes the arithmetic mean of the
-      metric over the past 5 full fiscal years (FY0 through FY-4) to smooth out cyclical
-      swings.
+    glossary: 5-Year Average Net Profit Margin computes the arithmetic mean of the metric over the past
+      5 full fiscal years (FY0 through FY-4) to smooth out cyclical swings.
     availability: Computed-from-official
     in_screenshot: true
     locked_in_original: false
     needs_official_source: true
     frequency: Annual
+    feeds: xbrl
   5y_avg_return_on_equity:
     id: 5y_avg_return_on_equity
     name: 5Y Avg Return on Equity
@@ -220,14 +223,14 @@ filters:
     - return_on_equity
     null_rule: Null if fewer than 5 consecutive fiscal years of data are available
     direction_of_goodness: higher_is_better
-    glossary: 5-Year Average Return on Equity computes the arithmetic mean of the
-      metric over the past 5 full fiscal years (FY0 through FY-4) to smooth out cyclical
-      swings.
+    glossary: 5-Year Average Return on Equity computes the arithmetic mean of the metric over the past
+      5 full fiscal years (FY0 through FY-4) to smooth out cyclical swings.
     availability: Computed-from-official
     in_screenshot: true
     locked_in_original: false
     needs_official_source: true
     frequency: Annual
+    feeds: xbrl
   5y_avg_return_on_assets:
     id: 5y_avg_return_on_assets
     name: 5Y Avg Return on Assets
@@ -238,14 +241,14 @@ filters:
     - return_on_assets
     null_rule: Null if fewer than 5 consecutive fiscal years of data are available
     direction_of_goodness: higher_is_better
-    glossary: 5-Year Average Return on Assets computes the arithmetic mean of the
-      metric over the past 5 full fiscal years (FY0 through FY-4) to smooth out cyclical
-      swings.
+    glossary: 5-Year Average Return on Assets computes the arithmetic mean of the metric over the past
+      5 full fiscal years (FY0 through FY-4) to smooth out cyclical swings.
     availability: Computed-from-official
     in_screenshot: true
     locked_in_original: false
     needs_official_source: true
     frequency: Annual
+    feeds: xbrl
   5y_avg_return_on_investment:
     id: 5y_avg_return_on_investment
     name: 5Y Avg Return on Investment
@@ -256,14 +259,14 @@ filters:
     - return_on_investment
     null_rule: Null if fewer than 5 consecutive fiscal years of data are available
     direction_of_goodness: higher_is_better
-    glossary: 5-Year Average Return on Investment computes the arithmetic mean of
-      the metric over the past 5 full fiscal years (FY0 through FY-4) to smooth out
-      cyclical swings.
+    glossary: 5-Year Average Return on Investment computes the arithmetic mean of the metric over the
+      past 5 full fiscal years (FY0 through FY-4) to smooth out cyclical swings.
     availability: Computed-from-official
     in_screenshot: true
     locked_in_original: false
     needs_official_source: true
     frequency: Annual
+    feeds: xbrl
   5y_avg_cash_flow_margin:
     id: 5y_avg_cash_flow_margin
     name: 5Y Avg Cash Flow Margin
@@ -274,14 +277,14 @@ filters:
     - cash_flow_margin
     null_rule: Null if fewer than 5 consecutive fiscal years of data are available
     direction_of_goodness: higher_is_better
-    glossary: 5-Year Average Cash Flow Margin computes the arithmetic mean of the
-      metric over the past 5 full fiscal years (FY0 through FY-4) to smooth out cyclical
-      swings.
+    glossary: 5-Year Average Cash Flow Margin computes the arithmetic mean of the metric over the past
+      5 full fiscal years (FY0 through FY-4) to smooth out cyclical swings.
     availability: Computed-from-official
     in_screenshot: true
     locked_in_original: false
     needs_official_source: true
     frequency: Annual
+    feeds: xbrl
   5y_avg_operating_profit_margin:
     id: 5y_avg_operating_profit_margin
     name: 5Y Avg Operating Profit Margin
@@ -292,14 +295,14 @@ filters:
     - operating_profit_margin
     null_rule: Null if fewer than 5 consecutive fiscal years of data are available
     direction_of_goodness: higher_is_better
-    glossary: 5-Year Average Operating Profit Margin computes the arithmetic mean
-      of the metric over the past 5 full fiscal years (FY0 through FY-4) to smooth
-      out cyclical swings.
+    glossary: 5-Year Average Operating Profit Margin computes the arithmetic mean of the metric over the
+      past 5 full fiscal years (FY0 through FY-4) to smooth out cyclical swings.
     availability: Computed-from-official
     in_screenshot: false
     locked_in_original: false
     needs_official_source: true
     frequency: Annual
+    feeds: xbrl
   1y_forward_revenue_growth:
     id: 1y_forward_revenue_growth
     name: 1Y Forward Revenue Growth
@@ -308,17 +311,17 @@ filters:
     formula: (consensus estimate current FY / actual FY0) - 1
     inputs:
     - consensus_estimates
-    null_rule: Null - unavailable from official sources without consensus analyst
-      coverage
+    null_rule: Null - unavailable from official sources without consensus analyst coverage
     direction_of_goodness: higher_is_better
-    glossary: 1Y Forward Revenue Growth captures forward consensus growth projections
-      based on aggregated sell-side research estimates compared to actual prior-year
-      performance. Unavailable from official exchange sources.
+    glossary: 1Y Forward Revenue Growth captures forward consensus growth projections based on aggregated
+      sell-side research estimates compared to actual prior-year performance. Unavailable from official
+      exchange sources.
     availability: Unavailable
     in_screenshot: true
     locked_in_original: true
     needs_official_source: false
     frequency: Annual
+    feeds: unavailable
   1y_hist_op_cash_flow_growth:
     id: 1y_hist_op_cash_flow_growth
     name: 1Y Hist Op. Cash Flow Growth
@@ -330,14 +333,14 @@ filters:
     - op_cash_flow_growth_fym1
     null_rule: Null if op_cash_flow_growth[FY-1] <= 0 or missing
     direction_of_goodness: higher_is_better
-    glossary: 1-Year Historical Op. Cash Flow Growth reflects the percentage change
-      in the metric from the previous fiscal year (FY-1) to the latest reported fiscal
-      year (FY0).
+    glossary: 1-Year Historical Op. Cash Flow Growth reflects the percentage change in the metric from
+      the previous fiscal year (FY-1) to the latest reported fiscal year (FY0).
     availability: Computed-from-official
     in_screenshot: true
     locked_in_original: false
     needs_official_source: true
     frequency: Annual
+    feeds: xbrl
   1y_forward_ebitda_growth:
     id: 1y_forward_ebitda_growth
     name: 1Y Forward EBITDA Growth
@@ -346,17 +349,17 @@ filters:
     formula: (consensus EBITDA / actual EBITDA) - 1
     inputs:
     - consensus_estimates
-    null_rule: Null - unavailable from official sources without consensus analyst
-      coverage
+    null_rule: Null - unavailable from official sources without consensus analyst coverage
     direction_of_goodness: higher_is_better
-    glossary: 1Y Forward EBITDA Growth captures forward consensus growth projections
-      based on aggregated sell-side research estimates compared to actual prior-year
-      performance. Unavailable from official exchange sources.
+    glossary: 1Y Forward EBITDA Growth captures forward consensus growth projections based on aggregated
+      sell-side research estimates compared to actual prior-year performance. Unavailable from official
+      exchange sources.
     availability: Unavailable
     in_screenshot: true
     locked_in_original: true
     needs_official_source: false
     frequency: Annual
+    feeds: unavailable
   1y_historical_eps_growth:
     id: 1y_historical_eps_growth
     name: 1Y Historical EPS Growth
@@ -368,13 +371,14 @@ filters:
     - eps_growth_fym1
     null_rule: Null if eps_growth[FY-1] <= 0 or missing
     direction_of_goodness: higher_is_better
-    glossary: 1-Year Historical EPS Growth reflects the percentage change in the metric
-      from the previous fiscal year (FY-1) to the latest reported fiscal year (FY0).
+    glossary: 1-Year Historical EPS Growth reflects the percentage change in the metric from the previous
+      fiscal year (FY-1) to the latest reported fiscal year (FY0).
     availability: Computed-from-official
     in_screenshot: true
     locked_in_original: false
     needs_official_source: true
     frequency: Annual
+    feeds: xbrl
   1y_historical_revenue_growth:
     id: 1y_historical_revenue_growth
     name: 1Y Historical Revenue Growth
@@ -386,14 +390,14 @@ filters:
     - revenue_growth_fym1
     null_rule: Null if revenue_growth[FY-1] <= 0 or missing
     direction_of_goodness: higher_is_better
-    glossary: 1-Year Historical Revenue Growth reflects the percentage change in the
-      metric from the previous fiscal year (FY-1) to the latest reported fiscal year
-      (FY0).
+    glossary: 1-Year Historical Revenue Growth reflects the percentage change in the metric from the previous
+      fiscal year (FY-1) to the latest reported fiscal year (FY0).
     availability: Computed-from-official
     in_screenshot: true
     locked_in_original: false
     needs_official_source: true
     frequency: Annual
+    feeds: xbrl
   1y_fwd_op_cash_flow_growth:
     id: 1y_fwd_op_cash_flow_growth
     name: 1Y Fwd Op. Cash Flow Growth
@@ -402,17 +406,17 @@ filters:
     formula: (consensus CFO / actual CFO) - 1
     inputs:
     - consensus_estimates
-    null_rule: Null - unavailable from official sources without consensus analyst
-      coverage
+    null_rule: Null - unavailable from official sources without consensus analyst coverage
     direction_of_goodness: higher_is_better
-    glossary: 1Y Fwd Op. Cash Flow Growth captures forward consensus growth projections
-      based on aggregated sell-side research estimates compared to actual prior-year
-      performance. Unavailable from official exchange sources.
+    glossary: 1Y Fwd Op. Cash Flow Growth captures forward consensus growth projections based on aggregated
+      sell-side research estimates compared to actual prior-year performance. Unavailable from official
+      exchange sources.
     availability: Unavailable
     in_screenshot: true
     locked_in_original: true
     needs_official_source: false
     frequency: Annual
+    feeds: unavailable
   5y_historical_ebitda_growth:
     id: 5y_historical_ebitda_growth
     name: 5Y Historical EBITDA Growth
@@ -424,13 +428,14 @@ filters:
     - ebitda_growth_fym5
     null_rule: Null if ebitda_growth[FY-5] <= 0 or ebitda_growth[FY0] <= 0 or missing
     direction_of_goodness: higher_is_better
-    glossary: 5-Year Historical EBITDA Growth measures the compound annual growth
-      rate (CAGR) over a 5-year multi-year horizon ((FY0 / FY-5)^(1/5) - 1).
+    glossary: 5-Year Historical EBITDA Growth measures the compound annual growth rate (CAGR) over a 5-year
+      multi-year horizon ((FY0 / FY-5)^(1/5) - 1).
     availability: Computed-from-official
     in_screenshot: true
     locked_in_original: false
     needs_official_source: true
     frequency: Annual
+    feeds: xbrl
   5y_hist_op_cash_flow_growth:
     id: 5y_hist_op_cash_flow_growth
     name: 5Y Hist Op. Cash Flow Growth
@@ -440,16 +445,16 @@ filters:
     inputs:
     - op_cash_flow_growth_fy0
     - op_cash_flow_growth_fym5
-    null_rule: Null if op_cash_flow_growth[FY-5] <= 0 or op_cash_flow_growth[FY0]
-      <= 0 or missing
+    null_rule: Null if op_cash_flow_growth[FY-5] <= 0 or op_cash_flow_growth[FY0] <= 0 or missing
     direction_of_goodness: higher_is_better
-    glossary: 5-Year Historical Op. Cash Flow Growth measures the compound annual
-      growth rate (CAGR) over a 5-year multi-year horizon ((FY0 / FY-5)^(1/5) - 1).
+    glossary: 5-Year Historical Op. Cash Flow Growth measures the compound annual growth rate (CAGR) over
+      a 5-year multi-year horizon ((FY0 / FY-5)^(1/5) - 1).
     availability: Computed-from-official
     in_screenshot: true
     locked_in_original: false
     needs_official_source: true
     frequency: Annual
+    feeds: xbrl
   3y_historical_dividend_growth:
     id: 3y_historical_dividend_growth
     name: 3Y Historical Dividend Growth
@@ -461,13 +466,14 @@ filters:
     - dps_fym3
     null_rule: Null if DPS[FY-3] <= 0 or DPS[FY0] <= 0 or missing
     direction_of_goodness: higher_is_better
-    glossary: 3-Year Historical Dividend Growth calculates the compound annual growth
-      rate (CAGR) of Dividends Per Share (DPS) over the trailing three fiscal years.
+    glossary: 3-Year Historical Dividend Growth calculates the compound annual growth rate (CAGR) of Dividends
+      Per Share (DPS) over the trailing three fiscal years.
     availability: Computed-from-official
     in_screenshot: true
     locked_in_original: false
     needs_official_source: true
     frequency: Annual
+    feeds: xbrl
   5y_historical_eps_growth:
     id: 5y_historical_eps_growth
     name: 5Y Historical EPS Growth
@@ -479,13 +485,14 @@ filters:
     - eps_growth_fym5
     null_rule: Null if eps_growth[FY-5] <= 0 or eps_growth[FY0] <= 0 or missing
     direction_of_goodness: higher_is_better
-    glossary: 5-Year Historical EPS Growth measures the compound annual growth rate
-      (CAGR) over a 5-year multi-year horizon ((FY0 / FY-5)^(1/5) - 1).
+    glossary: 5-Year Historical EPS Growth measures the compound annual growth rate (CAGR) over a 5-year
+      multi-year horizon ((FY0 / FY-5)^(1/5) - 1).
     availability: Computed-from-official
     in_screenshot: true
     locked_in_original: false
     needs_official_source: true
     frequency: Annual
+    feeds: xbrl
   5y_historical_revenue_growth:
     id: 5y_historical_revenue_growth
     name: 5Y Historical Revenue Growth
@@ -497,13 +504,14 @@ filters:
     - revenue_growth_fym5
     null_rule: Null if revenue_growth[FY-5] <= 0 or revenue_growth[FY0] <= 0 or missing
     direction_of_goodness: higher_is_better
-    glossary: 5-Year Historical Revenue Growth measures the compound annual growth
-      rate (CAGR) over a 5-year multi-year horizon ((FY0 / FY-5)^(1/5) - 1).
+    glossary: 5-Year Historical Revenue Growth measures the compound annual growth rate (CAGR) over a
+      5-year multi-year horizon ((FY0 / FY-5)^(1/5) - 1).
     availability: Computed-from-official
     in_screenshot: true
     locked_in_original: false
     needs_official_source: true
     frequency: Annual
+    feeds: xbrl
   1y_historical_ebitda_growth:
     id: 1y_historical_ebitda_growth
     name: 1Y Historical EBITDA Growth
@@ -515,14 +523,14 @@ filters:
     - ebitda_growth_fym1
     null_rule: Null if ebitda_growth[FY-1] <= 0 or missing
     direction_of_goodness: higher_is_better
-    glossary: 1-Year Historical EBITDA Growth reflects the percentage change in the
-      metric from the previous fiscal year (FY-1) to the latest reported fiscal year
-      (FY0).
+    glossary: 1-Year Historical EBITDA Growth reflects the percentage change in the metric from the previous
+      fiscal year (FY-1) to the latest reported fiscal year (FY0).
     availability: Computed-from-official
     in_screenshot: true
     locked_in_original: false
     needs_official_source: true
     frequency: Annual
+    feeds: xbrl
   1y_forward_eps_growth:
     id: 1y_forward_eps_growth
     name: 1Y Forward EPS Growth
@@ -531,17 +539,17 @@ filters:
     formula: (consensus EPS / actual EPS) - 1
     inputs:
     - consensus_estimates
-    null_rule: Null - unavailable from official sources without consensus analyst
-      coverage
+    null_rule: Null - unavailable from official sources without consensus analyst coverage
     direction_of_goodness: higher_is_better
-    glossary: 1Y Forward EPS Growth captures forward consensus growth projections
-      based on aggregated sell-side research estimates compared to actual prior-year
-      performance. Unavailable from official exchange sources.
+    glossary: 1Y Forward EPS Growth captures forward consensus growth projections based on aggregated
+      sell-side research estimates compared to actual prior-year performance. Unavailable from official
+      exchange sources.
     availability: Unavailable
     in_screenshot: true
     locked_in_original: true
     needs_official_source: false
     frequency: Annual
+    feeds: unavailable
   pe_ratio:
     id: pe_ratio
     name: PE Ratio
@@ -553,14 +561,14 @@ filters:
     - earnings_per_share
     null_rule: Null if EPS <= 0 or missing
     direction_of_goodness: lower_is_better
-    glossary: PE Ratio compares the current market price of a stock to its earnings
-      per share. Lower multiples indicate potentially undervalued securities, while
-      negative earnings yield null.
+    glossary: PE Ratio compares the current market price of a stock to its earnings per share. Lower multiples
+      indicate potentially undervalued securities, while negative earnings yield null.
     availability: Computed-from-official
     in_screenshot: true
     locked_in_original: false
     needs_official_source: true
     frequency: Daily
+    feeds: xbrl
   ttm_pe_ratio:
     id: ttm_pe_ratio
     name: TTM PE Ratio
@@ -572,14 +580,14 @@ filters:
     - earnings_per_share
     null_rule: Null if EPS <= 0 or missing
     direction_of_goodness: lower_is_better
-    glossary: TTM PE Ratio compares the current market price of a stock to its earnings
-      per share. Lower multiples indicate potentially undervalued securities, while
-      negative earnings yield null.
+    glossary: TTM PE Ratio compares the current market price of a stock to its earnings per share. Lower
+      multiples indicate potentially undervalued securities, while negative earnings yield null.
     availability: Computed-from-official
     in_screenshot: true
     locked_in_original: false
     needs_official_source: true
     frequency: Daily
+    feeds: xbrl
   forward_pe_ratio:
     id: forward_pe_ratio
     name: Forward PE Ratio
@@ -589,16 +597,16 @@ filters:
     inputs:
     - close_price
     - forward_eps
-    null_rule: Null - forward earnings consensus unavailable from official exchange
-      sources
+    null_rule: Null - forward earnings consensus unavailable from official exchange sources
     direction_of_goodness: lower_is_better
-    glossary: Forward PE Ratio compares current price against estimated next-twelve-months
-      or next-fiscal-year earnings per share based on analyst consensus.
+    glossary: Forward PE Ratio compares current price against estimated next-twelve-months or next-fiscal-year
+      earnings per share based on analyst consensus.
     availability: Unavailable
     in_screenshot: true
     locked_in_original: true
     needs_official_source: false
     frequency: Daily
+    feeds: unavailable
   pb_ratio:
     id: pb_ratio
     name: PB Ratio
@@ -610,14 +618,14 @@ filters:
     - book_value_per_share
     null_rule: Null if book value per share <= 0 or missing
     direction_of_goodness: lower_is_better
-    glossary: Price to Book (PB) Ratio measures the stock price relative to its net
-      asset value (book value per share). Lower values can identify value investments
-      or asset-heavy discounts.
+    glossary: Price to Book (PB) Ratio measures the stock price relative to its net asset value (book
+      value per share). Lower values can identify value investments or asset-heavy discounts.
     availability: Computed-from-official
     in_screenshot: true
     locked_in_original: false
     needs_official_source: true
     frequency: Daily
+    feeds: xbrl
   ps_ratio:
     id: ps_ratio
     name: PS Ratio
@@ -629,14 +637,14 @@ filters:
     - revenue_per_share
     null_rule: Null if revenue per share <= 0 or missing
     direction_of_goodness: lower_is_better
-    glossary: Price to Sales (PS) Ratio measures market value against top-line sales
-      per share, widely used for early-stage or cyclical companies with volatile net
-      earnings.
+    glossary: Price to Sales (PS) Ratio measures market value against top-line sales per share, widely
+      used for early-stage or cyclical companies with volatile net earnings.
     availability: Computed-from-official
     in_screenshot: true
     locked_in_original: false
     needs_official_source: true
     frequency: Daily
+    feeds: xbrl
   forward_ps_ratio:
     id: forward_ps_ratio
     name: Forward PS Ratio
@@ -648,13 +656,13 @@ filters:
     - forward_revenue
     null_rule: Null - forward sales consensus unavailable from official exchange sources
     direction_of_goodness: lower_is_better
-    glossary: Forward PS Ratio measures current price against estimated forward sales
-      per share.
+    glossary: Forward PS Ratio measures current price against estimated forward sales per share.
     availability: Unavailable
     in_screenshot: true
     locked_in_original: true
     needs_official_source: false
     frequency: Daily
+    feeds: unavailable
   dividend_yield:
     id: dividend_yield
     name: Dividend Yield
@@ -666,13 +674,14 @@ filters:
     - close_price
     null_rule: Null if close_price <= 0 or missing
     direction_of_goodness: higher_is_better
-    glossary: Dividend Yield expresses the annual dividend income paid per share as
-      a percentage of the current market price ((DPS / Price) * 100).
+    glossary: Dividend Yield expresses the annual dividend income paid per share as a percentage of the
+      current market price ((DPS / Price) * 100).
     availability: Computed-from-official
     in_screenshot: true
     locked_in_original: false
     needs_official_source: true
     frequency: Daily
+    feeds: xbrl
   ev_ebitda_ratio:
     id: ev_ebitda_ratio
     name: EV/EBITDA Ratio
@@ -684,13 +693,14 @@ filters:
     - ebitda
     null_rule: Null if ebitda <= 0 or EV <= 0 or missing
     direction_of_goodness: lower_is_better
-    glossary: EV to EBITDA evaluates the total enterprise value relative to operational
-      cash generation (EBITDA), normalizing across capital structure differences.
+    glossary: EV to EBITDA evaluates the total enterprise value relative to operational cash generation
+      (EBITDA), normalizing across capital structure differences.
     availability: Computed-from-official
     in_screenshot: true
     locked_in_original: false
     needs_official_source: true
     frequency: Daily
+    feeds: xbrl
   ev_ebit_ratio:
     id: ev_ebit_ratio
     name: EV / EBIT Ratio
@@ -702,13 +712,14 @@ filters:
     - ebit
     null_rule: Null if ebit <= 0 or EV <= 0 or missing
     direction_of_goodness: lower_is_better
-    glossary: EV to EBIT evaluates the total enterprise value relative to operational
-      cash generation (EBIT), normalizing across capital structure differences.
+    glossary: EV to EBIT evaluates the total enterprise value relative to operational cash generation
+      (EBIT), normalizing across capital structure differences.
     availability: Computed-from-official
     in_screenshot: true
     locked_in_original: false
     needs_official_source: true
     frequency: Daily
+    feeds: xbrl
   ev_revenue_ratio:
     id: ev_revenue_ratio
     name: EV / Revenue Ratio
@@ -720,13 +731,14 @@ filters:
     - revenue
     null_rule: Null if revenue <= 0 or EV <= 0 or missing
     direction_of_goodness: lower_is_better
-    glossary: EV to REVENUE evaluates the total enterprise value relative to operational
-      cash generation (REVENUE), normalizing across capital structure differences.
+    glossary: EV to REVENUE evaluates the total enterprise value relative to operational cash generation
+      (REVENUE), normalizing across capital structure differences.
     availability: Computed-from-official
     in_screenshot: true
     locked_in_original: false
     needs_official_source: true
     frequency: Daily
+    feeds: xbrl
   ev_free_cash_flow:
     id: ev_free_cash_flow
     name: EV / Free Cash Flow
@@ -739,13 +751,14 @@ filters:
     - cash_flow_operating_activities
     null_rule: Null if denominator cash flow <= 0 or missing
     direction_of_goodness: lower_is_better
-    glossary: EV / Free Cash Flow measures firm market valuation against underlying
-      cash generation (free cash flow or operating cash flow).
+    glossary: EV / Free Cash Flow measures firm market valuation against underlying cash generation (free
+      cash flow or operating cash flow).
     availability: Computed-from-official
     in_screenshot: true
     locked_in_original: false
     needs_official_source: true
     frequency: Daily
+    feeds: xbrl
   ev_invested_capital:
     id: ev_invested_capital
     name: EV / Invested Capital
@@ -757,13 +770,14 @@ filters:
     - invested_capital
     null_rule: Null if invested capital <= 0 or missing
     direction_of_goodness: lower_is_better
-    glossary: EV to Invested Capital compares enterprise value to total capital employed
-      (Equity + Debt + Minority Interest), analogous to Tobin's Q.
+    glossary: EV to Invested Capital compares enterprise value to total capital employed (Equity + Debt
+      + Minority Interest), analogous to Tobin's Q.
     availability: Computed-from-official
     in_screenshot: true
     locked_in_original: false
     needs_official_source: true
     frequency: Daily
+    feeds: xbrl
   enterprise_value:
     id: enterprise_value
     name: Enterprise Value
@@ -777,13 +791,14 @@ filters:
     - cash_short_term_investments
     null_rule: Null if market cap or balance sheet components missing
     direction_of_goodness: neutral
-    glossary: Enterprise Value (EV) measures the total economic value of a firm (Market
-      Cap + Total Debt + Minority Interest - Cash & Short-term Investments).
+    glossary: Enterprise Value (EV) measures the total economic value of a firm (Market Cap + Total Debt
+      + Minority Interest - Cash & Short-term Investments).
     availability: Computed-from-official
     in_screenshot: true
     locked_in_original: false
     needs_official_source: true
     frequency: Daily
+    feeds: xbrl
   price_free_cash_flow:
     id: price_free_cash_flow
     name: Price / Free Cash Flow
@@ -796,13 +811,14 @@ filters:
     - cash_flow_operating_activities
     null_rule: Null if denominator cash flow <= 0 or missing
     direction_of_goodness: lower_is_better
-    glossary: Price / Free Cash Flow measures firm market valuation against underlying
-      cash generation (free cash flow or operating cash flow).
+    glossary: Price / Free Cash Flow measures firm market valuation against underlying cash generation
+      (free cash flow or operating cash flow).
     availability: Computed-from-official
     in_screenshot: true
     locked_in_original: false
     needs_official_source: true
     frequency: Daily
+    feeds: xbrl
   price_cfo:
     id: price_cfo
     name: Price / CFO
@@ -815,13 +831,14 @@ filters:
     - cash_flow_operating_activities
     null_rule: Null if denominator cash flow <= 0 or missing
     direction_of_goodness: lower_is_better
-    glossary: Price / CFO measures firm market valuation against underlying cash generation
-      (free cash flow or operating cash flow).
+    glossary: Price / CFO measures firm market valuation against underlying cash generation (free cash
+      flow or operating cash flow).
     availability: Computed-from-official
     in_screenshot: true
     locked_in_original: false
     needs_official_source: true
     frequency: Daily
+    feeds: xbrl
   price_sales:
     id: price_sales
     name: Price / Sales
@@ -833,14 +850,14 @@ filters:
     - revenue_per_share
     null_rule: Null if revenue per share <= 0 or missing
     direction_of_goodness: lower_is_better
-    glossary: Price to Sales (PS) Ratio measures market value against top-line sales
-      per share, widely used for early-stage or cyclical companies with volatile net
-      earnings.
+    glossary: Price to Sales (PS) Ratio measures market value against top-line sales per share, widely
+      used for early-stage or cyclical companies with volatile net earnings.
     availability: Computed-from-official
     in_screenshot: true
     locked_in_original: false
     needs_official_source: true
     frequency: Daily
+    feeds: xbrl
   pe_premium_vs_sector:
     id: pe_premium_vs_sector
     name: PE Premium vs Sector
@@ -852,14 +869,14 @@ filters:
     - benchmark_multiple
     null_rule: Null if stock multiple or sector benchmark is missing or non-positive
     direction_of_goodness: lower_is_better
-    glossary: PE Premium vs Sector computes the percentage premium or discount of
-      the stock multiple relative to its industry benchmark ((Multiple / Sector Benchmark
-      - 1) * 100).
+    glossary: PE Premium vs Sector computes the percentage premium or discount of the stock multiple relative
+      to its industry benchmark ((Multiple / Sector Benchmark - 1) * 100).
     availability: Computed-from-official
     in_screenshot: true
     locked_in_original: true
     needs_official_source: true
     frequency: Daily
+    feeds: xbrl
   pb_premium_vs_sector:
     id: pb_premium_vs_sector
     name: PB Premium vs Sector
@@ -871,14 +888,14 @@ filters:
     - benchmark_multiple
     null_rule: Null if stock multiple or sector benchmark is missing or non-positive
     direction_of_goodness: lower_is_better
-    glossary: PB Premium vs Sector computes the percentage premium or discount of
-      the stock multiple relative to its industry benchmark ((Multiple / Sector Benchmark
-      - 1) * 100).
+    glossary: PB Premium vs Sector computes the percentage premium or discount of the stock multiple relative
+      to its industry benchmark ((Multiple / Sector Benchmark - 1) * 100).
     availability: Computed-from-official
     in_screenshot: true
     locked_in_original: true
     needs_official_source: true
     frequency: Daily
+    feeds: xbrl
   ps_premium_vs_sector:
     id: ps_premium_vs_sector
     name: PS Premium vs Sector
@@ -890,14 +907,14 @@ filters:
     - benchmark_multiple
     null_rule: Null if stock multiple or sector benchmark is missing or non-positive
     direction_of_goodness: lower_is_better
-    glossary: PS Premium vs Sector computes the percentage premium or discount of
-      the stock multiple relative to its industry benchmark ((Multiple / Sector Benchmark
-      - 1) * 100).
+    glossary: PS Premium vs Sector computes the percentage premium or discount of the stock multiple relative
+      to its industry benchmark ((Multiple / Sector Benchmark - 1) * 100).
     availability: Computed-from-official
     in_screenshot: true
     locked_in_original: true
     needs_official_source: true
     frequency: Daily
+    feeds: xbrl
   dividend_yield_vs_sector:
     id: dividend_yield_vs_sector
     name: Dividend Yield vs Sector
@@ -909,14 +926,14 @@ filters:
     - sector_dividend_yield
     null_rule: Null if stock yield or sector yield is missing
     direction_of_goodness: higher_is_better
-    glossary: Dividend Yield vs Sector calculates the percentage-point difference
-      between the stock's dividend yield and its benchmark yield (Stock Yield minus
-      Sector Yield).
+    glossary: Dividend Yield vs Sector calculates the percentage-point difference between the stock's
+      dividend yield and its benchmark yield (Stock Yield minus Sector Yield).
     availability: Computed-from-official
     in_screenshot: true
     locked_in_original: true
     needs_official_source: true
     frequency: Daily
+    feeds: xbrl
   pe_premium_vs_sub_sector:
     id: pe_premium_vs_sub_sector
     name: PE Premium vs Sub-sector
@@ -928,14 +945,14 @@ filters:
     - benchmark_multiple
     null_rule: Null if stock multiple or sector benchmark is missing or non-positive
     direction_of_goodness: lower_is_better
-    glossary: PE Premium vs Sub-sector computes the percentage premium or discount
-      of the stock multiple relative to its industry benchmark ((Multiple / Sector
-      Benchmark - 1) * 100).
+    glossary: PE Premium vs Sub-sector computes the percentage premium or discount of the stock multiple
+      relative to its industry benchmark ((Multiple / Sector Benchmark - 1) * 100).
     availability: Computed-from-official
     in_screenshot: true
     locked_in_original: true
     needs_official_source: true
     frequency: Daily
+    feeds: xbrl
   pb_premium_vs_sub_sector:
     id: pb_premium_vs_sub_sector
     name: PB Premium vs Sub-sector
@@ -947,14 +964,14 @@ filters:
     - benchmark_multiple
     null_rule: Null if stock multiple or sector benchmark is missing or non-positive
     direction_of_goodness: lower_is_better
-    glossary: PB Premium vs Sub-sector computes the percentage premium or discount
-      of the stock multiple relative to its industry benchmark ((Multiple / Sector
-      Benchmark - 1) * 100).
+    glossary: PB Premium vs Sub-sector computes the percentage premium or discount of the stock multiple
+      relative to its industry benchmark ((Multiple / Sector Benchmark - 1) * 100).
     availability: Computed-from-official
     in_screenshot: true
     locked_in_original: true
     needs_official_source: true
     frequency: Daily
+    feeds: xbrl
   ps_premium_vs_sub_sector:
     id: ps_premium_vs_sub_sector
     name: PS Premium vs Sub-sector
@@ -966,14 +983,14 @@ filters:
     - benchmark_multiple
     null_rule: Null if stock multiple or sector benchmark is missing or non-positive
     direction_of_goodness: lower_is_better
-    glossary: PS Premium vs Sub-sector computes the percentage premium or discount
-      of the stock multiple relative to its industry benchmark ((Multiple / Sector
-      Benchmark - 1) * 100).
+    glossary: PS Premium vs Sub-sector computes the percentage premium or discount of the stock multiple
+      relative to its industry benchmark ((Multiple / Sector Benchmark - 1) * 100).
     availability: Computed-from-official
     in_screenshot: true
     locked_in_original: true
     needs_official_source: true
     frequency: Daily
+    feeds: xbrl
   dividend_yield_vs_sub_sector:
     id: dividend_yield_vs_sub_sector
     name: Dividend Yield vs Sub-sector
@@ -985,14 +1002,14 @@ filters:
     - sector_dividend_yield
     null_rule: Null if stock yield or sector yield is missing
     direction_of_goodness: higher_is_better
-    glossary: Dividend Yield vs Sub-sector calculates the percentage-point difference
-      between the stock's dividend yield and its benchmark yield (Stock Yield minus
-      Sector Yield).
+    glossary: Dividend Yield vs Sub-sector calculates the percentage-point difference between the stock's
+      dividend yield and its benchmark yield (Stock Yield minus Sector Yield).
     availability: Computed-from-official
     in_screenshot: true
     locked_in_original: true
     needs_official_source: true
     frequency: Daily
+    feeds: xbrl
   sector_dividend_yield:
     id: sector_dividend_yield
     name: Sector Dividend Yield
@@ -1003,13 +1020,14 @@ filters:
     - dividend_yield
     null_rule: Null if fewer than 2 peers exist in the sector
     direction_of_goodness: neutral
-    glossary: Sector Dividend Yield represents the market-wide median multiple computed
-      across all actively traded peers within the sector.
+    glossary: Sector Dividend Yield represents the market-wide median multiple computed across all actively
+      traded peers within the sector.
     availability: Computed-from-official
     in_screenshot: true
     locked_in_original: false
     needs_official_source: true
     frequency: Daily
+    feeds: xbrl
   sector_pb:
     id: sector_pb
     name: Sector PB
@@ -1020,13 +1038,14 @@ filters:
     - pb
     null_rule: Null if fewer than 2 peers exist in the sector
     direction_of_goodness: neutral
-    glossary: Sector PB represents the market-wide median multiple computed across
-      all actively traded peers within the sector.
+    glossary: Sector PB represents the market-wide median multiple computed across all actively traded
+      peers within the sector.
     availability: Computed-from-official
     in_screenshot: true
     locked_in_original: false
     needs_official_source: true
     frequency: Daily
+    feeds: xbrl
   sector_pe:
     id: sector_pe
     name: Sector PE
@@ -1037,13 +1056,14 @@ filters:
     - pe
     null_rule: Null if fewer than 2 peers exist in the sector
     direction_of_goodness: neutral
-    glossary: Sector PE represents the market-wide median multiple computed across
-      all actively traded peers within the sector.
+    glossary: Sector PE represents the market-wide median multiple computed across all actively traded
+      peers within the sector.
     availability: Computed-from-official
     in_screenshot: true
     locked_in_original: false
     needs_official_source: true
     frequency: Daily
+    feeds: xbrl
   mutual_fund_holding:
     id: mutual_fund_holding
     name: Mutual Fund Holding
@@ -1054,13 +1074,14 @@ filters:
     - shareholding_pattern
     null_rule: Null if quarterly shareholding filing is unavailable
     direction_of_goodness: higher_is_better
-    glossary: Mutual Fund Holding represents the percentage of total outstanding equity
-      owned by this investor category according to official quarterly filings.
+    glossary: Mutual Fund Holding represents the percentage of total outstanding equity owned by this
+      investor category according to official quarterly filings.
     availability: Official-direct
     in_screenshot: true
     locked_in_original: false
     needs_official_source: true
     frequency: Quarterly
+    feeds: shp
   domestic_institutional_holding:
     id: domestic_institutional_holding
     name: Domestic Institutional Holding
@@ -1071,13 +1092,14 @@ filters:
     - shareholding_pattern
     null_rule: Null if quarterly shareholding filing is unavailable
     direction_of_goodness: higher_is_better
-    glossary: Domestic Institutional Holding represents the percentage of total outstanding
-      equity owned by this investor category according to official quarterly filings.
+    glossary: Domestic Institutional Holding represents the percentage of total outstanding equity owned
+      by this investor category according to official quarterly filings.
     availability: Official-direct
     in_screenshot: true
     locked_in_original: false
     needs_official_source: true
     frequency: Quarterly
+    feeds: shp
   foreign_institutional_holding:
     id: foreign_institutional_holding
     name: Foreign Institutional Holding
@@ -1088,13 +1110,14 @@ filters:
     - shareholding_pattern
     null_rule: Null if quarterly shareholding filing is unavailable
     direction_of_goodness: higher_is_better
-    glossary: Foreign Institutional Holding represents the percentage of total outstanding
-      equity owned by this investor category according to official quarterly filings.
+    glossary: Foreign Institutional Holding represents the percentage of total outstanding equity owned
+      by this investor category according to official quarterly filings.
     availability: Official-direct
     in_screenshot: true
     locked_in_original: false
     needs_official_source: true
     frequency: Quarterly
+    feeds: shp
   promoter_holding:
     id: promoter_holding
     name: Promoter Holding
@@ -1105,13 +1128,14 @@ filters:
     - shareholding_pattern
     null_rule: Null if quarterly shareholding filing is unavailable
     direction_of_goodness: higher_is_better
-    glossary: Promoter Holding represents the percentage of total outstanding equity
-      owned by this investor category according to official quarterly filings.
+    glossary: Promoter Holding represents the percentage of total outstanding equity owned by this investor
+      category according to official quarterly filings.
     availability: Official-direct
     in_screenshot: true
     locked_in_original: false
     needs_official_source: true
     frequency: Quarterly
+    feeds: shp
   pledged_promoter_holdings:
     id: pledged_promoter_holdings
     name: Pledged Promoter Holdings
@@ -1123,13 +1147,14 @@ filters:
     - promoter_shares
     null_rule: Null if promoter shares <= 0 or missing
     direction_of_goodness: lower_is_better
-    glossary: Pledged Promoter Holdings indicates what percentage of the promoter
-      group's equity stake is encumbered or pledged as collateral for debt financing.
+    glossary: Pledged Promoter Holdings indicates what percentage of the promoter group's equity stake
+      is encumbered or pledged as collateral for debt financing.
     availability: Official-direct
     in_screenshot: true
     locked_in_original: false
     needs_official_source: true
     frequency: Quarterly
+    feeds: shp
   retail_investor_holding:
     id: retail_investor_holding
     name: Retail Investor Holding
@@ -1140,13 +1165,14 @@ filters:
     - shareholding_pattern
     null_rule: Null if quarterly shareholding filing is unavailable
     direction_of_goodness: neutral
-    glossary: Retail Investor Holding represents the percentage of total outstanding
-      equity owned by this investor category according to official quarterly filings.
+    glossary: Retail Investor Holding represents the percentage of total outstanding equity owned by this
+      investor category according to official quarterly filings.
     availability: Official-direct
     in_screenshot: true
     locked_in_original: false
     needs_official_source: true
     frequency: Quarterly
+    feeds: shp
   insurance_firms_holding:
     id: insurance_firms_holding
     name: Insurance Firms Holding
@@ -1157,13 +1183,14 @@ filters:
     - shareholding_pattern
     null_rule: Null if quarterly shareholding filing is unavailable
     direction_of_goodness: neutral
-    glossary: Insurance Firms Holding represents the percentage of total outstanding
-      equity owned by this investor category according to official quarterly filings.
+    glossary: Insurance Firms Holding represents the percentage of total outstanding equity owned by this
+      investor category according to official quarterly filings.
     availability: Official-direct
     in_screenshot: true
     locked_in_original: false
     needs_official_source: true
     frequency: Quarterly
+    feeds: shp
   no_of_shareholders:
     id: no_of_shareholders
     name: No. of Shareholders
@@ -1174,13 +1201,14 @@ filters:
     - total_shareholders
     null_rule: Null if shareholding filing missing
     direction_of_goodness: neutral
-    glossary: Total number of equity shareholder accounts registered in the company's
-      official depository and registrar records.
+    glossary: Total number of equity shareholder accounts registered in the company's official depository
+      and registrar records.
     availability: Official-direct
     in_screenshot: true
     locked_in_original: false
     needs_official_source: true
     frequency: Quarterly
+    feeds: shp
   mf_holding_change_3m:
     id: mf_holding_change_3m
     name: MF Holding Change – 3M
@@ -1192,13 +1220,14 @@ filters:
     - mf_holding_prev
     null_rule: Null if comparative quarterly shareholding filings are unavailable
     direction_of_goodness: higher_is_better
-    glossary: MF Holding Change – 3M measures the absolute percentage-point change
-      in MF equity ownership over the trailing 3 months.
+    glossary: MF Holding Change – 3M measures the absolute percentage-point change in MF equity ownership
+      over the trailing 3 months.
     availability: Computed-from-official
     in_screenshot: true
     locked_in_original: false
     needs_official_source: true
     frequency: Quarterly
+    feeds: shp
   mf_holding_change_6m:
     id: mf_holding_change_6m
     name: MF Holding Change – 6M
@@ -1210,13 +1239,14 @@ filters:
     - mf_holding_prev
     null_rule: Null if comparative quarterly shareholding filings are unavailable
     direction_of_goodness: higher_is_better
-    glossary: MF Holding Change – 6M measures the absolute percentage-point change
-      in MF equity ownership over the trailing 6 months.
+    glossary: MF Holding Change – 6M measures the absolute percentage-point change in MF equity ownership
+      over the trailing 6 months.
     availability: Computed-from-official
     in_screenshot: true
     locked_in_original: false
     needs_official_source: true
     frequency: Quarterly
+    feeds: shp
   dii_holding_change_3m:
     id: dii_holding_change_3m
     name: DII Holding Change – 3M
@@ -1228,13 +1258,14 @@ filters:
     - dii_holding_prev
     null_rule: Null if comparative quarterly shareholding filings are unavailable
     direction_of_goodness: higher_is_better
-    glossary: DII Holding Change – 3M measures the absolute percentage-point change
-      in DII equity ownership over the trailing 3 months.
+    glossary: DII Holding Change – 3M measures the absolute percentage-point change in DII equity ownership
+      over the trailing 3 months.
     availability: Computed-from-official
     in_screenshot: true
     locked_in_original: false
     needs_official_source: true
     frequency: Quarterly
+    feeds: shp
   dii_holding_change_6m:
     id: dii_holding_change_6m
     name: DII Holding Change – 6M
@@ -1246,13 +1277,14 @@ filters:
     - dii_holding_prev
     null_rule: Null if comparative quarterly shareholding filings are unavailable
     direction_of_goodness: higher_is_better
-    glossary: DII Holding Change – 6M measures the absolute percentage-point change
-      in DII equity ownership over the trailing 6 months.
+    glossary: DII Holding Change – 6M measures the absolute percentage-point change in DII equity ownership
+      over the trailing 6 months.
     availability: Computed-from-official
     in_screenshot: true
     locked_in_original: false
     needs_official_source: true
     frequency: Quarterly
+    feeds: shp
   fii_holding_change_3m:
     id: fii_holding_change_3m
     name: FII Holding Change – 3M
@@ -1264,13 +1296,14 @@ filters:
     - fii_holding_prev
     null_rule: Null if comparative quarterly shareholding filings are unavailable
     direction_of_goodness: higher_is_better
-    glossary: FII Holding Change – 3M measures the absolute percentage-point change
-      in FII equity ownership over the trailing 3 months.
+    glossary: FII Holding Change – 3M measures the absolute percentage-point change in FII equity ownership
+      over the trailing 3 months.
     availability: Computed-from-official
     in_screenshot: true
     locked_in_original: false
     needs_official_source: true
     frequency: Quarterly
+    feeds: shp
   fii_holding_change_6m:
     id: fii_holding_change_6m
     name: FII Holding Change – 6M
@@ -1282,13 +1315,14 @@ filters:
     - fii_holding_prev
     null_rule: Null if comparative quarterly shareholding filings are unavailable
     direction_of_goodness: higher_is_better
-    glossary: FII Holding Change – 6M measures the absolute percentage-point change
-      in FII equity ownership over the trailing 6 months.
+    glossary: FII Holding Change – 6M measures the absolute percentage-point change in FII equity ownership
+      over the trailing 6 months.
     availability: Computed-from-official
     in_screenshot: true
     locked_in_original: false
     needs_official_source: true
     frequency: Quarterly
+    feeds: shp
   promoter_holding_change_3m:
     id: promoter_holding_change_3m
     name: Promoter Holding Change – 3M
@@ -1300,13 +1334,14 @@ filters:
     - promoter_holding_prev
     null_rule: Null if comparative quarterly shareholding filings are unavailable
     direction_of_goodness: higher_is_better
-    glossary: Promoter Holding Change – 3M measures the absolute percentage-point
-      change in PROMOTER equity ownership over the trailing 3 months.
+    glossary: Promoter Holding Change – 3M measures the absolute percentage-point change in PROMOTER equity
+      ownership over the trailing 3 months.
     availability: Computed-from-official
     in_screenshot: true
     locked_in_original: false
     needs_official_source: true
     frequency: Quarterly
+    feeds: shp
   promoter_holding_change_6m:
     id: promoter_holding_change_6m
     name: Promoter Holding Change – 6M
@@ -1318,13 +1353,14 @@ filters:
     - promoter_holding_prev
     null_rule: Null if comparative quarterly shareholding filings are unavailable
     direction_of_goodness: higher_is_better
-    glossary: Promoter Holding Change – 6M measures the absolute percentage-point
-      change in PROMOTER equity ownership over the trailing 6 months.
+    glossary: Promoter Holding Change – 6M measures the absolute percentage-point change in PROMOTER equity
+      ownership over the trailing 6 months.
     availability: Computed-from-official
     in_screenshot: true
     locked_in_original: false
     needs_official_source: true
     frequency: Quarterly
+    feeds: shp
   insider_trades_1m_cumulative:
     id: insider_trades_1m_cumulative
     name: Insider Trades - 1M Cumulative
@@ -1336,13 +1372,14 @@ filters:
     - shares_outstanding
     null_rule: Null if no disclosure data or shares outstanding missing
     direction_of_goodness: higher_is_better
-    glossary: Insider Trades - 1M Cumulative computes the cumulative net percentage
-      of company equity traded through official disclosures over 1 month.
+    glossary: Insider Trades - 1M Cumulative computes the cumulative net percentage of company equity
+      traded through official disclosures over 1 month.
     availability: Computed-from-official
     in_screenshot: true
     locked_in_original: true
     needs_official_source: true
     frequency: Daily
+    feeds: deals
   insider_trades_3m_cumulative:
     id: insider_trades_3m_cumulative
     name: Insider Trades - 3M Cumulative
@@ -1354,13 +1391,14 @@ filters:
     - shares_outstanding
     null_rule: Null if no disclosure data or shares outstanding missing
     direction_of_goodness: higher_is_better
-    glossary: Insider Trades - 3M Cumulative computes the cumulative net percentage
-      of company equity traded through official disclosures over 3 months.
+    glossary: Insider Trades - 3M Cumulative computes the cumulative net percentage of company equity
+      traded through official disclosures over 3 months.
     availability: Computed-from-official
     in_screenshot: true
     locked_in_original: true
     needs_official_source: true
     frequency: Daily
+    feeds: deals
   insider_trades_6m_cumulative:
     id: insider_trades_6m_cumulative
     name: Insider Trades - 6M Cumulative
@@ -1372,13 +1410,14 @@ filters:
     - shares_outstanding
     null_rule: Null if no disclosure data or shares outstanding missing
     direction_of_goodness: higher_is_better
-    glossary: Insider Trades - 6M Cumulative computes the cumulative net percentage
-      of company equity traded through official disclosures over 6 months.
+    glossary: Insider Trades - 6M Cumulative computes the cumulative net percentage of company equity
+      traded through official disclosures over 6 months.
     availability: Computed-from-official
     in_screenshot: true
     locked_in_original: true
     needs_official_source: true
     frequency: Daily
+    feeds: deals
   bulk_deals_1m_cumulative:
     id: bulk_deals_1m_cumulative
     name: Bulk Deals - 1M Cumulative
@@ -1390,13 +1429,14 @@ filters:
     - shares_outstanding
     null_rule: Null if no disclosure data or shares outstanding missing
     direction_of_goodness: higher_is_better
-    glossary: Bulk Deals - 1M Cumulative computes the cumulative net percentage of
-      company equity traded through official disclosures over 1 month.
+    glossary: Bulk Deals - 1M Cumulative computes the cumulative net percentage of company equity traded
+      through official disclosures over 1 month.
     availability: Computed-from-official
     in_screenshot: true
     locked_in_original: true
     needs_official_source: true
     frequency: Daily
+    feeds: deals
   bulk_deals_3m_cumulative:
     id: bulk_deals_3m_cumulative
     name: Bulk Deals - 3M Cumulative
@@ -1408,13 +1448,14 @@ filters:
     - shares_outstanding
     null_rule: Null if no disclosure data or shares outstanding missing
     direction_of_goodness: higher_is_better
-    glossary: Bulk Deals - 3M Cumulative computes the cumulative net percentage of
-      company equity traded through official disclosures over 3 months.
+    glossary: Bulk Deals - 3M Cumulative computes the cumulative net percentage of company equity traded
+      through official disclosures over 3 months.
     availability: Computed-from-official
     in_screenshot: true
     locked_in_original: true
     needs_official_source: true
     frequency: Daily
+    feeds: deals
   bulk_deals_6m_cumulative:
     id: bulk_deals_6m_cumulative
     name: Bulk Deals - 6M Cumulative
@@ -1426,13 +1467,14 @@ filters:
     - shares_outstanding
     null_rule: Null if no disclosure data or shares outstanding missing
     direction_of_goodness: higher_is_better
-    glossary: Bulk Deals - 6M Cumulative computes the cumulative net percentage of
-      company equity traded through official disclosures over 6 months.
+    glossary: Bulk Deals - 6M Cumulative computes the cumulative net percentage of company equity traded
+      through official disclosures over 6 months.
     availability: Computed-from-official
     in_screenshot: true
     locked_in_original: true
     needs_official_source: true
     frequency: Daily
+    feeds: deals
   lot_size:
     id: lot_size
     name: Lot Size
@@ -1443,13 +1485,14 @@ filters:
     - fno_contract_master
     null_rule: Null for cash-only securities; valid for F&O-eligible securities only
     direction_of_goodness: neutral
-    glossary: Official exchange-mandated standardized market lot size for trading
-      derivative futures and options contracts on this underlying security.
+    glossary: Official exchange-mandated standardized market lot size for trading derivative futures and
+      options contracts on this underlying security.
     availability: Official-direct
     in_screenshot: true
     locked_in_original: false
     needs_official_source: true
     frequency: Monthly
+    feeds: weekly
   future_close_price:
     id: future_close_price
     name: Future Close Price
@@ -1460,13 +1503,13 @@ filters:
     - fno_bhavcopy_near_price
     null_rule: Null for cash-only securities; valid for F&O-eligible securities only
     direction_of_goodness: neutral
-    glossary: Daily settlement price for the active near-month futures contract traded
-      on the exchange.
+    glossary: Daily settlement price for the active near-month futures contract traded on the exchange.
     availability: Official-direct
     in_screenshot: true
     locked_in_original: false
     needs_official_source: true
     frequency: Daily
+    feeds: fno
   future_volume:
     id: future_volume
     name: Future Volume
@@ -1477,13 +1520,14 @@ filters:
     - fno_bhavcopy
     null_rule: Null for cash-only securities; valid for F&O-eligible securities only
     direction_of_goodness: neutral
-    glossary: Total daily traded contract volume or open interest recorded in the
-      active near-month futures contract.
+    glossary: Total daily traded contract volume or open interest recorded in the active near-month futures
+      contract.
     availability: Official-direct
     in_screenshot: true
     locked_in_original: false
     needs_official_source: true
     frequency: Daily
+    feeds: fno
   future_open_interest:
     id: future_open_interest
     name: Future Open Interest
@@ -1494,13 +1538,14 @@ filters:
     - fno_bhavcopy
     null_rule: Null for cash-only securities; valid for F&O-eligible securities only
     direction_of_goodness: neutral
-    glossary: Total daily traded contract volume or open interest recorded in the
-      active near-month futures contract.
+    glossary: Total daily traded contract volume or open interest recorded in the active near-month futures
+      contract.
     availability: Official-direct
     in_screenshot: true
     locked_in_original: false
     needs_official_source: true
     frequency: Daily
+    feeds: fno
   fair_value:
     id: fair_value
     name: Fair Value
@@ -1513,13 +1558,14 @@ filters:
     - days_to_expiry
     null_rule: Null for cash-only securities; valid for F&O-eligible securities only
     direction_of_goodness: neutral
-    glossary: Theoretical fair value price of the near-month futures contract calculated
-      using the cost-of-carry model (Spot * (1 + r * days/365)) with FBIL 3M MIBOR.
+    glossary: Theoretical fair value price of the near-month futures contract calculated using the cost-of-carry
+      model (Spot * (1 + r * days/365)) with FBIL 3M MIBOR.
     availability: Computed-from-official
     in_screenshot: true
     locked_in_original: true
     needs_official_source: true
     frequency: Daily
+    feeds: manual
   fair_value_spread:
     id: fair_value_spread
     name: Fair Value Spread
@@ -1531,13 +1577,14 @@ filters:
     - future_close_price
     null_rule: Null for cash-only securities; valid for F&O-eligible securities only
     direction_of_goodness: neutral
-    glossary: Difference between the theoretical cost-of-carry fair value and the
-      actual traded futures price (Fair Value minus Futures Price).
+    glossary: Difference between the theoretical cost-of-carry fair value and the actual traded futures
+      price (Fair Value minus Futures Price).
     availability: Computed-from-official
     in_screenshot: true
     locked_in_original: true
     needs_official_source: true
     frequency: Daily
+    feeds: manual
   basis:
     id: basis
     name: Basis
@@ -1549,13 +1596,14 @@ filters:
     - close_price
     null_rule: Null for cash-only securities; valid for F&O-eligible securities only
     direction_of_goodness: neutral
-    glossary: Derivative basis representing the spread between the futures price and
-      the underlying spot closing price (Futures Price minus Spot Price).
+    glossary: Derivative basis representing the spread between the futures price and the underlying spot
+      closing price (Futures Price minus Spot Price).
     availability: Computed-from-official
     in_screenshot: true
     locked_in_original: false
     needs_official_source: true
     frequency: Daily
+    feeds: fno
   rollover_cost:
     id: rollover_cost
     name: Rollover Cost
@@ -1567,14 +1615,14 @@ filters:
     - future_near_price
     null_rule: Null for cash-only securities; valid for F&O-eligible securities only
     direction_of_goodness: neutral
-    glossary: Cost incurred by market participants when rolling open futures positions
-      to the subsequent expiration cycle ((Next Month Price / Near Month Price) -
-      1).
+    glossary: Cost incurred by market participants when rolling open futures positions to the subsequent
+      expiration cycle ((Next Month Price / Near Month Price) - 1).
     availability: Computed-from-official
     in_screenshot: true
     locked_in_original: true
     needs_official_source: true
     frequency: Daily
+    feeds: fno
   percentage_rollover:
     id: percentage_rollover
     name: Percentage Rollover
@@ -1587,13 +1635,14 @@ filters:
     - oi_far
     null_rule: Null for cash-only securities; valid for F&O-eligible securities only
     direction_of_goodness: neutral
-    glossary: Percentage of open interest successfully transferred into the next expiration
-      cycle relative to total open contracts across all active months.
+    glossary: Percentage of open interest successfully transferred into the next expiration cycle relative
+      to total open contracts across all active months.
     availability: Computed-from-official
     in_screenshot: true
     locked_in_original: true
     needs_official_source: true
     frequency: Daily
+    feeds: fno
   calendar_spread:
     id: calendar_spread
     name: Calendar Spread
@@ -1605,13 +1654,14 @@ filters:
     - future_near_price
     null_rule: Null for cash-only securities; valid for F&O-eligible securities only
     direction_of_goodness: neutral
-    glossary: Spread between the settlement prices of the mid-month and near-month
-      derivative contracts (Mid-Month Price minus Near-Month Price).
+    glossary: Spread between the settlement prices of the mid-month and near-month derivative contracts
+      (Mid-Month Price minus Near-Month Price).
     availability: Computed-from-official
     in_screenshot: true
     locked_in_original: true
     needs_official_source: true
     frequency: Daily
+    feeds: fno
   cash_carry_profit:
     id: cash_carry_profit
     name: Cash & Carry Profit
@@ -1623,13 +1673,14 @@ filters:
     - fair_value
     null_rule: Null for cash-only securities; valid for F&O-eligible securities only
     direction_of_goodness: neutral
-    glossary: Theoretical arbitrage profit available by holding spot equity and shorting
-      futures to expiration (Futures Price minus Fair Value).
+    glossary: Theoretical arbitrage profit available by holding spot equity and shorting futures to expiration
+      (Futures Price minus Fair Value).
     availability: Computed-from-official
     in_screenshot: true
     locked_in_original: true
     needs_official_source: true
     frequency: Daily
+    feeds: manual
   put_call_ratio:
     id: put_call_ratio
     name: Put Call Ratio
@@ -1641,14 +1692,14 @@ filters:
     - total_call_oi
     null_rule: Null if total call open interest <= 0 or not F&O eligible
     direction_of_goodness: neutral
-    glossary: Put Call Ratio (PCR) measures total put open interest divided by total
-      call open interest across all strikes and expiries, widely used as a market
-      sentiment indicator.
+    glossary: Put Call Ratio (PCR) measures total put open interest divided by total call open interest
+      across all strikes and expiries, widely used as a market sentiment indicator.
     availability: Computed-from-official
     in_screenshot: true
     locked_in_original: true
     needs_official_source: true
     frequency: Daily
+    feeds: fno
   call_open_interest:
     id: call_open_interest
     name: Call Open Interest
@@ -1659,13 +1710,14 @@ filters:
     - fno_bhavcopy
     null_rule: Null for cash-only securities; valid for F&O-eligible securities only
     direction_of_goodness: neutral
-    glossary: Call Open Interest is an official exchange-derived derivative indicator
-      for F&O-eligible instruments.
+    glossary: Call Open Interest is an official exchange-derived derivative indicator for F&O-eligible
+      instruments.
     availability: Official-direct
     in_screenshot: true
     locked_in_original: false
     needs_official_source: true
     frequency: Daily
+    feeds: fno
   put_open_interest:
     id: put_open_interest
     name: Put Open Interest
@@ -1676,13 +1728,14 @@ filters:
     - fno_bhavcopy
     null_rule: Null for cash-only securities; valid for F&O-eligible securities only
     direction_of_goodness: neutral
-    glossary: Put Open Interest is an official exchange-derived derivative indicator
-      for F&O-eligible instruments.
+    glossary: Put Open Interest is an official exchange-derived derivative indicator for F&O-eligible
+      instruments.
     availability: Official-direct
     in_screenshot: true
     locked_in_original: false
     needs_official_source: true
     frequency: Daily
+    feeds: fno
   1d_change_in_future_oi:
     id: 1d_change_in_future_oi
     name: 1D Change in Future OI
@@ -1693,13 +1746,14 @@ filters:
     - fno_bhavcopy_series
     null_rule: Null for cash-only securities; valid for F&O-eligible securities only
     direction_of_goodness: neutral
-    glossary: Percentage change in open interest or traded volume across active derivative
-      contracts over the specified daily (1D) or weekly (1W) period.
+    glossary: Percentage change in open interest or traded volume across active derivative contracts over
+      the specified daily (1D) or weekly (1W) period.
     availability: Computed-from-official
     in_screenshot: true
     locked_in_original: true
     needs_official_source: true
     frequency: Daily
+    feeds: fno
   1w_change_in_future_oi:
     id: 1w_change_in_future_oi
     name: 1W Change in Future OI
@@ -1710,13 +1764,14 @@ filters:
     - fno_bhavcopy_series
     null_rule: Null for cash-only securities; valid for F&O-eligible securities only
     direction_of_goodness: neutral
-    glossary: Percentage change in open interest or traded volume across active derivative
-      contracts over the specified daily (1D) or weekly (1W) period.
+    glossary: Percentage change in open interest or traded volume across active derivative contracts over
+      the specified daily (1D) or weekly (1W) period.
     availability: Computed-from-official
     in_screenshot: true
     locked_in_original: true
     needs_official_source: true
     frequency: Daily
+    feeds: fno
   1d_change_in_future_volume:
     id: 1d_change_in_future_volume
     name: 1D Change in Future Volume
@@ -1727,13 +1782,14 @@ filters:
     - fno_bhavcopy_series
     null_rule: Null for cash-only securities; valid for F&O-eligible securities only
     direction_of_goodness: neutral
-    glossary: Percentage change in open interest or traded volume across active derivative
-      contracts over the specified daily (1D) or weekly (1W) period.
+    glossary: Percentage change in open interest or traded volume across active derivative contracts over
+      the specified daily (1D) or weekly (1W) period.
     availability: Computed-from-official
     in_screenshot: true
     locked_in_original: true
     needs_official_source: true
     frequency: Daily
+    feeds: fno
   1w_change_in_future_volume:
     id: 1w_change_in_future_volume
     name: 1W Change in Future Volume
@@ -1744,13 +1800,14 @@ filters:
     - fno_bhavcopy_series
     null_rule: Null for cash-only securities; valid for F&O-eligible securities only
     direction_of_goodness: neutral
-    glossary: Percentage change in open interest or traded volume across active derivative
-      contracts over the specified daily (1D) or weekly (1W) period.
+    glossary: Percentage change in open interest or traded volume across active derivative contracts over
+      the specified daily (1D) or weekly (1W) period.
     availability: Computed-from-official
     in_screenshot: true
     locked_in_original: true
     needs_official_source: true
     frequency: Daily
+    feeds: fno
   1d_change_in_call_oi:
     id: 1d_change_in_call_oi
     name: 1D Change in Call OI
@@ -1761,13 +1818,14 @@ filters:
     - fno_bhavcopy_series
     null_rule: Null for cash-only securities; valid for F&O-eligible securities only
     direction_of_goodness: neutral
-    glossary: Percentage change in open interest or traded volume across active derivative
-      contracts over the specified daily (1D) or weekly (1W) period.
+    glossary: Percentage change in open interest or traded volume across active derivative contracts over
+      the specified daily (1D) or weekly (1W) period.
     availability: Computed-from-official
     in_screenshot: true
     locked_in_original: true
     needs_official_source: true
     frequency: Daily
+    feeds: fno
   1w_change_in_call_oi:
     id: 1w_change_in_call_oi
     name: 1W Change in Call OI
@@ -1778,13 +1836,14 @@ filters:
     - fno_bhavcopy_series
     null_rule: Null for cash-only securities; valid for F&O-eligible securities only
     direction_of_goodness: neutral
-    glossary: Percentage change in open interest or traded volume across active derivative
-      contracts over the specified daily (1D) or weekly (1W) period.
+    glossary: Percentage change in open interest or traded volume across active derivative contracts over
+      the specified daily (1D) or weekly (1W) period.
     availability: Computed-from-official
     in_screenshot: true
     locked_in_original: true
     needs_official_source: true
     frequency: Daily
+    feeds: fno
   1d_change_in_put_oi:
     id: 1d_change_in_put_oi
     name: 1D Change in Put OI
@@ -1795,13 +1854,14 @@ filters:
     - fno_bhavcopy_series
     null_rule: Null for cash-only securities; valid for F&O-eligible securities only
     direction_of_goodness: neutral
-    glossary: Percentage change in open interest or traded volume across active derivative
-      contracts over the specified daily (1D) or weekly (1W) period.
+    glossary: Percentage change in open interest or traded volume across active derivative contracts over
+      the specified daily (1D) or weekly (1W) period.
     availability: Computed-from-official
     in_screenshot: true
     locked_in_original: true
     needs_official_source: true
     frequency: Daily
+    feeds: fno
   1w_change_in_put_oi:
     id: 1w_change_in_put_oi
     name: 1W Change in Put OI
@@ -1812,13 +1872,14 @@ filters:
     - fno_bhavcopy_series
     null_rule: Null for cash-only securities; valid for F&O-eligible securities only
     direction_of_goodness: neutral
-    glossary: Percentage change in open interest or traded volume across active derivative
-      contracts over the specified daily (1D) or weekly (1W) period.
+    glossary: Percentage change in open interest or traded volume across active derivative contracts over
+      the specified daily (1D) or weekly (1W) period.
     availability: Computed-from-official
     in_screenshot: true
     locked_in_original: true
     needs_official_source: true
     frequency: Daily
+    feeds: fno
   highest_call_oi_strike:
     id: highest_call_oi_strike
     name: Highest Call OI Strike
@@ -1829,13 +1890,14 @@ filters:
     - fno_strike_matrix
     null_rule: Null for cash-only securities; valid for F&O-eligible securities only
     direction_of_goodness: neutral
-    glossary: Key option strike price exhibiting the highest open interest or the
-      largest relative open interest accumulation across call or put series.
+    glossary: Key option strike price exhibiting the highest open interest or the largest relative open
+      interest accumulation across call or put series.
     availability: Computed-from-official
     in_screenshot: true
     locked_in_original: true
     needs_official_source: true
     frequency: Daily
+    feeds: fno
   highest_put_oi_strike:
     id: highest_put_oi_strike
     name: Highest Put OI Strike
@@ -1846,13 +1908,14 @@ filters:
     - fno_strike_matrix
     null_rule: Null for cash-only securities; valid for F&O-eligible securities only
     direction_of_goodness: neutral
-    glossary: Key option strike price exhibiting the highest open interest or the
-      largest relative open interest accumulation across call or put series.
+    glossary: Key option strike price exhibiting the highest open interest or the largest relative open
+      interest accumulation across call or put series.
     availability: Computed-from-official
     in_screenshot: true
     locked_in_original: true
     needs_official_source: true
     frequency: Daily
+    feeds: fno
   highest_1d_oi_change_ce_strike:
     id: highest_1d_oi_change_ce_strike
     name: Highest 1D OI Change CE Strike
@@ -1863,13 +1926,14 @@ filters:
     - fno_strike_matrix
     null_rule: Null for cash-only securities; valid for F&O-eligible securities only
     direction_of_goodness: neutral
-    glossary: Key option strike price exhibiting the highest open interest or the
-      largest relative open interest accumulation across call or put series.
+    glossary: Key option strike price exhibiting the highest open interest or the largest relative open
+      interest accumulation across call or put series.
     availability: Computed-from-official
     in_screenshot: true
     locked_in_original: true
     needs_official_source: true
     frequency: Daily
+    feeds: fno
   highest_1d_oi_change_pe_strike:
     id: highest_1d_oi_change_pe_strike
     name: Highest 1D OI Change PE Strike
@@ -1880,13 +1944,14 @@ filters:
     - fno_strike_matrix
     null_rule: Null for cash-only securities; valid for F&O-eligible securities only
     direction_of_goodness: neutral
-    glossary: Key option strike price exhibiting the highest open interest or the
-      largest relative open interest accumulation across call or put series.
+    glossary: Key option strike price exhibiting the highest open interest or the largest relative open
+      interest accumulation across call or put series.
     availability: Computed-from-official
     in_screenshot: true
     locked_in_original: true
     needs_official_source: true
     frequency: Daily
+    feeds: fno
   highest_1w_oi_change_ce_strike:
     id: highest_1w_oi_change_ce_strike
     name: Highest 1W OI Change CE Strike
@@ -1897,13 +1962,14 @@ filters:
     - fno_strike_matrix
     null_rule: Null for cash-only securities; valid for F&O-eligible securities only
     direction_of_goodness: neutral
-    glossary: Key option strike price exhibiting the highest open interest or the
-      largest relative open interest accumulation across call or put series.
+    glossary: Key option strike price exhibiting the highest open interest or the largest relative open
+      interest accumulation across call or put series.
     availability: Computed-from-official
     in_screenshot: true
     locked_in_original: true
     needs_official_source: true
     frequency: Daily
+    feeds: fno
   highest_1w_oi_change_pe_strike:
     id: highest_1w_oi_change_pe_strike
     name: Highest 1W OI Change PE Strike
@@ -1914,13 +1980,14 @@ filters:
     - fno_strike_matrix
     null_rule: Null for cash-only securities; valid for F&O-eligible securities only
     direction_of_goodness: neutral
-    glossary: Key option strike price exhibiting the highest open interest or the
-      largest relative open interest accumulation across call or put series.
+    glossary: Key option strike price exhibiting the highest open interest or the largest relative open
+      interest accumulation across call or put series.
     availability: Computed-from-official
     in_screenshot: true
     locked_in_original: true
     needs_official_source: true
     frequency: Daily
+    feeds: fno
   market_cap:
     id: market_cap
     name: Market Cap
@@ -1932,13 +1999,14 @@ filters:
     - shares_outstanding
     null_rule: Null if close price or shares outstanding missing
     direction_of_goodness: neutral
-    glossary: Total market capitalization expressed in Rs Crores, calculated as the
-      closing market price multiplied by total shares outstanding divided by 10,000,000.
+    glossary: Total market capitalization expressed in Rs Crores, calculated as the closing market price
+      multiplied by total shares outstanding divided by 10,000,000.
     availability: Computed-from-official
     in_screenshot: true
     locked_in_original: false
     needs_official_source: true
     frequency: Daily
+    feeds: shp
   close_price:
     id: close_price
     name: Close Price
@@ -1955,6 +2023,7 @@ filters:
     locked_in_original: false
     needs_official_source: true
     frequency: Daily
+    feeds: daily
   1d_return:
     id: 1d_return
     name: 1D Return
@@ -1965,13 +2034,14 @@ filters:
     - close_price_series
     null_rule: Null if underlying data point is missing
     direction_of_goodness: higher_is_better
-    glossary: 1D Return measures the historical percentage price appreciation or compound
-      annual return over the designated holding horizon.
+    glossary: 1D Return measures the historical percentage price appreciation or compound annual return
+      over the designated holding horizon.
     availability: Computed-from-official
     in_screenshot: true
     locked_in_original: false
     needs_official_source: true
     frequency: Daily
+    feeds: history
   1w_return:
     id: 1w_return
     name: 1W Return
@@ -1982,13 +2052,14 @@ filters:
     - close_price_series
     null_rule: Null if underlying data point is missing
     direction_of_goodness: higher_is_better
-    glossary: 1W Return measures the historical percentage price appreciation or compound
-      annual return over the designated holding horizon.
+    glossary: 1W Return measures the historical percentage price appreciation or compound annual return
+      over the designated holding horizon.
     availability: Computed-from-official
     in_screenshot: true
     locked_in_original: false
     needs_official_source: true
     frequency: Daily
+    feeds: history
   1m_return:
     id: 1m_return
     name: 1M Return
@@ -1999,13 +2070,14 @@ filters:
     - close_price_series
     null_rule: Null if underlying data point is missing
     direction_of_goodness: higher_is_better
-    glossary: 1M Return measures the historical percentage price appreciation or compound
-      annual return over the designated holding horizon.
+    glossary: 1M Return measures the historical percentage price appreciation or compound annual return
+      over the designated holding horizon.
     availability: Computed-from-official
     in_screenshot: true
     locked_in_original: false
     needs_official_source: true
     frequency: Daily
+    feeds: history
   6m_return:
     id: 6m_return
     name: 6M Return
@@ -2016,13 +2088,14 @@ filters:
     - close_price_series
     null_rule: Null if underlying data point is missing
     direction_of_goodness: higher_is_better
-    glossary: 6M Return measures the historical percentage price appreciation or compound
-      annual return over the designated holding horizon.
+    glossary: 6M Return measures the historical percentage price appreciation or compound annual return
+      over the designated holding horizon.
     availability: Computed-from-official
     in_screenshot: true
     locked_in_original: false
     needs_official_source: true
     frequency: Daily
+    feeds: history
   1y_return:
     id: 1y_return
     name: 1Y Return
@@ -2033,13 +2106,14 @@ filters:
     - close_price_series
     null_rule: Null if underlying data point is missing
     direction_of_goodness: higher_is_better
-    glossary: 1Y Return measures the historical percentage price appreciation or compound
-      annual return over the designated holding horizon.
+    glossary: 1Y Return measures the historical percentage price appreciation or compound annual return
+      over the designated holding horizon.
     availability: Computed-from-official
     in_screenshot: true
     locked_in_original: false
     needs_official_source: true
     frequency: Daily
+    feeds: history
   5y_cagr:
     id: 5y_cagr
     name: 5Y CAGR
@@ -2050,13 +2124,14 @@ filters:
     - close_price_series
     null_rule: Null if underlying data point is missing
     direction_of_goodness: higher_is_better
-    glossary: 5Y CAGR measures the historical percentage price appreciation or compound
-      annual return over the designated holding horizon.
+    glossary: 5Y CAGR measures the historical percentage price appreciation or compound annual return
+      over the designated holding horizon.
     availability: Computed-from-official
     in_screenshot: true
     locked_in_original: false
     needs_official_source: true
     frequency: Daily
+    feeds: history
   1w_return_vs_nifty:
     id: 1w_return_vs_nifty
     name: 1W Return vs Nifty
@@ -2068,13 +2143,14 @@ filters:
     - nifty_return
     null_rule: Null if underlying data point is missing
     direction_of_goodness: higher_is_better
-    glossary: Excess performance of the stock over the Nifty 50 benchmark over the
-      specified trailing timeframe (Stock % Return minus Nifty 50 % Return).
+    glossary: Excess performance of the stock over the Nifty 50 benchmark over the specified trailing
+      timeframe (Stock % Return minus Nifty 50 % Return).
     availability: Computed-from-official
     in_screenshot: true
     locked_in_original: false
     needs_official_source: true
     frequency: Daily
+    feeds: history
   1m_return_vs_nifty:
     id: 1m_return_vs_nifty
     name: 1M Return vs Nifty
@@ -2086,13 +2162,14 @@ filters:
     - nifty_return
     null_rule: Null if underlying data point is missing
     direction_of_goodness: higher_is_better
-    glossary: Excess performance of the stock over the Nifty 50 benchmark over the
-      specified trailing timeframe (Stock % Return minus Nifty 50 % Return).
+    glossary: Excess performance of the stock over the Nifty 50 benchmark over the specified trailing
+      timeframe (Stock % Return minus Nifty 50 % Return).
     availability: Computed-from-official
     in_screenshot: true
     locked_in_original: false
     needs_official_source: true
     frequency: Daily
+    feeds: history
   6m_return_vs_nifty:
     id: 6m_return_vs_nifty
     name: 6M Return vs Nifty
@@ -2104,13 +2181,14 @@ filters:
     - nifty_return
     null_rule: Null if underlying data point is missing
     direction_of_goodness: higher_is_better
-    glossary: Excess performance of the stock over the Nifty 50 benchmark over the
-      specified trailing timeframe (Stock % Return minus Nifty 50 % Return).
+    glossary: Excess performance of the stock over the Nifty 50 benchmark over the specified trailing
+      timeframe (Stock % Return minus Nifty 50 % Return).
     availability: Computed-from-official
     in_screenshot: true
     locked_in_original: false
     needs_official_source: true
     frequency: Daily
+    feeds: history
   1y_return_vs_nifty:
     id: 1y_return_vs_nifty
     name: 1Y Return vs Nifty
@@ -2122,13 +2200,14 @@ filters:
     - nifty_return
     null_rule: Null if underlying data point is missing
     direction_of_goodness: higher_is_better
-    glossary: Excess performance of the stock over the Nifty 50 benchmark over the
-      specified trailing timeframe (Stock % Return minus Nifty 50 % Return).
+    glossary: Excess performance of the stock over the Nifty 50 benchmark over the specified trailing
+      timeframe (Stock % Return minus Nifty 50 % Return).
     availability: Computed-from-official
     in_screenshot: true
     locked_in_original: false
     needs_official_source: true
     frequency: Daily
+    feeds: history
   away_from_52w_high:
     id: away_from_52w_high
     name: '% Away From 52W High'
@@ -2140,13 +2219,14 @@ filters:
     - 52w_high
     null_rule: Null if 52-week high is missing or zero
     direction_of_goodness: lower_is_better
-    glossary: Percentage discount from the 52-week peak price ((52W High / Close)
-      - 1 * 100), indicating drawdown from yearly highs.
+    glossary: Percentage discount from the 52-week peak price ((52W High / Close) - 1 * 100), indicating
+      drawdown from yearly highs.
     availability: Computed-from-official
     in_screenshot: true
     locked_in_original: false
     needs_official_source: true
     frequency: Daily
+    feeds: history
   away_from_52w_low:
     id: away_from_52w_low
     name: '% Away From 52W Low'
@@ -2158,13 +2238,14 @@ filters:
     - 52w_low
     null_rule: Null if 52-week low is missing or zero
     direction_of_goodness: higher_is_better
-    glossary: Percentage gain from the 52-week bottom price ((Close / 52W Low) - 1
-      * 100), measuring recovery momentum.
+    glossary: Percentage gain from the 52-week bottom price ((Close / 52W Low) - 1 * 100), measuring recovery
+      momentum.
     availability: Computed-from-official
     in_screenshot: true
     locked_in_original: false
     needs_official_source: true
     frequency: Daily
+    feeds: history
   daily_volume:
     id: daily_volume
     name: Daily Volume
@@ -2175,13 +2256,14 @@ filters:
     - daily_volume_series
     null_rule: Null if underlying data point is missing
     direction_of_goodness: neutral
-    glossary: Daily Volume tracks the number of equity shares traded on the exchange
-      over the specified trading window.
+    glossary: Daily Volume tracks the number of equity shares traded on the exchange over the specified
+      trading window.
     availability: Official-direct
     in_screenshot: true
     locked_in_original: false
     needs_official_source: true
     frequency: Daily
+    feeds: daily
   1m_average_volume:
     id: 1m_average_volume
     name: 1M Average Volume
@@ -2192,13 +2274,14 @@ filters:
     - daily_volume_series
     null_rule: Null if underlying data point is missing
     direction_of_goodness: neutral
-    glossary: 1M Average Volume tracks the number of equity shares traded on the exchange
-      over the specified trading window.
+    glossary: 1M Average Volume tracks the number of equity shares traded on the exchange over the specified
+      trading window.
     availability: Computed-from-official
     in_screenshot: true
     locked_in_original: false
     needs_official_source: true
     frequency: Daily
+    feeds: history
   3m_average_volume:
     id: 3m_average_volume
     name: 3M Average Volume
@@ -2209,13 +2292,14 @@ filters:
     - daily_volume_series
     null_rule: Null if underlying data point is missing
     direction_of_goodness: neutral
-    glossary: 3M Average Volume tracks the number of equity shares traded on the exchange
-      over the specified trading window.
+    glossary: 3M Average Volume tracks the number of equity shares traded on the exchange over the specified
+      trading window.
     availability: Computed-from-official
     in_screenshot: true
     locked_in_original: false
     needs_official_source: true
     frequency: Daily
+    feeds: history
   1d_change_in_volume:
     id: 1d_change_in_volume
     name: 1D Change in Volume
@@ -2226,13 +2310,14 @@ filters:
     - daily_volume_series
     null_rule: Null if underlying data point is missing
     direction_of_goodness: neutral
-    glossary: 1D Change in Volume tracks the number of equity shares traded on the
-      exchange over the specified trading window.
+    glossary: 1D Change in Volume tracks the number of equity shares traded on the exchange over the specified
+      trading window.
     availability: Computed-from-official
     in_screenshot: true
     locked_in_original: false
     needs_official_source: true
     frequency: Daily
+    feeds: history
   1w_change_in_volume:
     id: 1w_change_in_volume
     name: 1W Change in Volume
@@ -2243,13 +2328,14 @@ filters:
     - daily_volume_series
     null_rule: Null if underlying data point is missing
     direction_of_goodness: neutral
-    glossary: 1W Change in Volume tracks the number of equity shares traded on the
-      exchange over the specified trading window.
+    glossary: 1W Change in Volume tracks the number of equity shares traded on the exchange over the specified
+      trading window.
     availability: Computed-from-official
     in_screenshot: true
     locked_in_original: false
     needs_official_source: true
     frequency: Daily
+    feeds: history
   face_value:
     id: face_value
     name: Face value
@@ -2266,6 +2352,7 @@ filters:
     locked_in_original: false
     needs_official_source: true
     frequency: Static/Infrequent
+    feeds: weekly
   current_ratio:
     id: current_ratio
     name: Current Ratio
@@ -2277,13 +2364,14 @@ filters:
     - total_current_liabilities
     null_rule: Null for financial institutions or if current liabilities <= 0
     direction_of_goodness: higher_is_better
-    glossary: Current Ratio tests short-term liquidity by dividing Total Current Assets
-      by Total Current Liabilities. Inapplicable for banks and insurers.
+    glossary: Current Ratio tests short-term liquidity by dividing Total Current Assets by Total Current
+      Liabilities. Inapplicable for banks and insurers.
     availability: Computed-from-official
     in_screenshot: true
     locked_in_original: false
     needs_official_source: true
     frequency: Annual/Quarterly
+    feeds: xbrl
   quick_ratio:
     id: quick_ratio
     name: Quick Ratio
@@ -2296,13 +2384,14 @@ filters:
     - total_current_liabilities
     null_rule: Null for financial institutions or if current liabilities <= 0
     direction_of_goodness: higher_is_better
-    glossary: Quick Ratio (Acid Test) evaluates immediate liquidity by excluding inventory
-      from current assets ((Current Assets - Inventory) / Current Liabilities).
+    glossary: Quick Ratio (Acid Test) evaluates immediate liquidity by excluding inventory from current
+      assets ((Current Assets - Inventory) / Current Liabilities).
     availability: Computed-from-official
     in_screenshot: true
     locked_in_original: false
     needs_official_source: true
     frequency: Annual/Quarterly
+    feeds: xbrl
   debt_to_equity:
     id: debt_to_equity
     name: Debt to Equity
@@ -2314,13 +2403,14 @@ filters:
     - total_equity
     null_rule: Null for financial institutions or if equity <= 0
     direction_of_goodness: lower_is_better
-    glossary: Debt to Equity ratio measures financial leverage by dividing total debt
-      by total equity capital. Not applicable to banks or financial lenders.
+    glossary: Debt to Equity ratio measures financial leverage by dividing total debt by total equity
+      capital. Not applicable to banks or financial lenders.
     availability: Computed-from-official
     in_screenshot: true
     locked_in_original: false
     needs_official_source: true
     frequency: Annual/Quarterly
+    feeds: xbrl
   long_term_debt_to_equity:
     id: long_term_debt_to_equity
     name: Long Term Debt to Equity
@@ -2332,13 +2422,14 @@ filters:
     - total_equity
     null_rule: Null for financial institutions or if equity <= 0
     direction_of_goodness: lower_is_better
-    glossary: Debt to Equity ratio measures financial leverage by dividing total debt
-      by total equity capital. Not applicable to banks or financial lenders.
+    glossary: Debt to Equity ratio measures financial leverage by dividing total debt by total equity
+      capital. Not applicable to banks or financial lenders.
     availability: Computed-from-official
     in_screenshot: true
     locked_in_original: false
     needs_official_source: true
     frequency: Annual
+    feeds: xbrl
   interest_coverage_ratio:
     id: interest_coverage_ratio
     name: Interest Coverage Ratio
@@ -2350,13 +2441,14 @@ filters:
     - interest_expense
     null_rule: Null if interest expense <= 0 or missing
     direction_of_goodness: higher_is_better
-    glossary: Interest Coverage Ratio measures the margin of safety for debt servicing
-      (Operating Profit (EBIT) divided by Interest Expense).
+    glossary: Interest Coverage Ratio measures the margin of safety for debt servicing (Operating Profit
+      (EBIT) divided by Interest Expense).
     availability: Computed-from-official
     in_screenshot: true
     locked_in_original: false
     needs_official_source: true
     frequency: Annual/Quarterly
+    feeds: xbrl
   cash_conversion_cycle:
     id: cash_conversion_cycle
     name: Cash Conversion Cycle
@@ -2369,13 +2461,14 @@ filters:
     - days_payable_outstanding
     null_rule: Null for financial institutions or missing working capital ratios
     direction_of_goodness: lower_is_better
-    glossary: Cash Conversion Cycle (CCC) quantifies the days required to turn capital
-      invested into cash inflows (DIO + DSO - DPO).
+    glossary: Cash Conversion Cycle (CCC) quantifies the days required to turn capital invested into cash
+      inflows (DIO + DSO - DPO).
     availability: Computed-from-official
     in_screenshot: true
     locked_in_original: false
     needs_official_source: true
     frequency: Annual
+    feeds: xbrl
   net_income_liabilities:
     id: net_income_liabilities
     name: Net Income / Liabilities
@@ -2387,13 +2480,14 @@ filters:
     - total_liabilities
     null_rule: Null if total liabilities <= 0 or missing
     direction_of_goodness: higher_is_better
-    glossary: Net Income to Liabilities ratio gauges insolvency risk by comparing
-      net profit against total debt and liabilities.
+    glossary: Net Income to Liabilities ratio gauges insolvency risk by comparing net profit against total
+      debt and liabilities.
     availability: Computed-from-official
     in_screenshot: true
     locked_in_original: false
     needs_official_source: true
     frequency: Annual
+    feeds: xbrl
   working_capital_turnover_ratio:
     id: working_capital_turnover_ratio
     name: Working Capital Turnover Ratio
@@ -2405,13 +2499,14 @@ filters:
     - balance_sheet_asset
     null_rule: Null if denominator asset <= 0 or missing
     direction_of_goodness: higher_is_better
-    glossary: Working Capital Turnover Ratio measures asset productivity by computing
-      the ratio of annual revenue to the deployed asset base.
+    glossary: Working Capital Turnover Ratio measures asset productivity by computing the ratio of annual
+      revenue to the deployed asset base.
     availability: Computed-from-official
     in_screenshot: true
     locked_in_original: false
     needs_official_source: true
     frequency: Annual
+    feeds: xbrl
   inventory_turnover_ratio:
     id: inventory_turnover_ratio
     name: Inventory Turnover Ratio
@@ -2423,13 +2518,14 @@ filters:
     - balance_sheet_asset
     null_rule: Null if denominator asset <= 0 or missing
     direction_of_goodness: higher_is_better
-    glossary: Inventory Turnover Ratio measures asset productivity by computing the
-      ratio of annual revenue to the deployed asset base.
+    glossary: Inventory Turnover Ratio measures asset productivity by computing the ratio of annual revenue
+      to the deployed asset base.
     availability: Computed-from-official
     in_screenshot: true
     locked_in_original: false
     needs_official_source: true
     frequency: Annual
+    feeds: xbrl
   asset_turnover_ratio:
     id: asset_turnover_ratio
     name: Asset Turnover Ratio
@@ -2441,13 +2537,14 @@ filters:
     - balance_sheet_asset
     null_rule: Null if denominator asset <= 0 or missing
     direction_of_goodness: higher_is_better
-    glossary: Asset Turnover Ratio measures asset productivity by computing the ratio
-      of annual revenue to the deployed asset base.
+    glossary: Asset Turnover Ratio measures asset productivity by computing the ratio of annual revenue
+      to the deployed asset base.
     availability: Computed-from-official
     in_screenshot: true
     locked_in_original: false
     needs_official_source: true
     frequency: Annual
+    feeds: xbrl
   days_of_inventory_outstanding:
     id: days_of_inventory_outstanding
     name: Days of Inventory Outstanding
@@ -2459,13 +2556,14 @@ filters:
     - income_statement
     null_rule: Null for financial institutions or zero denominator
     direction_of_goodness: lower_is_better
-    glossary: Days of Inventory Outstanding measures operational efficiency in working
-      capital management over the fiscal year.
+    glossary: Days of Inventory Outstanding measures operational efficiency in working capital management
+      over the fiscal year.
     availability: Computed-from-official
     in_screenshot: true
     locked_in_original: true
     needs_official_source: true
     frequency: Annual
+    feeds: xbrl
   days_of_sales_outstanding:
     id: days_of_sales_outstanding
     name: Days of Sales Outstanding
@@ -2477,13 +2575,14 @@ filters:
     - income_statement
     null_rule: Null for financial institutions or zero denominator
     direction_of_goodness: lower_is_better
-    glossary: Days of Sales Outstanding measures operational efficiency in working
-      capital management over the fiscal year.
+    glossary: Days of Sales Outstanding measures operational efficiency in working capital management
+      over the fiscal year.
     availability: Computed-from-official
     in_screenshot: true
     locked_in_original: true
     needs_official_source: true
     frequency: Annual
+    feeds: xbrl
   days_payable_outstanding:
     id: days_payable_outstanding
     name: Days Payable Outstanding
@@ -2495,13 +2594,14 @@ filters:
     - income_statement
     null_rule: Null for financial institutions or zero denominator
     direction_of_goodness: higher_is_better
-    glossary: Days Payable Outstanding measures operational efficiency in working
-      capital management over the fiscal year.
+    glossary: Days Payable Outstanding measures operational efficiency in working capital management over
+      the fiscal year.
     availability: Computed-from-official
     in_screenshot: true
     locked_in_original: true
     needs_official_source: true
     frequency: Annual
+    feeds: xbrl
   earning_power:
     id: earning_power
     name: Earning Power
@@ -2513,53 +2613,54 @@ filters:
     - total_assets
     null_rule: Null if total assets <= 0 or missing
     direction_of_goodness: higher_is_better
-    glossary: Basic Earning Power measures operational earning capacity independent
-      of tax and leverage (EBIT / Total Assets).
+    glossary: Basic Earning Power measures operational earning capacity independent of tax and leverage
+      (EBIT / Total Assets).
     availability: Computed-from-official
     in_screenshot: true
     locked_in_original: false
     needs_official_source: true
     frequency: Annual
+    feeds: xbrl
   price_momentum_rank:
     id: price_momentum_rank
     name: Price Momentum Rank
     category: Special
     unit: rank
-    formula: 0.6 * pct(12M return) + 0.4 * pct(12M return - sub-sector median 12M
-      return)
+    formula: 0.6 * pct(12M return) + 0.4 * pct(12M return - sub-sector median 12M return)
     inputs:
     - price_history
     - fundamentals
     - sector_peers
     null_rule: Null if required historical data or fundamental ratios missing
     direction_of_goodness: higher_is_better
-    glossary: Price Momentum Rank is an open quantitative composite score (0-100 percentile
-      or 1-10) evaluated across the active market universe.
+    glossary: Price Momentum Rank is an open quantitative composite score (0-100 percentile or 1-10) evaluated
+      across the active market universe.
     availability: Approximate
     in_screenshot: true
     locked_in_original: true
     needs_official_source: true
     frequency: Daily
+    feeds: history
   fundamental_score:
     id: fundamental_score
     name: Fundamental Score
     category: Special
     unit: score
-    formula: 1 + 9 * sector percentile of composite (valuation, profitability, growth,
-      financial health)
+    formula: 1 + 9 * sector percentile of composite (valuation, profitability, growth, financial health)
     inputs:
     - price_history
     - fundamentals
     - sector_peers
     null_rule: Null if required historical data or fundamental ratios missing
     direction_of_goodness: higher_is_better
-    glossary: Fundamental Score is an open quantitative composite score (0-100 percentile
-      or 1-10) evaluated across the active market universe.
+    glossary: Fundamental Score is an open quantitative composite score (0-100 percentile or 1-10) evaluated
+      across the active market universe.
     availability: Approximate
     in_screenshot: true
     locked_in_original: true
     needs_official_source: true
     frequency: Quarterly
+    feeds: xbrl
   value_momentum_rank:
     id: value_momentum_rank
     name: Value Momentum Rank
@@ -2572,13 +2673,14 @@ filters:
     - sector_peers
     null_rule: Null if required historical data or fundamental ratios missing
     direction_of_goodness: higher_is_better
-    glossary: Value Momentum Rank is an open quantitative composite score (0-100 percentile
-      or 1-10) evaluated across the active market universe.
+    glossary: Value Momentum Rank is an open quantitative composite score (0-100 percentile or 1-10) evaluated
+      across the active market universe.
     availability: Approximate
     in_screenshot: true
     locked_in_original: true
     needs_official_source: true
     frequency: Daily
+    feeds: xbrl
   earnings_quality_rank:
     id: earnings_quality_rank
     name: Earnings Quality Rank
@@ -2591,33 +2693,34 @@ filters:
     - sector_peers
     null_rule: Null if required historical data or fundamental ratios missing
     direction_of_goodness: higher_is_better
-    glossary: Earnings Quality Rank is an open quantitative composite score (0-100
-      percentile or 1-10) evaluated across the active market universe.
+    glossary: Earnings Quality Rank is an open quantitative composite score (0-100 percentile or 1-10)
+      evaluated across the active market universe.
     availability: Approximate
     in_screenshot: true
     locked_in_original: true
     needs_official_source: true
     frequency: Annual/Quarterly
+    feeds: xbrl
   price_to_intrinsic_value_rank:
     id: price_to_intrinsic_value_rank
     name: Price to Intrinsic Value Rank
     category: Special
     unit: rank
-    formula: Percentile rank of P / Intrinsic Value (IV = median of Graham, FCF perpetuity,
-      dividend models)
+    formula: Percentile rank of P / Intrinsic Value (IV = median of Graham, FCF perpetuity, dividend models)
     inputs:
     - price_history
     - fundamentals
     - sector_peers
     null_rule: Null if required historical data or fundamental ratios missing
     direction_of_goodness: higher_is_better
-    glossary: Price to Intrinsic Value Rank is an open quantitative composite score
-      (0-100 percentile or 1-10) evaluated across the active market universe.
+    glossary: Price to Intrinsic Value Rank is an open quantitative composite score (0-100 percentile
+      or 1-10) evaluated across the active market universe.
     availability: Approximate
     in_screenshot: true
     locked_in_original: true
     needs_official_source: true
     frequency: Daily
+    feeds: xbrl
   percentage_upside:
     id: percentage_upside
     name: Percentage Upside
@@ -2626,16 +2729,16 @@ filters:
     formula: Mean analyst target price / Close - 1 (proprietary consensus)
     inputs:
     - analyst_consensus
-    null_rule: Null - sell-side research coverage unavailable from official exchange
-      sources
+    null_rule: Null - sell-side research coverage unavailable from official exchange sources
     direction_of_goodness: higher_is_better
-    glossary: Percentage Upside reports consensus analyst sentiment. Unavailable from
-      official exchange data; can be populated from user spreadsheet uploads.
+    glossary: Percentage Upside reports consensus analyst sentiment. Unavailable from official exchange
+      data; can be populated from user spreadsheet uploads.
     availability: Unavailable
     in_screenshot: true
     locked_in_original: true
     needs_official_source: false
     frequency: Daily
+    feeds: unavailable
   percentage_buy_recos:
     id: percentage_buy_recos
     name: Percentage Buy Reco's
@@ -2644,16 +2747,16 @@ filters:
     formula: Buy recommendations / total analyst recommendations * 100
     inputs:
     - analyst_consensus
-    null_rule: Null - sell-side research coverage unavailable from official exchange
-      sources
+    null_rule: Null - sell-side research coverage unavailable from official exchange sources
     direction_of_goodness: higher_is_better
-    glossary: Percentage Buy Reco's reports consensus analyst sentiment. Unavailable
-      from official exchange data; can be populated from user spreadsheet uploads.
+    glossary: Percentage Buy Reco's reports consensus analyst sentiment. Unavailable from official exchange
+      data; can be populated from user spreadsheet uploads.
     availability: Unavailable
     in_screenshot: true
     locked_in_original: true
     needs_official_source: false
     frequency: Daily
+    feeds: unavailable
   percentage_hold_recos:
     id: percentage_hold_recos
     name: Percentage Hold Reco's
@@ -2662,16 +2765,16 @@ filters:
     formula: Hold recommendations / total analyst recommendations * 100
     inputs:
     - analyst_consensus
-    null_rule: Null - sell-side research coverage unavailable from official exchange
-      sources
+    null_rule: Null - sell-side research coverage unavailable from official exchange sources
     direction_of_goodness: higher_is_better
-    glossary: Percentage Hold Reco's reports consensus analyst sentiment. Unavailable
-      from official exchange data; can be populated from user spreadsheet uploads.
+    glossary: Percentage Hold Reco's reports consensus analyst sentiment. Unavailable from official exchange
+      data; can be populated from user spreadsheet uploads.
     availability: Unavailable
     in_screenshot: true
     locked_in_original: true
     needs_official_source: false
     frequency: Daily
+    feeds: unavailable
   percentage_sell_recos:
     id: percentage_sell_recos
     name: Percentage Sell Reco's
@@ -2680,16 +2783,16 @@ filters:
     formula: Sell recommendations / total analyst recommendations * 100
     inputs:
     - analyst_consensus
-    null_rule: Null - sell-side research coverage unavailable from official exchange
-      sources
+    null_rule: Null - sell-side research coverage unavailable from official exchange sources
     direction_of_goodness: higher_is_better
-    glossary: Percentage Sell Reco's reports consensus analyst sentiment. Unavailable
-      from official exchange data; can be populated from user spreadsheet uploads.
+    glossary: Percentage Sell Reco's reports consensus analyst sentiment. Unavailable from official exchange
+      data; can be populated from user spreadsheet uploads.
     availability: Unavailable
     in_screenshot: true
     locked_in_original: true
     needs_official_source: false
     frequency: Daily
+    feeds: unavailable
   no_of_analysts_with_buy_reco:
     id: no_of_analysts_with_buy_reco
     name: No. of analysts with buy reco
@@ -2698,16 +2801,16 @@ filters:
     formula: Count of analysts with Buy/Strong Buy rating
     inputs:
     - analyst_consensus
-    null_rule: Null - sell-side research coverage unavailable from official exchange
-      sources
+    null_rule: Null - sell-side research coverage unavailable from official exchange sources
     direction_of_goodness: higher_is_better
-    glossary: No. of analysts with buy reco reports consensus analyst sentiment. Unavailable
-      from official exchange data; can be populated from user spreadsheet uploads.
+    glossary: No. of analysts with buy reco reports consensus analyst sentiment. Unavailable from official
+      exchange data; can be populated from user spreadsheet uploads.
     availability: Unavailable
     in_screenshot: true
     locked_in_original: true
     needs_official_source: false
     frequency: Daily
+    feeds: unavailable
   total_no_of_analysts:
     id: total_no_of_analysts
     name: Total no. of analysts
@@ -2716,16 +2819,16 @@ filters:
     formula: Total number of analysts covering the stock
     inputs:
     - analyst_consensus
-    null_rule: Null - sell-side research coverage unavailable from official exchange
-      sources
+    null_rule: Null - sell-side research coverage unavailable from official exchange sources
     direction_of_goodness: higher_is_better
-    glossary: Total no. of analysts reports consensus analyst sentiment. Unavailable
-      from official exchange data; can be populated from user spreadsheet uploads.
+    glossary: Total no. of analysts reports consensus analyst sentiment. Unavailable from official exchange
+      data; can be populated from user spreadsheet uploads.
     availability: Unavailable
     in_screenshot: true
     locked_in_original: true
     needs_official_source: false
     frequency: Daily
+    feeds: unavailable
   1y_max_loss:
     id: 1y_max_loss
     name: 1Y Max Loss
@@ -2736,13 +2839,14 @@ filters:
     - close_price_series
     null_rule: Null if underlying data point is missing
     direction_of_goodness: lower_is_better
-    glossary: Maximum peak-to-trough price drawdown experienced by the stock over
-      the trailing 250 trading sessions.
+    glossary: Maximum peak-to-trough price drawdown experienced by the stock over the trailing 250 trading
+      sessions.
     availability: Computed-from-official
     in_screenshot: false
     locked_in_original: false
     needs_official_source: true
     frequency: Daily
+    feeds: history
   sma_10d:
     id: sma_10d
     name: SMA 10D
@@ -2753,13 +2857,14 @@ filters:
     - close_price_series
     null_rule: Null if trading history is shorter than required lookback period
     direction_of_goodness: neutral
-    glossary: SMA 10D calculates the trend baseline using an arithmetic or exponential
-      moving average of closing prices over the specified window.
+    glossary: SMA 10D calculates the trend baseline using an arithmetic or exponential moving average
+      of closing prices over the specified window.
     availability: Computed-from-official
     in_screenshot: false
     locked_in_original: false
     needs_official_source: true
     frequency: Daily
+    feeds: history
   sma_50d:
     id: sma_50d
     name: SMA 50D
@@ -2770,13 +2875,14 @@ filters:
     - close_price_series
     null_rule: Null if trading history is shorter than required lookback period
     direction_of_goodness: neutral
-    glossary: SMA 50D calculates the trend baseline using an arithmetic or exponential
-      moving average of closing prices over the specified window.
+    glossary: SMA 50D calculates the trend baseline using an arithmetic or exponential moving average
+      of closing prices over the specified window.
     availability: Computed-from-official
     in_screenshot: false
     locked_in_original: false
     needs_official_source: true
     frequency: Daily
+    feeds: history
   sma_100d:
     id: sma_100d
     name: SMA 100D
@@ -2787,13 +2893,14 @@ filters:
     - close_price_series
     null_rule: Null if trading history is shorter than required lookback period
     direction_of_goodness: neutral
-    glossary: SMA 100D calculates the trend baseline using an arithmetic or exponential
-      moving average of closing prices over the specified window.
+    glossary: SMA 100D calculates the trend baseline using an arithmetic or exponential moving average
+      of closing prices over the specified window.
     availability: Computed-from-official
     in_screenshot: false
     locked_in_original: false
     needs_official_source: true
     frequency: Daily
+    feeds: history
   sma_200d:
     id: sma_200d
     name: SMA 200D
@@ -2804,13 +2911,14 @@ filters:
     - close_price_series
     null_rule: Null if trading history is shorter than required lookback period
     direction_of_goodness: neutral
-    glossary: SMA 200D calculates the trend baseline using an arithmetic or exponential
-      moving average of closing prices over the specified window.
+    glossary: SMA 200D calculates the trend baseline using an arithmetic or exponential moving average
+      of closing prices over the specified window.
     availability: Computed-from-official
     in_screenshot: false
     locked_in_original: false
     needs_official_source: true
     frequency: Daily
+    feeds: history
   ema_10d:
     id: ema_10d
     name: EMA 10D
@@ -2821,13 +2929,14 @@ filters:
     - close_price_series
     null_rule: Null if trading history is shorter than required lookback period
     direction_of_goodness: neutral
-    glossary: EMA 10D calculates the trend baseline using an arithmetic or exponential
-      moving average of closing prices over the specified window.
+    glossary: EMA 10D calculates the trend baseline using an arithmetic or exponential moving average
+      of closing prices over the specified window.
     availability: Computed-from-official
     in_screenshot: false
     locked_in_original: false
     needs_official_source: true
     frequency: Daily
+    feeds: history
   ema_50d:
     id: ema_50d
     name: EMA 50D
@@ -2838,13 +2947,14 @@ filters:
     - close_price_series
     null_rule: Null if trading history is shorter than required lookback period
     direction_of_goodness: neutral
-    glossary: EMA 50D calculates the trend baseline using an arithmetic or exponential
-      moving average of closing prices over the specified window.
+    glossary: EMA 50D calculates the trend baseline using an arithmetic or exponential moving average
+      of closing prices over the specified window.
     availability: Computed-from-official
     in_screenshot: false
     locked_in_original: false
     needs_official_source: true
     frequency: Daily
+    feeds: history
   ema_100d:
     id: ema_100d
     name: EMA 100D
@@ -2855,13 +2965,14 @@ filters:
     - close_price_series
     null_rule: Null if trading history is shorter than required lookback period
     direction_of_goodness: neutral
-    glossary: EMA 100D calculates the trend baseline using an arithmetic or exponential
-      moving average of closing prices over the specified window.
+    glossary: EMA 100D calculates the trend baseline using an arithmetic or exponential moving average
+      of closing prices over the specified window.
     availability: Computed-from-official
     in_screenshot: false
     locked_in_original: false
     needs_official_source: true
     frequency: Daily
+    feeds: history
   ema_200d:
     id: ema_200d
     name: EMA 200D
@@ -2872,13 +2983,14 @@ filters:
     - close_price_series
     null_rule: Null if trading history is shorter than required lookback period
     direction_of_goodness: neutral
-    glossary: EMA 200D calculates the trend baseline using an arithmetic or exponential
-      moving average of closing prices over the specified window.
+    glossary: EMA 200D calculates the trend baseline using an arithmetic or exponential moving average
+      of closing prices over the specified window.
     availability: Computed-from-official
     in_screenshot: false
     locked_in_original: false
     needs_official_source: true
     frequency: Daily
+    feeds: history
   alpha:
     id: alpha
     name: Alpha
@@ -2890,13 +3002,14 @@ filters:
     - nifty_weekly_closes_104w
     null_rule: Null if underlying data point is missing
     direction_of_goodness: higher_is_better
-    glossary: Alpha evaluates risk-adjusted return and benchmark sensitivity using
-      104 weekly closes relative to the Nifty 50.
+    glossary: Alpha evaluates risk-adjusted return and benchmark sensitivity using 104 weekly closes relative
+      to the Nifty 50.
     availability: Computed-from-official
     in_screenshot: false
     locked_in_original: false
     needs_official_source: true
     frequency: Daily
+    feeds: history
   beta:
     id: beta
     name: Beta
@@ -2908,13 +3021,14 @@ filters:
     - nifty_weekly_closes_104w
     null_rule: Null if underlying data point is missing
     direction_of_goodness: neutral
-    glossary: Beta evaluates risk-adjusted return and benchmark sensitivity using
-      104 weekly closes relative to the Nifty 50.
+    glossary: Beta evaluates risk-adjusted return and benchmark sensitivity using 104 weekly closes relative
+      to the Nifty 50.
     availability: Computed-from-official
     in_screenshot: false
     locked_in_original: false
     needs_official_source: true
     frequency: Daily
+    feeds: history
   sharpe_ratio:
     id: sharpe_ratio
     name: Sharpe Ratio
@@ -2926,13 +3040,14 @@ filters:
     - nifty_weekly_closes_104w
     null_rule: Null if underlying data point is missing
     direction_of_goodness: higher_is_better
-    glossary: Sharpe Ratio evaluates risk-adjusted return and benchmark sensitivity
-      using 104 weekly closes relative to the Nifty 50.
+    glossary: Sharpe Ratio evaluates risk-adjusted return and benchmark sensitivity using 104 weekly closes
+      relative to the Nifty 50.
     availability: Computed-from-official
     in_screenshot: false
     locked_in_original: false
     needs_official_source: true
     frequency: Daily
+    feeds: history
   relative_volume:
     id: relative_volume
     name: Relative Volume
@@ -2944,13 +3059,14 @@ filters:
     - volume_91d_avg
     null_rule: Null if underlying data point is missing
     direction_of_goodness: neutral
-    glossary: Ratio of average daily volume over the past 10 trading sessions compared
-      to the 91-day historical baseline.
+    glossary: Ratio of average daily volume over the past 10 trading sessions compared to the 91-day historical
+      baseline.
     availability: Computed-from-official
     in_screenshot: false
     locked_in_original: false
     needs_official_source: true
     frequency: Daily
+    feeds: history
   volatility:
     id: volatility
     name: Volatility
@@ -2962,13 +3078,14 @@ filters:
     - nifty_close_series
     null_rule: Null if underlying data point is missing
     direction_of_goodness: lower_is_better
-    glossary: Annualized historical volatility computed from daily log returns over
-      trailing 200 trading sessions.
+    glossary: Annualized historical volatility computed from daily log returns over trailing 200 trading
+      sessions.
     availability: Computed-from-official
     in_screenshot: false
     locked_in_original: false
     needs_official_source: true
     frequency: Daily
+    feeds: history
   volatility_vs_nifty:
     id: volatility_vs_nifty
     name: Volatility vs Nifty
@@ -2980,13 +3097,14 @@ filters:
     - nifty_close_series
     null_rule: Null if underlying data point is missing
     direction_of_goodness: lower_is_better
-    glossary: Annualized historical volatility computed from daily log returns over
-      trailing 200 trading sessions.
+    glossary: Annualized historical volatility computed from daily log returns over trailing 200 trading
+      sessions.
     availability: Computed-from-official
     in_screenshot: false
     locked_in_original: false
     needs_official_source: true
     frequency: Daily
+    feeds: history
   vwap:
     id: vwap
     name: Volume Weighted Average Price
@@ -2998,13 +3116,13 @@ filters:
     - bhavcopy_traded_qty
     null_rule: Null if underlying data point is missing
     direction_of_goodness: neutral
-    glossary: Intraday Volume Weighted Average Price (VWAP) reported in the exchange
-      bhavcopy.
+    glossary: Intraday Volume Weighted Average Price (VWAP) reported in the exchange bhavcopy.
     availability: Official-direct
     in_screenshot: false
     locked_in_original: false
     needs_official_source: true
     frequency: Daily
+    feeds: daily
   price_above_1m_sma:
     id: price_above_1m_sma
     name: '% Price above 1M SMA'
@@ -3015,13 +3133,14 @@ filters:
     - close_price_series
     null_rule: Null if trading history is shorter than required lookback period
     direction_of_goodness: neutral
-    glossary: '% Price above 1M SMA calculates the trend baseline using an arithmetic
-      or exponential moving average of closing prices over the specified window.'
+    glossary: '% Price above 1M SMA calculates the trend baseline using an arithmetic or exponential moving
+      average of closing prices over the specified window.'
     availability: Computed-from-official
     in_screenshot: false
     locked_in_original: false
     needs_official_source: true
     frequency: Daily
+    feeds: history
   price_above_12m_sma:
     id: price_above_12m_sma
     name: '% Price above 12M SMA'
@@ -3032,13 +3151,14 @@ filters:
     - close_price_series
     null_rule: Null if trading history is shorter than required lookback period
     direction_of_goodness: neutral
-    glossary: '% Price above 12M SMA calculates the trend baseline using an arithmetic
-      or exponential moving average of closing prices over the specified window.'
+    glossary: '% Price above 12M SMA calculates the trend baseline using an arithmetic or exponential
+      moving average of closing prices over the specified window.'
     availability: Computed-from-official
     in_screenshot: false
     locked_in_original: false
     needs_official_source: true
     frequency: Daily
+    feeds: history
   price_above_1m_ema:
     id: price_above_1m_ema
     name: '% Price above 1M EMA'
@@ -3049,13 +3169,14 @@ filters:
     - close_price_series
     null_rule: Null if trading history is shorter than required lookback period
     direction_of_goodness: neutral
-    glossary: '% Price above 1M EMA calculates the trend baseline using an arithmetic
-      or exponential moving average of closing prices over the specified window.'
+    glossary: '% Price above 1M EMA calculates the trend baseline using an arithmetic or exponential moving
+      average of closing prices over the specified window.'
     availability: Computed-from-official
     in_screenshot: false
     locked_in_original: false
     needs_official_source: true
     frequency: Daily
+    feeds: history
   rsi_14d:
     id: rsi_14d
     name: RSI 14D
@@ -3066,13 +3187,14 @@ filters:
     - close_price_series
     null_rule: Null if fewer than 15 trading days available
     direction_of_goodness: neutral
-    glossary: Relative Strength Index (RSI) measures price momentum on a 0-100 scale,
-      highlighting overbought (>70) and oversold (<30) market conditions.
+    glossary: Relative Strength Index (RSI) measures price momentum on a 0-100 scale, highlighting overbought
+      (>70) and oversold (<30) market conditions.
     availability: Computed-from-official
     in_screenshot: false
     locked_in_original: false
     needs_official_source: true
     frequency: Daily
+    feeds: history
   rsi_exponential_14d:
     id: rsi_exponential_14d
     name: RSI Exponential 14D
@@ -3083,13 +3205,14 @@ filters:
     - close_price_series
     null_rule: Null if fewer than 15 trading days available
     direction_of_goodness: neutral
-    glossary: Relative Strength Index (RSI) measures price momentum on a 0-100 scale,
-      highlighting overbought (>70) and oversold (<30) market conditions.
+    glossary: Relative Strength Index (RSI) measures price momentum on a 0-100 scale, highlighting overbought
+      (>70) and oversold (<30) market conditions.
     availability: Computed-from-official
     in_screenshot: false
     locked_in_original: false
     needs_official_source: true
     frequency: Daily
+    feeds: history
   adx_rating:
     id: adx_rating
     name: ADX Rating
@@ -3102,13 +3225,14 @@ filters:
     - close_series
     null_rule: Null if fewer than 28 trading days available
     direction_of_goodness: higher_is_better
-    glossary: Average Directional Index (ADX) quantifies trend strength on a 0-100
-      scale regardless of directional movement.
+    glossary: Average Directional Index (ADX) quantifies trend strength on a 0-100 scale regardless of
+      directional movement.
     availability: Computed-from-official
     in_screenshot: false
     locked_in_original: false
     needs_official_source: true
     frequency: Daily
+    feeds: history
   macd_line_1:
     id: macd_line_1
     name: MACD Line 1
@@ -3119,13 +3243,14 @@ filters:
     - close_price_series
     null_rule: Null if underlying data point is missing
     direction_of_goodness: neutral
-    glossary: Moving Average Convergence Divergence (MACD) tracks momentum shifts
-      through exponential moving average spreads.
+    glossary: Moving Average Convergence Divergence (MACD) tracks momentum shifts through exponential
+      moving average spreads.
     availability: Computed-from-official
     in_screenshot: false
     locked_in_original: false
     needs_official_source: true
     frequency: Daily
+    feeds: history
   macd_line_2:
     id: macd_line_2
     name: MACD Line 2
@@ -3136,13 +3261,14 @@ filters:
     - close_price_series
     null_rule: Null if underlying data point is missing
     direction_of_goodness: neutral
-    glossary: Moving Average Convergence Divergence (MACD) tracks momentum shifts
-      through exponential moving average spreads.
+    glossary: Moving Average Convergence Divergence (MACD) tracks momentum shifts through exponential
+      moving average spreads.
     availability: Computed-from-official
     in_screenshot: false
     locked_in_original: false
     needs_official_source: true
     frequency: Daily
+    feeds: history
   from_upper_bollinger_band:
     id: from_upper_bollinger_band
     name: '% From Upper Bollinger Band'
@@ -3153,13 +3279,14 @@ filters:
     - close_price_series
     null_rule: Null if underlying data point is missing
     direction_of_goodness: neutral
-    glossary: Distance of current price from the upper or lower 2-standard-deviation
-      Bollinger Band over 20 trading days.
+    glossary: Distance of current price from the upper or lower 2-standard-deviation Bollinger Band over
+      20 trading days.
     availability: Computed-from-official
     in_screenshot: false
     locked_in_original: false
     needs_official_source: true
     frequency: Daily
+    feeds: history
   from_lower_bollinger_band:
     id: from_lower_bollinger_band
     name: '% From Lower Bollinger Band'
@@ -3170,13 +3297,14 @@ filters:
     - close_price_series
     null_rule: Null if underlying data point is missing
     direction_of_goodness: neutral
-    glossary: Distance of current price from the upper or lower 2-standard-deviation
-      Bollinger Band over 20 trading days.
+    glossary: Distance of current price from the upper or lower 2-standard-deviation Bollinger Band over
+      20 trading days.
     availability: Computed-from-official
     in_screenshot: false
     locked_in_original: false
     needs_official_source: true
     frequency: Daily
+    feeds: history
   from_parabolic_sar:
     id: from_parabolic_sar
     name: '% From Parabolic SAR'
@@ -3189,13 +3317,14 @@ filters:
     - close_series
     null_rule: Null if underlying data point is missing
     direction_of_goodness: higher_is_better
-    glossary: Percentage distance of closing price from the trailing Parabolic SAR
-      level ((Close / SAR - 1) * 100).
+    glossary: Percentage distance of closing price from the trailing Parabolic SAR level ((Close / SAR
+      - 1) * 100).
     availability: Computed-from-official
     in_screenshot: false
     locked_in_original: false
     needs_official_source: true
     frequency: Daily
+    feeds: history
   williams_r:
     id: williams_r
     name: Williams %R
@@ -3208,13 +3337,14 @@ filters:
     - close_series
     null_rule: Null if underlying data point is missing
     direction_of_goodness: neutral
-    glossary: Williams %R momentum indicator oscillating between 0 and -100 ((Highest
-      High - Close) / (Highest High - Lowest Low) * -100).
+    glossary: Williams %R momentum indicator oscillating between 0 and -100 ((Highest High - Close) /
+      (Highest High - Lowest Low) * -100).
     availability: Computed-from-official
     in_screenshot: false
     locked_in_original: false
     needs_official_source: true
     frequency: Daily
+    feeds: history
   stochastic_k:
     id: stochastic_k
     name: Stochastic %K
@@ -3227,13 +3357,14 @@ filters:
     - close_series
     null_rule: Null if underlying data point is missing
     direction_of_goodness: neutral
-    glossary: Stochastic oscillator measuring closing price location relative to high-low
-      range over trailing 14 trading sessions.
+    glossary: Stochastic oscillator measuring closing price location relative to high-low range over trailing
+      14 trading sessions.
     availability: Computed-from-official
     in_screenshot: false
     locked_in_original: false
     needs_official_source: true
     frequency: Daily
+    feeds: history
   stochastic_d:
     id: stochastic_d
     name: Stochastic %D
@@ -3246,13 +3377,14 @@ filters:
     - close_series
     null_rule: Null if underlying data point is missing
     direction_of_goodness: neutral
-    glossary: Stochastic oscillator measuring closing price location relative to high-low
-      range over trailing 14 trading sessions.
+    glossary: Stochastic oscillator measuring closing price location relative to high-low range over trailing
+      14 trading sessions.
     availability: Computed-from-official
     in_screenshot: false
     locked_in_original: false
     needs_official_source: true
     frequency: Daily
+    feeds: history
   1w_change_in_obv:
     id: 1w_change_in_obv
     name: 1W Change in On Balance Volume
@@ -3264,13 +3396,14 @@ filters:
     - volume_series
     null_rule: Null if underlying data point is missing
     direction_of_goodness: higher_is_better
-    glossary: Weekly percentage change in On-Balance Volume (OBV), measuring volume
-      accumulation or distribution flow.
+    glossary: Weekly percentage change in On-Balance Volume (OBV), measuring volume accumulation or distribution
+      flow.
     availability: Computed-from-official
     in_screenshot: false
     locked_in_original: false
     needs_official_source: true
     frequency: Daily
+    feeds: history
   1w_change_in_ad_line:
     id: 1w_change_in_ad_line
     name: 1W Change in AD Line
@@ -3284,13 +3417,13 @@ filters:
     - volume_series
     null_rule: Null if underlying data point is missing
     direction_of_goodness: higher_is_better
-    glossary: Weekly percentage change in the Accumulation/Distribution Line based
-      on money flow volume.
+    glossary: Weekly percentage change in the Accumulation/Distribution Line based on money flow volume.
     availability: Computed-from-official
     in_screenshot: false
     locked_in_original: false
     needs_official_source: true
     frequency: Daily
+    feeds: history
   super_trend:
     id: super_trend
     name: Super Trend
@@ -3303,13 +3436,14 @@ filters:
     - close_series
     null_rule: Null if underlying data point is missing
     direction_of_goodness: higher_is_better
-    glossary: SuperTrend trend-following volatility indicator based on Average True
-      Range (ATR 10, Multiplier 3).
+    glossary: SuperTrend trend-following volatility indicator based on Average True Range (ATR 10, Multiplier
+      3).
     availability: Computed-from-official
     in_screenshot: false
     locked_in_original: false
     needs_official_source: true
     frequency: Daily
+    feeds: history
   book_value:
     id: book_value
     name: Book Value
@@ -3320,13 +3454,14 @@ filters:
     - xbrl_balance_sheet_cashflow
     null_rule: Null if balance sheet filing missing or inapplicable to sector
     direction_of_goodness: neutral
-    glossary: Official audited balance sheet or cash flow statement line item (Book
-      Value) disclosed in regulatory corporate filings.
+    glossary: Official audited balance sheet or cash flow statement line item (Book Value) disclosed in
+      regulatory corporate filings.
     availability: Official-direct
     in_screenshot: false
     locked_in_original: false
     needs_official_source: true
     frequency: Annual
+    feeds: xbrl
   cash_short_term_investments:
     id: cash_short_term_investments
     name: Cash and Short-term Investments
@@ -3337,13 +3472,14 @@ filters:
     - xbrl_balance_sheet_cashflow
     null_rule: Null if balance sheet filing missing or inapplicable to sector
     direction_of_goodness: neutral
-    glossary: Official audited balance sheet or cash flow statement line item (Cash
-      and Short-term Investments) disclosed in regulatory corporate filings.
+    glossary: Official audited balance sheet or cash flow statement line item (Cash and Short-term Investments)
+      disclosed in regulatory corporate filings.
     availability: Official-direct
     in_screenshot: false
     locked_in_original: false
     needs_official_source: true
     frequency: Annual
+    feeds: xbrl
   total_receivables:
     id: total_receivables
     name: Total Receivables
@@ -3354,13 +3490,14 @@ filters:
     - xbrl_balance_sheet_cashflow
     null_rule: Null if balance sheet filing missing or inapplicable to sector
     direction_of_goodness: neutral
-    glossary: Official audited balance sheet or cash flow statement line item (Total
-      Receivables) disclosed in regulatory corporate filings.
+    glossary: Official audited balance sheet or cash flow statement line item (Total Receivables) disclosed
+      in regulatory corporate filings.
     availability: Official-direct
     in_screenshot: false
     locked_in_original: false
     needs_official_source: true
     frequency: Annual
+    feeds: xbrl
   total_inventory:
     id: total_inventory
     name: Total Inventory
@@ -3371,13 +3508,14 @@ filters:
     - xbrl_balance_sheet_cashflow
     null_rule: Null if balance sheet filing missing or inapplicable to sector
     direction_of_goodness: neutral
-    glossary: Official audited balance sheet or cash flow statement line item (Total
-      Inventory) disclosed in regulatory corporate filings.
+    glossary: Official audited balance sheet or cash flow statement line item (Total Inventory) disclosed
+      in regulatory corporate filings.
     availability: Official-direct
     in_screenshot: false
     locked_in_original: false
     needs_official_source: true
     frequency: Annual
+    feeds: xbrl
   other_current_assets:
     id: other_current_assets
     name: Other Current Assets
@@ -3388,13 +3526,14 @@ filters:
     - xbrl_balance_sheet_cashflow
     null_rule: Null if balance sheet filing missing or inapplicable to sector
     direction_of_goodness: neutral
-    glossary: Official audited balance sheet or cash flow statement line item (Other
-      Current Assets) disclosed in regulatory corporate filings.
+    glossary: Official audited balance sheet or cash flow statement line item (Other Current Assets) disclosed
+      in regulatory corporate filings.
     availability: Official-direct
     in_screenshot: false
     locked_in_original: false
     needs_official_source: true
     frequency: Annual
+    feeds: xbrl
   total_current_assets:
     id: total_current_assets
     name: Total Current Assets
@@ -3405,13 +3544,14 @@ filters:
     - xbrl_balance_sheet_cashflow
     null_rule: Null if balance sheet filing missing or inapplicable to sector
     direction_of_goodness: neutral
-    glossary: Official audited balance sheet or cash flow statement line item (Total
-      Current Assets) disclosed in regulatory corporate filings.
+    glossary: Official audited balance sheet or cash flow statement line item (Total Current Assets) disclosed
+      in regulatory corporate filings.
     availability: Official-direct
     in_screenshot: false
     locked_in_original: false
     needs_official_source: true
     frequency: Annual
+    feeds: xbrl
   net_loans:
     id: net_loans
     name: Net Loans
@@ -3422,13 +3562,14 @@ filters:
     - xbrl_balance_sheet_cashflow
     null_rule: Null if balance sheet filing missing or inapplicable to sector
     direction_of_goodness: neutral
-    glossary: Official audited balance sheet or cash flow statement line item (Net
-      Loans) disclosed in regulatory corporate filings.
+    glossary: Official audited balance sheet or cash flow statement line item (Net Loans) disclosed in
+      regulatory corporate filings.
     availability: Official-direct
     in_screenshot: false
     locked_in_original: false
     needs_official_source: true
     frequency: Annual
+    feeds: xbrl
   net_ppe:
     id: net_ppe
     name: Net Property Plant Equipment
@@ -3439,13 +3580,14 @@ filters:
     - xbrl_balance_sheet_cashflow
     null_rule: Null if balance sheet filing missing or inapplicable to sector
     direction_of_goodness: neutral
-    glossary: Official audited balance sheet or cash flow statement line item (Net
-      Property Plant Equipment) disclosed in regulatory corporate filings.
+    glossary: Official audited balance sheet or cash flow statement line item (Net Property Plant Equipment)
+      disclosed in regulatory corporate filings.
     availability: Official-direct
     in_screenshot: false
     locked_in_original: false
     needs_official_source: true
     frequency: Annual
+    feeds: xbrl
   goodwill_intangibles:
     id: goodwill_intangibles
     name: Goodwill and Intangibles
@@ -3456,13 +3598,14 @@ filters:
     - xbrl_balance_sheet_cashflow
     null_rule: Null if balance sheet filing missing or inapplicable to sector
     direction_of_goodness: neutral
-    glossary: Official audited balance sheet or cash flow statement line item (Goodwill
-      and Intangibles) disclosed in regulatory corporate filings.
+    glossary: Official audited balance sheet or cash flow statement line item (Goodwill and Intangibles)
+      disclosed in regulatory corporate filings.
     availability: Official-direct
     in_screenshot: false
     locked_in_original: false
     needs_official_source: true
     frequency: Annual
+    feeds: xbrl
   long_term_investments:
     id: long_term_investments
     name: Long Term Investments
@@ -3473,13 +3616,14 @@ filters:
     - xbrl_balance_sheet_cashflow
     null_rule: Null if balance sheet filing missing or inapplicable to sector
     direction_of_goodness: neutral
-    glossary: Official audited balance sheet or cash flow statement line item (Long
-      Term Investments) disclosed in regulatory corporate filings.
+    glossary: Official audited balance sheet or cash flow statement line item (Long Term Investments)
+      disclosed in regulatory corporate filings.
     availability: Official-direct
     in_screenshot: false
     locked_in_original: false
     needs_official_source: true
     frequency: Annual
+    feeds: xbrl
   other_assets:
     id: other_assets
     name: Other Assets
@@ -3490,13 +3634,14 @@ filters:
     - xbrl_balance_sheet_cashflow
     null_rule: Null if balance sheet filing missing or inapplicable to sector
     direction_of_goodness: neutral
-    glossary: Official audited balance sheet or cash flow statement line item (Other
-      Assets) disclosed in regulatory corporate filings.
+    glossary: Official audited balance sheet or cash flow statement line item (Other Assets) disclosed
+      in regulatory corporate filings.
     availability: Official-direct
     in_screenshot: false
     locked_in_original: false
     needs_official_source: true
     frequency: Annual
+    feeds: xbrl
   total_assets:
     id: total_assets
     name: Total Assets
@@ -3507,13 +3652,14 @@ filters:
     - xbrl_balance_sheet_cashflow
     null_rule: Null if balance sheet filing missing or inapplicable to sector
     direction_of_goodness: neutral
-    glossary: Official audited balance sheet or cash flow statement line item (Total
-      Assets) disclosed in regulatory corporate filings.
+    glossary: Official audited balance sheet or cash flow statement line item (Total Assets) disclosed
+      in regulatory corporate filings.
     availability: Official-direct
     in_screenshot: false
     locked_in_original: false
     needs_official_source: true
     frequency: Annual
+    feeds: xbrl
   accounts_payable:
     id: accounts_payable
     name: Accounts Payable
@@ -3524,13 +3670,14 @@ filters:
     - xbrl_balance_sheet_cashflow
     null_rule: Null if balance sheet filing missing or inapplicable to sector
     direction_of_goodness: neutral
-    glossary: Official audited balance sheet or cash flow statement line item (Accounts
-      Payable) disclosed in regulatory corporate filings.
+    glossary: Official audited balance sheet or cash flow statement line item (Accounts Payable) disclosed
+      in regulatory corporate filings.
     availability: Official-direct
     in_screenshot: false
     locked_in_original: false
     needs_official_source: true
     frequency: Annual
+    feeds: xbrl
   total_deposits:
     id: total_deposits
     name: Total Deposits
@@ -3541,13 +3688,14 @@ filters:
     - xbrl_balance_sheet_cashflow
     null_rule: Null if balance sheet filing missing or inapplicable to sector
     direction_of_goodness: neutral
-    glossary: Official audited balance sheet or cash flow statement line item (Total
-      Deposits) disclosed in regulatory corporate filings.
+    glossary: Official audited balance sheet or cash flow statement line item (Total Deposits) disclosed
+      in regulatory corporate filings.
     availability: Official-direct
     in_screenshot: false
     locked_in_original: false
     needs_official_source: true
     frequency: Annual
+    feeds: xbrl
   other_current_liabilities:
     id: other_current_liabilities
     name: Other Current Liabilities
@@ -3558,13 +3706,14 @@ filters:
     - xbrl_balance_sheet_cashflow
     null_rule: Null if balance sheet filing missing or inapplicable to sector
     direction_of_goodness: neutral
-    glossary: Official audited balance sheet or cash flow statement line item (Other
-      Current Liabilities) disclosed in regulatory corporate filings.
+    glossary: Official audited balance sheet or cash flow statement line item (Other Current Liabilities)
+      disclosed in regulatory corporate filings.
     availability: Official-direct
     in_screenshot: false
     locked_in_original: false
     needs_official_source: true
     frequency: Annual
+    feeds: xbrl
   total_current_liabilities:
     id: total_current_liabilities
     name: Total Current Liabilities
@@ -3575,13 +3724,14 @@ filters:
     - xbrl_balance_sheet_cashflow
     null_rule: Null if balance sheet filing missing or inapplicable to sector
     direction_of_goodness: neutral
-    glossary: Official audited balance sheet or cash flow statement line item (Total
-      Current Liabilities) disclosed in regulatory corporate filings.
+    glossary: Official audited balance sheet or cash flow statement line item (Total Current Liabilities)
+      disclosed in regulatory corporate filings.
     availability: Official-direct
     in_screenshot: false
     locked_in_original: false
     needs_official_source: true
     frequency: Annual
+    feeds: xbrl
   total_long_term_debt:
     id: total_long_term_debt
     name: Total Long Term Debt
@@ -3592,13 +3742,14 @@ filters:
     - xbrl_balance_sheet_cashflow
     null_rule: Null if balance sheet filing missing or inapplicable to sector
     direction_of_goodness: neutral
-    glossary: Official audited balance sheet or cash flow statement line item (Total
-      Long Term Debt) disclosed in regulatory corporate filings.
+    glossary: Official audited balance sheet or cash flow statement line item (Total Long Term Debt) disclosed
+      in regulatory corporate filings.
     availability: Official-direct
     in_screenshot: false
     locked_in_original: false
     needs_official_source: true
     frequency: Annual
+    feeds: xbrl
   total_debt:
     id: total_debt
     name: Total Debt
@@ -3609,13 +3760,14 @@ filters:
     - xbrl_balance_sheet_cashflow
     null_rule: Null if balance sheet filing missing or inapplicable to sector
     direction_of_goodness: neutral
-    glossary: Official audited balance sheet or cash flow statement line item (Total
-      Debt) disclosed in regulatory corporate filings.
+    glossary: Official audited balance sheet or cash flow statement line item (Total Debt) disclosed in
+      regulatory corporate filings.
     availability: Official-direct
     in_screenshot: false
     locked_in_original: false
     needs_official_source: true
     frequency: Annual
+    feeds: xbrl
   deferred_income_tax:
     id: deferred_income_tax
     name: Deferred Income Tax
@@ -3626,13 +3778,14 @@ filters:
     - xbrl_balance_sheet_cashflow
     null_rule: Null if balance sheet filing missing or inapplicable to sector
     direction_of_goodness: neutral
-    glossary: Official audited balance sheet or cash flow statement line item (Deferred
-      Income Tax) disclosed in regulatory corporate filings.
+    glossary: Official audited balance sheet or cash flow statement line item (Deferred Income Tax) disclosed
+      in regulatory corporate filings.
     availability: Official-direct
     in_screenshot: false
     locked_in_original: false
     needs_official_source: true
     frequency: Annual
+    feeds: xbrl
   minority_interest:
     id: minority_interest
     name: Minority Interest
@@ -3643,13 +3796,14 @@ filters:
     - xbrl_balance_sheet_cashflow
     null_rule: Null if balance sheet filing missing or inapplicable to sector
     direction_of_goodness: neutral
-    glossary: Official audited balance sheet or cash flow statement line item (Minority
-      Interest) disclosed in regulatory corporate filings.
+    glossary: Official audited balance sheet or cash flow statement line item (Minority Interest) disclosed
+      in regulatory corporate filings.
     availability: Official-direct
     in_screenshot: false
     locked_in_original: false
     needs_official_source: true
     frequency: Annual
+    feeds: xbrl
   other_liabilities:
     id: other_liabilities
     name: Other Liabilities
@@ -3660,13 +3814,14 @@ filters:
     - xbrl_balance_sheet_cashflow
     null_rule: Null if balance sheet filing missing or inapplicable to sector
     direction_of_goodness: neutral
-    glossary: Official audited balance sheet or cash flow statement line item (Other
-      Liabilities) disclosed in regulatory corporate filings.
+    glossary: Official audited balance sheet or cash flow statement line item (Other Liabilities) disclosed
+      in regulatory corporate filings.
     availability: Official-direct
     in_screenshot: false
     locked_in_original: false
     needs_official_source: true
     frequency: Annual
+    feeds: xbrl
   total_liabilities:
     id: total_liabilities
     name: Total Liabilities
@@ -3677,13 +3832,14 @@ filters:
     - xbrl_balance_sheet_cashflow
     null_rule: Null if balance sheet filing missing or inapplicable to sector
     direction_of_goodness: neutral
-    glossary: Official audited balance sheet or cash flow statement line item (Total
-      Liabilities) disclosed in regulatory corporate filings.
+    glossary: Official audited balance sheet or cash flow statement line item (Total Liabilities) disclosed
+      in regulatory corporate filings.
     availability: Official-direct
     in_screenshot: false
     locked_in_original: false
     needs_official_source: true
     frequency: Annual
+    feeds: xbrl
   common_stock:
     id: common_stock
     name: Common Stock
@@ -3694,13 +3850,14 @@ filters:
     - xbrl_balance_sheet_cashflow
     null_rule: Null if balance sheet filing missing or inapplicable to sector
     direction_of_goodness: neutral
-    glossary: Official audited balance sheet or cash flow statement line item (Common
-      Stock) disclosed in regulatory corporate filings.
+    glossary: Official audited balance sheet or cash flow statement line item (Common Stock) disclosed
+      in regulatory corporate filings.
     availability: Official-direct
     in_screenshot: false
     locked_in_original: false
     needs_official_source: true
     frequency: Annual
+    feeds: xbrl
   additional_paid_in_capital:
     id: additional_paid_in_capital
     name: Additional Paid-in Capital
@@ -3711,13 +3868,14 @@ filters:
     - xbrl_balance_sheet_cashflow
     null_rule: Null if balance sheet filing missing or inapplicable to sector
     direction_of_goodness: neutral
-    glossary: Official audited balance sheet or cash flow statement line item (Additional
-      Paid-in Capital) disclosed in regulatory corporate filings.
+    glossary: Official audited balance sheet or cash flow statement line item (Additional Paid-in Capital)
+      disclosed in regulatory corporate filings.
     availability: Official-direct
     in_screenshot: false
     locked_in_original: false
     needs_official_source: true
     frequency: Annual
+    feeds: xbrl
   retained_earnings:
     id: retained_earnings
     name: Retained Earnings
@@ -3728,13 +3886,14 @@ filters:
     - xbrl_balance_sheet_cashflow
     null_rule: Null if balance sheet filing missing or inapplicable to sector
     direction_of_goodness: neutral
-    glossary: Official audited balance sheet or cash flow statement line item (Retained
-      Earnings) disclosed in regulatory corporate filings.
+    glossary: Official audited balance sheet or cash flow statement line item (Retained Earnings) disclosed
+      in regulatory corporate filings.
     availability: Official-direct
     in_screenshot: false
     locked_in_original: false
     needs_official_source: true
     frequency: Annual
+    feeds: xbrl
   other_equity:
     id: other_equity
     name: Other Equity
@@ -3745,13 +3904,14 @@ filters:
     - xbrl_balance_sheet_cashflow
     null_rule: Null if balance sheet filing missing or inapplicable to sector
     direction_of_goodness: neutral
-    glossary: Official audited balance sheet or cash flow statement line item (Other
-      Equity) disclosed in regulatory corporate filings.
+    glossary: Official audited balance sheet or cash flow statement line item (Other Equity) disclosed
+      in regulatory corporate filings.
     availability: Official-direct
     in_screenshot: false
     locked_in_original: false
     needs_official_source: true
     frequency: Annual
+    feeds: xbrl
   total_equity:
     id: total_equity
     name: Total Equity
@@ -3762,13 +3922,14 @@ filters:
     - xbrl_balance_sheet_cashflow
     null_rule: Null if balance sheet filing missing or inapplicable to sector
     direction_of_goodness: neutral
-    glossary: Official audited balance sheet or cash flow statement line item (Total
-      Equity) disclosed in regulatory corporate filings.
+    glossary: Official audited balance sheet or cash flow statement line item (Total Equity) disclosed
+      in regulatory corporate filings.
     availability: Official-direct
     in_screenshot: false
     locked_in_original: false
     needs_official_source: true
     frequency: Annual
+    feeds: xbrl
   total_liabilities_shareholders_equity:
     id: total_liabilities_shareholders_equity
     name: Total Liabilities & Shareholders Equity
@@ -3779,13 +3940,14 @@ filters:
     - xbrl_balance_sheet_cashflow
     null_rule: Null if balance sheet filing missing or inapplicable to sector
     direction_of_goodness: neutral
-    glossary: Official audited balance sheet or cash flow statement line item (Total
-      Liabilities & Shareholders Equity) disclosed in regulatory corporate filings.
+    glossary: Official audited balance sheet or cash flow statement line item (Total Liabilities & Shareholders
+      Equity) disclosed in regulatory corporate filings.
     availability: Official-direct
     in_screenshot: false
     locked_in_original: false
     needs_official_source: true
     frequency: Annual
+    feeds: xbrl
   total_common_shares_outstanding:
     id: total_common_shares_outstanding
     name: Total Common Shares Outstanding
@@ -3796,13 +3958,14 @@ filters:
     - xbrl_balance_sheet_cashflow
     null_rule: Null if balance sheet filing missing or inapplicable to sector
     direction_of_goodness: neutral
-    glossary: Official audited balance sheet or cash flow statement line item (Total
-      Common Shares Outstanding) disclosed in regulatory corporate filings.
+    glossary: Official audited balance sheet or cash flow statement line item (Total Common Shares Outstanding)
+      disclosed in regulatory corporate filings.
     availability: Official-direct
     in_screenshot: false
     locked_in_original: false
     needs_official_source: true
     frequency: Annual/Quarterly
+    feeds: xbrl
   total_preferred_shares_outstanding:
     id: total_preferred_shares_outstanding
     name: Total Preferred Shares Outstanding
@@ -3813,13 +3976,14 @@ filters:
     - xbrl_balance_sheet_cashflow
     null_rule: Null if balance sheet filing missing or inapplicable to sector
     direction_of_goodness: neutral
-    glossary: Official audited balance sheet or cash flow statement line item (Total
-      Preferred Shares Outstanding) disclosed in regulatory corporate filings.
+    glossary: Official audited balance sheet or cash flow statement line item (Total Preferred Shares
+      Outstanding) disclosed in regulatory corporate filings.
     availability: Official-direct
     in_screenshot: false
     locked_in_original: false
     needs_official_source: true
     frequency: Annual
+    feeds: xbrl
   policy_liabilities:
     id: policy_liabilities
     name: Policy Liabilities
@@ -3830,13 +3994,14 @@ filters:
     - xbrl_balance_sheet_cashflow
     null_rule: Null if balance sheet filing missing or inapplicable to sector
     direction_of_goodness: neutral
-    glossary: Official audited balance sheet or cash flow statement line item (Policy
-      Liabilities) disclosed in regulatory corporate filings.
+    glossary: Official audited balance sheet or cash flow statement line item (Policy Liabilities) disclosed
+      in regulatory corporate filings.
     availability: Official-direct
     in_screenshot: false
     locked_in_original: false
     needs_official_source: true
     frequency: Annual
+    feeds: xbrl
   changes_in_working_capital:
     id: changes_in_working_capital
     name: Changes in Working Capital
@@ -3847,13 +4012,14 @@ filters:
     - xbrl_balance_sheet_cashflow
     null_rule: Null if balance sheet filing missing or inapplicable to sector
     direction_of_goodness: neutral
-    glossary: Official audited balance sheet or cash flow statement line item (Changes
-      in Working Capital) disclosed in regulatory corporate filings.
+    glossary: Official audited balance sheet or cash flow statement line item (Changes in Working Capital)
+      disclosed in regulatory corporate filings.
     availability: Official-direct
     in_screenshot: false
     locked_in_original: false
     needs_official_source: true
     frequency: Annual
+    feeds: xbrl
   cash_flow_operating_activities:
     id: cash_flow_operating_activities
     name: Cash Flow from Operating Activities
@@ -3864,13 +4030,14 @@ filters:
     - xbrl_balance_sheet_cashflow
     null_rule: Null if balance sheet filing missing or inapplicable to sector
     direction_of_goodness: neutral
-    glossary: Official audited balance sheet or cash flow statement line item (Cash
-      Flow from Operating Activities) disclosed in regulatory corporate filings.
+    glossary: Official audited balance sheet or cash flow statement line item (Cash Flow from Operating
+      Activities) disclosed in regulatory corporate filings.
     availability: Official-direct
     in_screenshot: false
     locked_in_original: false
     needs_official_source: true
     frequency: Annual
+    feeds: xbrl
   capital_expenditures:
     id: capital_expenditures
     name: Capital Expenditures
@@ -3881,13 +4048,14 @@ filters:
     - xbrl_balance_sheet_cashflow
     null_rule: Null if balance sheet filing missing or inapplicable to sector
     direction_of_goodness: neutral
-    glossary: Official audited balance sheet or cash flow statement line item (Capital
-      Expenditures) disclosed in regulatory corporate filings.
+    glossary: Official audited balance sheet or cash flow statement line item (Capital Expenditures) disclosed
+      in regulatory corporate filings.
     availability: Official-direct
     in_screenshot: false
     locked_in_original: false
     needs_official_source: true
     frequency: Annual
+    feeds: xbrl
   cash_investing_activities:
     id: cash_investing_activities
     name: Cash from Investing Activities
@@ -3898,13 +4066,14 @@ filters:
     - xbrl_balance_sheet_cashflow
     null_rule: Null if balance sheet filing missing or inapplicable to sector
     direction_of_goodness: neutral
-    glossary: Official audited balance sheet or cash flow statement line item (Cash
-      from Investing Activities) disclosed in regulatory corporate filings.
+    glossary: Official audited balance sheet or cash flow statement line item (Cash from Investing Activities)
+      disclosed in regulatory corporate filings.
     availability: Official-direct
     in_screenshot: false
     locked_in_original: false
     needs_official_source: true
     frequency: Annual
+    feeds: xbrl
   total_cash_dividends_paid:
     id: total_cash_dividends_paid
     name: Total Cash Dividends Paid
@@ -3915,13 +4084,14 @@ filters:
     - xbrl_balance_sheet_cashflow
     null_rule: Null if balance sheet filing missing or inapplicable to sector
     direction_of_goodness: neutral
-    glossary: Official audited balance sheet or cash flow statement line item (Total
-      Cash Dividends Paid) disclosed in regulatory corporate filings.
+    glossary: Official audited balance sheet or cash flow statement line item (Total Cash Dividends Paid)
+      disclosed in regulatory corporate filings.
     availability: Official-direct
     in_screenshot: false
     locked_in_original: false
     needs_official_source: true
     frequency: Annual
+    feeds: xbrl
   cash_financing_activities:
     id: cash_financing_activities
     name: Cash from Financing Activities
@@ -3932,13 +4102,14 @@ filters:
     - xbrl_balance_sheet_cashflow
     null_rule: Null if balance sheet filing missing or inapplicable to sector
     direction_of_goodness: neutral
-    glossary: Official audited balance sheet or cash flow statement line item (Cash
-      from Financing Activities) disclosed in regulatory corporate filings.
+    glossary: Official audited balance sheet or cash flow statement line item (Cash from Financing Activities)
+      disclosed in regulatory corporate filings.
     availability: Official-direct
     in_screenshot: false
     locked_in_original: false
     needs_official_source: true
     frequency: Annual
+    feeds: xbrl
   foreign_exchange_effects:
     id: foreign_exchange_effects
     name: Foreign Exchange Effects
@@ -3949,13 +4120,14 @@ filters:
     - xbrl_balance_sheet_cashflow
     null_rule: Null if balance sheet filing missing or inapplicable to sector
     direction_of_goodness: neutral
-    glossary: Official audited balance sheet or cash flow statement line item (Foreign
-      Exchange Effects) disclosed in regulatory corporate filings.
+    glossary: Official audited balance sheet or cash flow statement line item (Foreign Exchange Effects)
+      disclosed in regulatory corporate filings.
     availability: Official-direct
     in_screenshot: false
     locked_in_original: false
     needs_official_source: true
     frequency: Annual
+    feeds: xbrl
   net_change_in_cash:
     id: net_change_in_cash
     name: Net Change in Cash
@@ -3966,13 +4138,14 @@ filters:
     - xbrl_balance_sheet_cashflow
     null_rule: Null if balance sheet filing missing or inapplicable to sector
     direction_of_goodness: neutral
-    glossary: Official audited balance sheet or cash flow statement line item (Net
-      Change in Cash) disclosed in regulatory corporate filings.
+    glossary: Official audited balance sheet or cash flow statement line item (Net Change in Cash) disclosed
+      in regulatory corporate filings.
     availability: Official-direct
     in_screenshot: false
     locked_in_original: false
     needs_official_source: true
     frequency: Annual
+    feeds: xbrl
   expense_ratio:
     id: expense_ratio
     name: Expense Ratio
@@ -3981,16 +4154,15 @@ filters:
     formula: Total Expense Ratio (TER) published by AMFI / AMC
     inputs:
     - amfi_ter_filing
-    null_rule: Null for corporate equities; applicable exclusively to Exchange Traded
-      Funds (ETFs)
+    null_rule: Null for corporate equities; applicable exclusively to Exchange Traded Funds (ETFs)
     direction_of_goodness: lower_is_better
-    glossary: Total Expense Ratio (TER) officially published by AMFI and asset management
-      companies.
+    glossary: Total Expense Ratio (TER) officially published by AMFI and asset management companies.
     availability: Official-direct
     in_screenshot: true
     locked_in_original: false
     needs_official_source: true
     frequency: Monthly
+    feeds: amfi
   tracking_error:
     id: tracking_error
     name: Tracking Error
@@ -4000,16 +4172,16 @@ filters:
     inputs:
     - etf_nav_series
     - benchmark_index_series
-    null_rule: Null for corporate equities; applicable exclusively to Exchange Traded
-      Funds (ETFs)
+    null_rule: Null for corporate equities; applicable exclusively to Exchange Traded Funds (ETFs)
     direction_of_goodness: lower_is_better
-    glossary: Annualized standard deviation of daily return differences between the
-      ETF NAV and its underlying benchmark index.
+    glossary: Annualized standard deviation of daily return differences between the ETF NAV and its underlying
+      benchmark index.
     availability: Computed-from-official
     in_screenshot: true
     locked_in_original: false
     needs_official_source: true
     frequency: Daily
+    feeds: amfi
   total_revenue:
     id: total_revenue
     name: Total Revenue
@@ -4020,13 +4192,14 @@ filters:
     - xbrl_income_statement
     null_rule: Null if financial report missing or not disclosed
     direction_of_goodness: higher_is_better
-    glossary: Official audited income statement line item (Total Revenue) reported
-      in periodic corporate financial filings.
+    glossary: Official audited income statement line item (Total Revenue) reported in periodic corporate
+      financial filings.
     availability: Official-direct
     in_screenshot: true
     locked_in_original: false
     needs_official_source: true
     frequency: Annual
+    feeds: xbrl
   cost_of_revenue:
     id: cost_of_revenue
     name: Cost of Revenue
@@ -4037,13 +4210,14 @@ filters:
     - xbrl_income_statement
     null_rule: Null if financial report missing or not disclosed
     direction_of_goodness: lower_is_better
-    glossary: Official audited income statement line item (Cost of Revenue) reported
-      in periodic corporate financial filings.
+    glossary: Official audited income statement line item (Cost of Revenue) reported in periodic corporate
+      financial filings.
     availability: Official-direct
     in_screenshot: false
     locked_in_original: false
     needs_official_source: true
     frequency: Annual
+    feeds: xbrl
   gross_profit:
     id: gross_profit
     name: Gross Profit
@@ -4054,13 +4228,14 @@ filters:
     - xbrl_income_statement
     null_rule: Null if financial report missing or not disclosed
     direction_of_goodness: higher_is_better
-    glossary: Official audited income statement line item (Gross Profit) reported
-      in periodic corporate financial filings.
+    glossary: Official audited income statement line item (Gross Profit) reported in periodic corporate
+      financial filings.
     availability: Computed-from-official
     in_screenshot: false
     locked_in_original: false
     needs_official_source: true
     frequency: Annual
+    feeds: xbrl
   ebitda:
     id: ebitda
     name: EBITDA
@@ -4071,13 +4246,14 @@ filters:
     - xbrl_income_statement
     null_rule: Null if financial report missing or not disclosed
     direction_of_goodness: higher_is_better
-    glossary: Official audited income statement line item (EBITDA) reported in periodic
-      corporate financial filings.
+    glossary: Official audited income statement line item (EBITDA) reported in periodic corporate financial
+      filings.
     availability: Computed-from-official
     in_screenshot: true
     locked_in_original: false
     needs_official_source: true
     frequency: Annual
+    feeds: xbrl
   depreciation_amortization:
     id: depreciation_amortization
     name: Depreciation & Amortization
@@ -4088,13 +4264,14 @@ filters:
     - xbrl_income_statement
     null_rule: Null if financial report missing or not disclosed
     direction_of_goodness: higher_is_better
-    glossary: Official audited income statement line item (Depreciation & Amortization)
-      reported in periodic corporate financial filings.
+    glossary: Official audited income statement line item (Depreciation & Amortization) reported in periodic
+      corporate financial filings.
     availability: Official-direct
     in_screenshot: true
     locked_in_original: false
     needs_official_source: true
     frequency: Annual
+    feeds: xbrl
   pbit:
     id: pbit
     name: PBIT
@@ -4105,13 +4282,14 @@ filters:
     - xbrl_income_statement
     null_rule: Null if financial report missing or not disclosed
     direction_of_goodness: higher_is_better
-    glossary: Official audited income statement line item (PBIT) reported in periodic
-      corporate financial filings.
+    glossary: Official audited income statement line item (PBIT) reported in periodic corporate financial
+      filings.
     availability: Computed-from-official
     in_screenshot: true
     locked_in_original: false
     needs_official_source: true
     frequency: Annual
+    feeds: xbrl
   interest_other_items:
     id: interest_other_items
     name: Interest & Other Items
@@ -4122,13 +4300,14 @@ filters:
     - xbrl_income_statement
     null_rule: Null if financial report missing or not disclosed
     direction_of_goodness: higher_is_better
-    glossary: Official audited income statement line item (Interest & Other Items)
-      reported in periodic corporate financial filings.
+    glossary: Official audited income statement line item (Interest & Other Items) reported in periodic
+      corporate financial filings.
     availability: Official-direct
     in_screenshot: true
     locked_in_original: false
     needs_official_source: true
     frequency: Annual
+    feeds: xbrl
   pbt:
     id: pbt
     name: PBT
@@ -4139,13 +4318,14 @@ filters:
     - xbrl_income_statement
     null_rule: Null if financial report missing or not disclosed
     direction_of_goodness: higher_is_better
-    glossary: Official audited income statement line item (PBT) reported in periodic
-      corporate financial filings.
+    glossary: Official audited income statement line item (PBT) reported in periodic corporate financial
+      filings.
     availability: Computed-from-official
     in_screenshot: true
     locked_in_original: false
     needs_official_source: true
     frequency: Annual
+    feeds: xbrl
   taxes_other_items:
     id: taxes_other_items
     name: Taxes & Other Items
@@ -4156,13 +4336,14 @@ filters:
     - xbrl_income_statement
     null_rule: Null if financial report missing or not disclosed
     direction_of_goodness: higher_is_better
-    glossary: Official audited income statement line item (Taxes & Other Items) reported
-      in periodic corporate financial filings.
+    glossary: Official audited income statement line item (Taxes & Other Items) reported in periodic corporate
+      financial filings.
     availability: Official-direct
     in_screenshot: true
     locked_in_original: false
     needs_official_source: true
     frequency: Annual
+    feeds: xbrl
   net_income:
     id: net_income
     name: Net Income
@@ -4173,13 +4354,14 @@ filters:
     - xbrl_income_statement
     null_rule: Null if financial report missing or not disclosed
     direction_of_goodness: higher_is_better
-    glossary: Official audited income statement line item (Net Income) reported in
-      periodic corporate financial filings.
+    glossary: Official audited income statement line item (Net Income) reported in periodic corporate
+      financial filings.
     availability: Official-direct
     in_screenshot: true
     locked_in_original: false
     needs_official_source: true
     frequency: Annual
+    feeds: xbrl
   earnings_per_share:
     id: earnings_per_share
     name: Earnings Per Share
@@ -4190,13 +4372,14 @@ filters:
     - xbrl_income_statement
     null_rule: Null if financial report missing or not disclosed
     direction_of_goodness: higher_is_better
-    glossary: Official audited income statement line item (Earnings Per Share) reported
-      in periodic corporate financial filings.
+    glossary: Official audited income statement line item (Earnings Per Share) reported in periodic corporate
+      financial filings.
     availability: Official-direct
     in_screenshot: true
     locked_in_original: false
     needs_official_source: true
     frequency: Annual
+    feeds: xbrl
   dividend_per_share:
     id: dividend_per_share
     name: Dividend Per Share
@@ -4207,13 +4390,14 @@ filters:
     - xbrl_income_statement
     null_rule: Null if financial report missing or not disclosed
     direction_of_goodness: higher_is_better
-    glossary: Official audited income statement line item (Dividend Per Share) reported
-      in periodic corporate financial filings.
+    glossary: Official audited income statement line item (Dividend Per Share) reported in periodic corporate
+      financial filings.
     availability: Official-direct
     in_screenshot: true
     locked_in_original: false
     needs_official_source: true
     frequency: Annual
+    feeds: xbrl
   payout_ratio:
     id: payout_ratio
     name: Payout Ratio
@@ -4224,13 +4408,14 @@ filters:
     - xbrl_income_statement
     null_rule: Null if financial report missing or not disclosed
     direction_of_goodness: higher_is_better
-    glossary: Official audited income statement line item (Payout Ratio) reported
-      in periodic corporate financial filings.
+    glossary: Official audited income statement line item (Payout Ratio) reported in periodic corporate
+      financial filings.
     availability: Computed-from-official
     in_screenshot: true
     locked_in_original: false
     needs_official_source: true
     frequency: Annual
+    feeds: xbrl
   power_fuel_cost:
     id: power_fuel_cost
     name: Power & Fuel Cost
@@ -4241,13 +4426,14 @@ filters:
     - xbrl_income_statement
     null_rule: Null if financial report missing or not disclosed
     direction_of_goodness: lower_is_better
-    glossary: Official audited income statement line item (Power & Fuel Cost) reported
-      in periodic corporate financial filings.
+    glossary: Official audited income statement line item (Power & Fuel Cost) reported in periodic corporate
+      financial filings.
     availability: Official-direct
     in_screenshot: true
     locked_in_original: false
     needs_official_source: true
     frequency: Annual
+    feeds: xbrl
   raw_materials:
     id: raw_materials
     name: Raw Materials
@@ -4258,13 +4444,14 @@ filters:
     - xbrl_income_statement
     null_rule: Null if financial report missing or not disclosed
     direction_of_goodness: higher_is_better
-    glossary: Official audited income statement line item (Raw Materials) reported
-      in periodic corporate financial filings.
+    glossary: Official audited income statement line item (Raw Materials) reported in periodic corporate
+      financial filings.
     availability: Official-direct
     in_screenshot: true
     locked_in_original: false
     needs_official_source: true
     frequency: Annual
+    feeds: xbrl
   operating_other_expenses:
     id: operating_other_expenses
     name: Operating & Other expenses
@@ -4275,13 +4462,14 @@ filters:
     - xbrl_income_statement
     null_rule: Null if financial report missing or not disclosed
     direction_of_goodness: lower_is_better
-    glossary: Official audited income statement line item (Operating & Other expenses)
-      reported in periodic corporate financial filings.
+    glossary: Official audited income statement line item (Operating & Other expenses) reported in periodic
+      corporate financial filings.
     availability: Official-direct
     in_screenshot: true
     locked_in_original: false
     needs_official_source: true
     frequency: Annual
+    feeds: xbrl
   employee_cost:
     id: employee_cost
     name: Employee Cost
@@ -4292,13 +4480,14 @@ filters:
     - xbrl_income_statement
     null_rule: Null if financial report missing or not disclosed
     direction_of_goodness: lower_is_better
-    glossary: Official audited income statement line item (Employee Cost) reported
-      in periodic corporate financial filings.
+    glossary: Official audited income statement line item (Employee Cost) reported in periodic corporate
+      financial filings.
     availability: Official-direct
     in_screenshot: true
     locked_in_original: false
     needs_official_source: true
     frequency: Annual
+    feeds: xbrl
   selling_administrative_expenses:
     id: selling_administrative_expenses
     name: Selling & Administrative Expenses
@@ -4309,13 +4498,14 @@ filters:
     - xbrl_income_statement
     null_rule: Null if financial report missing or not disclosed
     direction_of_goodness: lower_is_better
-    glossary: Official audited income statement line item (Selling & Administrative
-      Expenses) reported in periodic corporate financial filings.
+    glossary: Official audited income statement line item (Selling & Administrative Expenses) reported
+      in periodic corporate financial filings.
     availability: Official-direct
     in_screenshot: true
     locked_in_original: false
     needs_official_source: true
     frequency: Annual
+    feeds: xbrl
   research_development:
     id: research_development
     name: Research & Development
@@ -4326,13 +4516,14 @@ filters:
     - xbrl_income_statement
     null_rule: Null if financial report missing or not disclosed
     direction_of_goodness: higher_is_better
-    glossary: Official audited income statement line item (Research & Development)
-      reported in periodic corporate financial filings.
+    glossary: Official audited income statement line item (Research & Development) reported in periodic
+      corporate financial filings.
     availability: Official-direct
     in_screenshot: false
     locked_in_original: false
     needs_official_source: true
     frequency: Annual
+    feeds: xbrl
   interest_income:
     id: interest_income
     name: Interest Income
@@ -4343,13 +4534,14 @@ filters:
     - xbrl_income_statement
     null_rule: Null if financial report missing or not disclosed
     direction_of_goodness: higher_is_better
-    glossary: Official audited income statement line item (Interest Income) reported
-      in periodic corporate financial filings.
+    glossary: Official audited income statement line item (Interest Income) reported in periodic corporate
+      financial filings.
     availability: Official-direct
     in_screenshot: false
     locked_in_original: false
     needs_official_source: true
     frequency: Annual/Quarterly
+    feeds: xbrl
   total_interest_expense:
     id: total_interest_expense
     name: Total Interest Expense
@@ -4360,13 +4552,14 @@ filters:
     - xbrl_income_statement
     null_rule: Null if financial report missing or not disclosed
     direction_of_goodness: lower_is_better
-    glossary: Official audited income statement line item (Total Interest Expense)
-      reported in periodic corporate financial filings.
+    glossary: Official audited income statement line item (Total Interest Expense) reported in periodic
+      corporate financial filings.
     availability: Official-direct
     in_screenshot: false
     locked_in_original: false
     needs_official_source: true
     frequency: Annual/Quarterly
+    feeds: xbrl
   net_interest_income:
     id: net_interest_income
     name: Net Interest Income
@@ -4377,13 +4570,14 @@ filters:
     - xbrl_income_statement
     null_rule: Null if financial report missing or not disclosed
     direction_of_goodness: higher_is_better
-    glossary: Official audited income statement line item (Net Interest Income) reported
-      in periodic corporate financial filings.
+    glossary: Official audited income statement line item (Net Interest Income) reported in periodic corporate
+      financial filings.
     availability: Computed-from-official
     in_screenshot: false
     locked_in_original: false
     needs_official_source: true
     frequency: Annual/Quarterly
+    feeds: xbrl
   loan_loss_provision:
     id: loan_loss_provision
     name: Loan Loss Provision
@@ -4394,13 +4588,14 @@ filters:
     - xbrl_income_statement
     null_rule: Null if financial report missing or not disclosed
     direction_of_goodness: higher_is_better
-    glossary: Official audited income statement line item (Loan Loss Provision) reported
-      in periodic corporate financial filings.
+    glossary: Official audited income statement line item (Loan Loss Provision) reported in periodic corporate
+      financial filings.
     availability: Official-direct
     in_screenshot: false
     locked_in_original: false
     needs_official_source: true
     frequency: Annual/Quarterly
+    feeds: xbrl
   total_revenue_q:
     id: total_revenue_q
     name: Total revenue (Q)
@@ -4411,13 +4606,14 @@ filters:
     - xbrl_income_statement
     null_rule: Null if financial report missing or not disclosed
     direction_of_goodness: higher_is_better
-    glossary: Official audited income statement line item (Total revenue (Q)) reported
-      in periodic corporate financial filings.
+    glossary: Official audited income statement line item (Total revenue (Q)) reported in periodic corporate
+      financial filings.
     availability: Official-direct
     in_screenshot: true
     locked_in_original: false
     needs_official_source: true
     frequency: Quarterly
+    feeds: xbrl
   net_income_q:
     id: net_income_q
     name: Net Income (Q)
@@ -4428,13 +4624,14 @@ filters:
     - xbrl_income_statement
     null_rule: Null if financial report missing or not disclosed
     direction_of_goodness: higher_is_better
-    glossary: Official audited income statement line item (Net Income (Q)) reported
-      in periodic corporate financial filings.
+    glossary: Official audited income statement line item (Net Income (Q)) reported in periodic corporate
+      financial filings.
     availability: Official-direct
     in_screenshot: true
     locked_in_original: false
     needs_official_source: true
     frequency: Quarterly
+    feeds: xbrl
   eps_q:
     id: eps_q
     name: EPS (Q)
@@ -4445,13 +4642,14 @@ filters:
     - xbrl_income_statement
     null_rule: Null if financial report missing or not disclosed
     direction_of_goodness: higher_is_better
-    glossary: Official audited income statement line item (EPS (Q)) reported in periodic
-      corporate financial filings.
+    glossary: Official audited income statement line item (EPS (Q)) reported in periodic corporate financial
+      filings.
     availability: Official-direct
     in_screenshot: true
     locked_in_original: false
     needs_official_source: true
     frequency: Quarterly
+    feeds: xbrl
   ebitda_q:
     id: ebitda_q
     name: EBITDA (Q)
@@ -4462,13 +4660,14 @@ filters:
     - xbrl_income_statement
     null_rule: Null if financial report missing or not disclosed
     direction_of_goodness: higher_is_better
-    glossary: Official audited income statement line item (EBITDA (Q)) reported in
-      periodic corporate financial filings.
+    glossary: Official audited income statement line item (EBITDA (Q)) reported in periodic corporate
+      financial filings.
     availability: Computed-from-official
     in_screenshot: true
     locked_in_original: false
     needs_official_source: true
     frequency: Quarterly
+    feeds: xbrl
   operating_and_other_expenses_q:
     id: operating_and_other_expenses_q
     name: Operating and Other Expenses (Q)
@@ -4479,13 +4678,14 @@ filters:
     - xbrl_income_statement
     null_rule: Null if financial report missing or not disclosed
     direction_of_goodness: lower_is_better
-    glossary: Official audited income statement line item (Operating and Other Expenses
-      (Q)) reported in periodic corporate financial filings.
+    glossary: Official audited income statement line item (Operating and Other Expenses (Q)) reported
+      in periodic corporate financial filings.
     availability: Official-direct
     in_screenshot: true
     locked_in_original: false
     needs_official_source: true
     frequency: Quarterly
+    feeds: xbrl
   pbit_q:
     id: pbit_q
     name: PBIT (Q)
@@ -4496,13 +4696,14 @@ filters:
     - xbrl_income_statement
     null_rule: Null if financial report missing or not disclosed
     direction_of_goodness: higher_is_better
-    glossary: Official audited income statement line item (PBIT (Q)) reported in periodic
-      corporate financial filings.
+    glossary: Official audited income statement line item (PBIT (Q)) reported in periodic corporate financial
+      filings.
     availability: Computed-from-official
     in_screenshot: true
     locked_in_original: false
     needs_official_source: true
     frequency: Quarterly
+    feeds: xbrl
   pbt_q:
     id: pbt_q
     name: PBT (Q)
@@ -4513,10 +4714,11 @@ filters:
     - xbrl_income_statement
     null_rule: Null if financial report missing or not disclosed
     direction_of_goodness: higher_is_better
-    glossary: Official audited income statement line item (PBT (Q)) reported in periodic
-      corporate financial filings.
+    glossary: Official audited income statement line item (PBT (Q)) reported in periodic corporate financial
+      filings.
     availability: Computed-from-official
     in_screenshot: true
     locked_in_original: false
     needs_official_source: true
     frequency: Quarterly
+    feeds: xbrl

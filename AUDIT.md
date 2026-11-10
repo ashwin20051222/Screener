@@ -145,3 +145,25 @@ apps/web/
 │   └── styles/              # CSS variables, typography, reset, dark theme
 ```
 
+---
+
+## 5. Fix Prompt #1 Baseline Reproduction & Diagnosis Verification (`D1–D8`)
+
+### Baseline State Observed (`2026-11-10`, tag `replica-v1`)
+- **`make status`:** `securities.total = 0`, `px_per_source = []`, `fno_as_of = "n/a"`, `amfi_period = "n/a"`, `corp_actions_as_of = "n/a"`, `fbil_as_of = "n/a"`, `recent_jobs = []`.
+- **`GET http://127.0.0.1:8787/api/screener/dataset`:** `synced = False`, `row_count = 0`, `universes_count = 0`, `universes = {}`.
+- **`make coverage` (`docs/DATA_COVERAGE.md`):** Across all `255` filters in `registry/filters.yaml`, non-null coverage is `0 (0.0%)` over all rows and `0 (0.0%)` over `NIFTY100`.
+
+### Verified Diagnosis Table (`D1–D8`)
+
+| ID | Status | File & Lines | Verified Evidence |
+|---|---|---|---|
+| **D1** | **Confirmed** | `apps/web/src/App.tsx` (L96–123, L230–255, L766–810); `app/query/db_store.py` (L86–90, L218) | Checkboxes toggle `'default_seed'` / `'nifty_500'` / `'nifty_midcap'` / `'nifty_50'` / `'nifty_100'`; only `'default_seed'` (`INITIAL_SEED_ROWS`) or `'live_duckdb'` exists in `universes`. When selected IDs don't match, `activeRows` (L111) falls back to `universes[0]?.rows`. `data.universes` (`NIFTY100`, etc.) returned by `db_store.py` is never read. |
+| **D2** | **Confirmed** *(exact sample is 15 rows)* | `apps/web/src/App.tsx` (L102, L424–427, L899–915, L935–947, L1055); `apps/web/src/data/seed.ts` (L204–309) | `totalMarketCount: 5996` is hardcoded on `default_seed` and displayed at L1055 whenever no numeric/sector filter is active (`INITIAL_SEED_ROWS` actually holds 15 sample rows, 10 of which happen to be large caps). Sector & sub-sector lists/counts read static `SECTORS_CONFIG` constants (e.g., Consumer Discretionary 24, Industrials 37) instead of computing counts dynamically from `activeRows`. |
+| **D3** | **Confirmed** | `apps/web/src/App.tsx` (L228–260) | When `/api/screener/dataset` returns `synced: false` / `rows: []` (L233–234) or fails (`catch` L256–258, `// Offline / seed mode: silent no-op`), the app keeps `default_seed` without displaying any sample-mode banner or sync prompt. |
+| **D4** | **Confirmed** | `app/query/db_store.py` (L98); `ingest/financials.py` (L72–77) | `db_store.py` computes `mc = close_px * sh_out / 1e7`, while `ref_security.shares_outstanding` is only updated inside `ingest_financial_xbrl_bytes()` (XBRL financials). Neither NSE/BSE masters nor bhavcopies populate `shares_outstanding`, leaving `market_cap = None` until filings/SHP run. |
+| **D5** | **Confirmed** | `config/settings.yaml` (L27); `ingest/sources.py` (L53–68) | `backfill_lookback_business_days: 7` limits `run_daily()` to scanning back at most 7+1 days until the latest date is stored (`break`). No multi-month/year historical backfill command exists, keeping returns, 5Y CAGR, 52W high/low, SMAs/EMAs (50/100/200), beta, alpha, and volatility null. |
+| **D6** | **Confirmed** | `ingest/sources.py` (L139–164); `Makefile`; `config/settings.yaml` (L23) | `run_quarterly(max_symbols=50)` selects arbitrary `SELECT DISTINCT nse_symbol FROM ref_security ... LIMIT 50` (not Nifty-first), pulls only `max_quarters=2` (3 needed for 6M change) and `max_filings=2` (6 annual + 4 quarterly needed for 5Y CAGRs/TTM), runs only via cron on the 10th of quarter months, and has no `Makefile` target. |
+| **D7** | **Confirmed** | `app/query/db_store.py` (L106–107); `apps/web/src/App.tsx` (L238–239) | Both `db_store.py` and `App.tsx` default empty sectors/sub-sectors to `'Industrials'` and `'General'`, masking missing official classification. |
+| **D8** | **Confirmed** | `app/query/db_store.py` (L195–216) | Inside the `for s in sec_rows:` loop, `db_store.py` executes per-symbol `compute_ownership_snapshot(con, sym)` + `compute_fundamental_metrics(con, sym, ...)` (`2N+` sequential DuckDB queries per HTTP request) plus full-market `BenchmarkEngine` + `compute_all_quant_scores` recalculation on every request. |
+
