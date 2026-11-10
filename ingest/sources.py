@@ -54,7 +54,13 @@ def run_daily(con=None) -> dict:
                 d = target - timedelta(days=i)
                 stored = _latest_stored_px_date(con, source_cm_source(name))
                 if stored and stored >= d:
-                    summary[name] = {"status": "skip", "message": f"{d} already stored"}
+                    summary[name] = {"status": "skip", "message": f"{stored} already stored"}
+                    if sync_fo and name == "nse":
+                        fo_stored = con.execute(
+                            "SELECT max(date) FROM fno_daily WHERE source = 'NSE'"
+                        ).fetchone()[0]
+                        if not fo_stored or fo_stored < stored:
+                            summary[name]["fo"] = sync_fo(con, stored)
                     break
                 res = sync_cm(con, d)
                 summary[name] = res
@@ -157,6 +163,9 @@ def run_quarterly(
     universe: str = "nifty100",
     max_symbols: int | None = None,
     resume: bool = True,
+    include_shp: bool = True,
+    include_fin: bool = True,
+    progress_cb=None,
 ) -> dict:
     """Quarterly: Targeted resumable SHP (3 quarters) + Ind-AS XBRL (6Y annual, 4Q quarterly)."""
     t0 = time.time()
@@ -183,45 +192,62 @@ def run_quarterly(
         if max_symbols is not None:
             syms = syms[:max_symbols]
 
-        done_q = db.get_progress_keys(con, "quarterly", statuses=("ok",)) if resume else set()
+        prog_job = (
+            "quarterly" if (include_shp and include_fin)
+            else ("quarterly_shp" if include_shp else "quarterly_fin")
+        )
+        done_q = db.get_progress_keys(con, prog_job, statuses=("ok",)) if resume else set()
+        if prog_job != "quarterly" and resume:
+            done_q |= db.get_progress_keys(con, "quarterly", statuses=("ok",))
         session = bootstrap_nse_session()
 
-        for sym in syms:
+        total_syms = len(syms)
+        for idx_s, sym in enumerate(syms, start=1):
             if sym in done_q:
                 summary["skipped_resume"] += 1
+                if progress_cb:
+                    progress_cb(idx_s, total_syms, f"Resumed/skipped {sym}")
                 continue
 
-            r_shp = sync_shareholding_for_symbol(con, sym, max_quarters=3, session=session)
-            summary["requests_made"] += 1 + int(r_shp.get("quarters", 0))
-            if r_shp.get("status") == "blocked":
-                db.mark_progress(con, "quarterly", sym, "fail", r_shp.get("message", "403/429"))
-                log.error(
-                    "NSE returned 403/429 during SHP sync for %s. Stopping immediately.\n"
-                    "Manual fallback: place SHP_<sym>.xml / INDAS_<sym>.xml in data/inbox/ and run `make synkinbox`.",
-                    sym,
-                )
-                summary["blocked"] = True
-                summary["status"] = "partial"
-                break
-            if r_shp.get("quarters", 0) > 0:
-                summary["shp_synced"] += 1
+            shp_cnt = 0
+            fin_cnt = 0
+            if include_shp:
+                r_shp = sync_shareholding_for_symbol(con, sym, max_quarters=3, session=session)
+                summary["requests_made"] += 1 + int(r_shp.get("quarters", 0))
+                if r_shp.get("status") == "blocked":
+                    db.mark_progress(con, prog_job, sym, "fail", r_shp.get("message", "403/429"))
+                    log.error(
+                        "NSE returned 403/429 during SHP sync for %s. Stopping immediately.\n"
+                        "Manual fallback: place SHP_<sym>.xml / INDAS_<sym>.xml in data/inbox/ and run `make synkinbox`.",
+                        sym,
+                    )
+                    summary["blocked"] = True
+                    summary["status"] = "partial"
+                    break
+                shp_cnt = int(r_shp.get("quarters", 0))
+                if shp_cnt > 0:
+                    summary["shp_synced"] += 1
 
-            r_fin = sync_financials_for_symbol(con, sym, max_annual=6, max_quarterly=4, session=session, resume=resume)
-            summary["requests_made"] += int(r_fin.get("requests", 0))
-            if r_fin.get("status") == "blocked":
-                db.mark_progress(con, "quarterly", sym, "fail", r_fin.get("message", "403/429"))
-                log.error(
-                    "NSE returned 403/429 during XBRL financials sync for %s. Stopping immediately.\n"
-                    "Manual fallback: drop INDAS_*.xml in data/inbox/ and run `make synkinbox`.",
-                    sym,
-                )
-                summary["blocked"] = True
-                summary["status"] = "partial"
-                break
-            if r_fin.get("filings", 0) > 0:
-                summary["fin_synced"] += 1
+            if include_fin:
+                r_fin = sync_financials_for_symbol(con, sym, max_annual=6, max_quarterly=4, session=session, resume=resume)
+                summary["requests_made"] += int(r_fin.get("requests", 0))
+                if r_fin.get("status") == "blocked":
+                    db.mark_progress(con, prog_job, sym, "fail", r_fin.get("message", "403/429"))
+                    log.error(
+                        "NSE returned 403/429 during XBRL financials sync for %s. Stopping immediately.\n"
+                        "Manual fallback: drop INDAS_*.xml in data/inbox/ and run `make synkinbox`.",
+                        sym,
+                    )
+                    summary["blocked"] = True
+                    summary["status"] = "partial"
+                    break
+                fin_cnt = int(r_fin.get("filings", 0))
+                if fin_cnt > 0:
+                    summary["fin_synced"] += 1
 
-            db.mark_progress(con, "quarterly", sym, "ok", f"shp={r_shp.get('quarters', 0)},fin={r_fin.get('filings', 0)}")
+            db.mark_progress(con, prog_job, sym, "ok", f"shp={shp_cnt},fin={fin_cnt}")
+            if progress_cb:
+                progress_cb(idx_s, total_syms, f"Synced {sym} ({idx_s}/{total_syms})")
 
         q_row = con.execute("SELECT COUNT(*) FROM fin_quarantine").fetchone()
         summary["fin_quarantine_count"] = int(q_row[0]) if q_row else 0

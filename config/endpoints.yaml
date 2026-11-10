@@ -25,7 +25,9 @@ sources:
     kind: prices-daily
     cadence: daily_eod
     url_pattern: "https://nsearchives.nseindia.com/content/cm/BhavCopy_NSE_CM_0_0_0_{yyyymmdd}_F_0000.csv.zip"
-    format: zip csv (UDiFF, 34 columns)
+    legacy_url_pattern: "https://nsearchives.nseindia.com/content/historical/EQUITIES/{yyyy}/{MMM}/cm{DD}{MMM}{YYYY}bhav.csv.zip"
+    udiff_start_date: "2024-07-08"
+    format: zip csv (UDiFF 34 columns >= 2024-07-08; Legacy CM 13 columns < 2024-07-08)
     tos_note: >
       No robots.txt is served by nsearchives.nseindia.com (request returns an HTML error page).
       NSE publishes daily reports openly ("All Reports" page) without login; NSE's Terms of Use

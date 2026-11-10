@@ -50,6 +50,9 @@ def ingest_financial_xbrl_bytes(
     statement_type: Optional[str] = None,
     template_type: Optional[str] = None,
     scale_to_cr: Optional[bool] = None,
+    report_period: Optional[str] = None,
+    filing_url: Optional[str] = None,
+    filing_date: Optional[date] = None,
 ) -> dict:
     parsed = parse_indas_xbrl(
         payload,
@@ -58,6 +61,9 @@ def ingest_financial_xbrl_bytes(
         statement_type=statement_type,
         template_type=template_type,
         scale_to_cr=scale_to_cr,
+        report_period=report_period,
+        filing_url=filing_url,
+        filing_date=filing_date,
     )
     res: Dict[str, Any] = {"status": "ok"}
     if parsed["quarantine"]:
@@ -79,7 +85,7 @@ def ingest_financial_xbrl_bytes(
     db.upsert_rows(con, "raw_files", [{
         "sha256": hashlib.sha256(payload).hexdigest(),
         "source": "NSE-XBRL",
-        "url": f"(XBRL {symbol or 'file'})",
+        "url": filing_url or f"(XBRL {symbol or 'file'})",
         "saved_path": "n/a",
         "bytes": len(payload),
         "rows": 1 if parsed["annual"] or parsed["quarterly"] else 0,
@@ -122,14 +128,46 @@ def sync_financials_for_symbol(
         if not isinstance(data, list):
             continue
 
-        # Sort consolidated first, then keep up to limit filings
+        def _parse_nse_dt_ord(raw_dt: Any) -> int:
+            s = str(raw_dt or "").strip()[:11]
+            if not s:
+                return 0
+            for fmt in ("%d-%b-%Y", "%Y-%m-%d", "%d-%m-%Y", "%d/%m/%Y"):
+                try:
+                    from datetime import datetime as _dt
+                    return _dt.strptime(s, fmt).date().toordinal()
+                except ValueError:
+                    continue
+            return 0
+
+        # Sort Annual before Quarterly/Half-Yearly, then most recent period-end DESC, then Consolidated before Standalone
         data.sort(
             key=lambda x: (
-                0 if "consolidat" in str(x.get("consolidated", "")).lower()
-                and "non" not in str(x.get("consolidated", "")).lower() else 1
+                0 if "annual" in str(x.get("period", "")).lower() else 1,
+                -_parse_nse_dt_ord(x.get("toDate")),
+                0 if (
+                    "consolidat" in str(x.get("consolidated", "")).lower()
+                    and "non" not in str(x.get("consolidated", "")).lower()
+                ) else 1,
+                -_parse_nse_dt_ord(x.get("filingDate")),
             )
         )
-        for item in data[:limit]:
+        def _parse_nse_dt(raw_dt: Any) -> Optional[date]:
+            s = str(raw_dt or "").strip()[:11]
+            if not s:
+                return None
+            from datetime import datetime as _dt
+            for fmt in ("%d-%b-%Y", "%Y-%m-%d", "%d-%m-%Y", "%d/%m/%Y"):
+                try:
+                    return _dt.strptime(s, fmt).date()
+                except ValueError:
+                    continue
+            return None
+
+        # Deduplicate per (toDate, consolidated) preferring consolidated filings first across recent dates
+        seen_periods: set[tuple[str, str]] = set()
+        selected_items: List[Dict[str, Any]] = []
+        for item in data:
             x_url = item.get("xbrl")
             if not x_url:
                 continue
@@ -139,38 +177,74 @@ def sync_financials_for_symbol(
                 and "non" not in str(item.get("consolidated", "")).lower()
                 else "standalone"
             )
-            fkey = f"{symbol}::{period}::{item.get('toDate', '')}::{stmt_tp}"
+            dk = (str(item.get("toDate") or ""), stmt_tp)
+            if dk in seen_periods:
+                continue
+            seen_periods.add(dk)
+            selected_items.append(item)
+            if len(selected_items) >= limit:
+                break
+
+        from app.config import data_path, settings
+        xbrl_raw_dir = data_path(settings()["data"]["raw_dir"]) / "nse-xbrl"
+
+        for item in selected_items:
+            x_url = item.get("xbrl")
+            if not x_url:
+                continue
+            stmt_tp = (
+                "consolidated"
+                if "consolidat" in str(item.get("consolidated", "")).lower()
+                and "non" not in str(item.get("consolidated", "")).lower()
+                else "standalone"
+            )
+            to_dt_str = str(item.get("toDate") or "").strip()
+            filing_dt = _parse_nse_dt(item.get("filingDate"))
+            fkey = f"{symbol}::{period}::{to_dt_str}::{stmt_tp}"
             if resume and fkey in done_keys:
                 skipped += 1
                 continue
-            r = http.fetch(
-                x_url,
-                source="nse-xbrl",
-                session=s,
-                save_name=f"FIN_{symbol}_{period}_{item.get('toDate', '')}.xml",
-            )
-            requests_made += 1
-            if r.blocked():
-                db.mark_progress(con, "xbrl_filing", fkey, "fail", r.error or "http:403")
-                blocked = True
-                return {
-                    "status": "blocked",
-                    "symbol": symbol,
-                    "filings": saved,
-                    "skipped": skipped,
-                    "quarantined": quarantined,
-                    "requests": requests_made,
-                    "message": r.error or "http:403",
-                }
-            if r.ok():
+
+            # Cache-first check before network call
+            payload_bytes: Optional[bytes] = None
+            cached_matches = sorted(xbrl_raw_dir.glob(f"FIN_{symbol}_{period}_{to_dt_str}.xml*")) if xbrl_raw_dir.exists() else []
+            if cached_matches and len(cached_matches) == 1:
+                payload_bytes = cached_matches[0].read_bytes()
+            else:
+                r = http.fetch(
+                    x_url,
+                    source="nse-xbrl",
+                    session=s,
+                    save_name=f"FIN_{symbol}_{period}_{to_dt_str}.xml",
+                )
+                requests_made += 1
+                if r.blocked():
+                    db.mark_progress(con, "xbrl_filing", fkey, "fail", r.error or "http:403")
+                    blocked = True
+                    return {
+                        "status": "blocked",
+                        "symbol": symbol,
+                        "filings": saved,
+                        "skipped": skipped,
+                        "quarantined": quarantined,
+                        "requests": requests_made,
+                        "message": r.error or "http:403",
+                    }
+                if r.ok():
+                    payload_bytes = r.bytes
+
+            if payload_bytes:
                 tpl = "banks" if item.get("bank") == "Y" else None
                 res_ing = ingest_financial_xbrl_bytes(
                     con,
-                    r.bytes,
+                    payload_bytes,
                     symbol=symbol,
                     isin=item.get("isin"),
                     statement_type=stmt_tp,
                     template_type=tpl,
+                    report_period=period,
+                    filing_url=x_url,
+                    filing_date=filing_dt,
                 )
                 saved += 1
                 if res_ing.get("status") == "quarantined":
@@ -187,20 +261,45 @@ def sync_financials_for_symbol(
     }
 
 
+def _pick_statement_series(
+    con_rows: List[Dict[str, Any]],
+    sa_rows: List[Dict[str, Any]],
+) -> tuple[str, List[Dict[str, Any]]]:
+    """Selects consolidated annuals unless absent or >14 months staler than standalone."""
+    if con_rows and sa_rows:
+        con_latest = con_rows[0].get("fiscal_year_end")
+        sa_latest = sa_rows[0].get("fiscal_year_end")
+        if con_latest and sa_latest and (sa_latest - con_latest).days > 420:
+            return "standalone", sa_rows
+        return "consolidated", con_rows
+    if con_rows:
+        return "consolidated", con_rows
+    if sa_rows:
+        return "standalone", sa_rows
+    return "consolidated", []
+
+
 def _select_annual_history(con, symbol: str) -> tuple[str, List[Dict[str, Any]]]:
-    """Selects consolidated annual statements first; falls back cleanly to standalone if consolidated absent."""
-    stmt = "consolidated"
-    rows = _clean_rows_from_cursor(con.execute(
-        "SELECT * FROM fin_annual WHERE symbol = ? AND statement_type = 'consolidated' ORDER BY fiscal_year_end DESC LIMIT 6",
+    """Selects consolidated annual statements first (filtered to period_months >= 10), else standalone."""
+    con_rows = _clean_rows_from_cursor(con.execute(
+        """
+        SELECT * FROM fin_annual
+        WHERE symbol = ? AND statement_type = 'consolidated'
+          AND (period_months IS NULL OR period_months >= 10)
+        ORDER BY fiscal_year_end DESC LIMIT 6
+        """,
         [symbol],
     ))
-    if not rows:
-        stmt = "standalone"
-        rows = _clean_rows_from_cursor(con.execute(
-            "SELECT * FROM fin_annual WHERE symbol = ? AND statement_type = 'standalone' ORDER BY fiscal_year_end DESC LIMIT 6",
-            [symbol],
-        ))
-    return stmt, rows
+    sa_rows = _clean_rows_from_cursor(con.execute(
+        """
+        SELECT * FROM fin_annual
+        WHERE symbol = ? AND statement_type = 'standalone'
+          AND (period_months IS NULL OR period_months >= 10)
+        ORDER BY fiscal_year_end DESC LIMIT 6
+        """,
+        [symbol],
+    ))
+    return _pick_statement_series(con_rows, sa_rows)
 
 
 def _clean_rows_from_cursor(cur) -> List[Dict[str, Any]]:
@@ -217,15 +316,23 @@ def _compute_fundamentals_from_rows(
     is_fin: bool,
 ) -> Dict[str, Any]:
     """Pure computation of all fundamental ratios, growth, margins, valuation, and FCF."""
-    out: Dict[str, Any] = {"statement_type_used": stmt_used if annuals else None}
-    if not annuals:
-        return out
-
-    fy0 = annuals[0]
+    out: Dict[str, Any] = {"statement_type_used": stmt_used if (annuals or q_rows) else None}
+    fy0 = annuals[0] if annuals else {}
     fy1 = annuals[1] if len(annuals) >= 2 else {}
     shares_eff = shares_outstanding or fy0.get("common_shares_out")
     mc = (close_price * float(shares_eff) / 1e7) if (close_price and shares_eff) else None
     out["market_cap"] = mc
+
+    if not annuals:
+        if q_rows:
+            q0 = q_rows[0]
+            for k in ("total_revenue_q", "net_income_q", "eps_q", "ebitda_q", "operating_and_other_expenses_q", "pbit_q", "pbt_q"):
+                src_k = "operating_other_expenses_q" if k == "operating_and_other_expenses_q" else k
+                out[k] = q0.get(src_k)
+            if len(q_rows) == 4 and all(r.get("eps_q") is not None for r in q_rows):
+                ttm_eps = sum(float(r["eps_q"]) for r in q_rows)
+                out["ttm_pe_ratio"] = pe_ratio(close_price, ttm_eps)
+        return out
 
     # Income Statement FY0 passthrough
     for k in (
@@ -261,14 +368,17 @@ def _compute_fundamentals_from_rows(
     out["net_ppe"] = fy0.get("net_ppe")
     out["goodwill_intangibles"] = fy0.get("goodwill_intangibles")
     out["long_term_investments"] = fy0.get("long_term_investments")
+    out["other_assets"] = fy0.get("other_assets")
     out["total_assets"] = fy0.get("total_assets")
     out["accounts_payable"] = fy0.get("accounts_payable")
     out["total_deposits"] = fy0.get("total_deposits")
+    out["other_current_liabilities"] = fy0.get("other_current_liabilities")
     out["total_current_liabilities"] = fy0.get("total_current_liabilities")
     out["total_long_term_debt"] = fy0.get("total_long_term_debt")
     out["total_debt"] = fy0.get("total_debt")
     out["deferred_income_tax"] = fy0.get("deferred_income_tax")
     out["minority_interest"] = fy0.get("minority_interest")
+    out["other_liabilities"] = fy0.get("other_liabilities")
     out["total_liabilities"] = fy0.get("total_liabilities")
     out["common_stock"] = fy0.get("common_stock")
     out["additional_paid_in_capital"] = fy0.get("apic")
@@ -281,12 +391,16 @@ def _compute_fundamentals_from_rows(
         else fy0.get("total_assets")
     )
     out["total_common_shares_outstanding"] = shares_eff
+    out["total_preferred_shares_outstanding"] = fy0.get("preferred_shares_out")
     out["policy_liabilities"] = fy0.get("policy_liabilities")
+    out["changes_in_working_capital"] = fy0.get("changes_working_capital")
     out["cash_flow_operating_activities"] = fy0.get("cfo")
     out["capital_expenditures"] = fy0.get("capex")
     out["cash_investing_activities"] = fy0.get("cfi")
     out["total_cash_dividends_paid"] = fy0.get("dividends_paid")
     out["cash_financing_activities"] = fy0.get("cff")
+    out["foreign_exchange_effects"] = fy0.get("fx_effects")
+    out["net_change_in_cash"] = fy0.get("net_change_cash")
 
     fcf = (fy0["cfo"] - (fy0.get("capex") or 0.0)) if fy0.get("cfo") is not None else None
 
@@ -326,14 +440,27 @@ def _compute_fundamentals_from_rows(
         out["5y_avg_net_profit_margin"] = avg5([margin(a.get("net_income"), a.get("total_revenue")) for a in annuals[:5]])
         out["5y_avg_cash_flow_margin"] = avg5([margin(a.get("cfo"), a.get("total_revenue")) for a in annuals[:5]])
         out["5y_avg_operating_profit_margin"] = avg5([margin(a.get("pbit"), a.get("total_revenue")) for a in annuals[:5]])
-        out["5y_avg_return_on_equity"] = avg5([
-            return_on_equity(annuals[i].get("net_income"), avg2(annuals[i].get("total_equity"), annuals[i + 1].get("total_equity")))
+        out["5y_avg_return_on_investment"] = avg5([
+            return_on_investment(
+                annuals[i].get("net_income"),
+                avg2(
+                    (annuals[i].get("total_equity") or 0.0) + (annuals[i].get("total_long_term_debt") or 0.0) + (annuals[i].get("other_liabilities") or 0.0)
+                    if annuals[i].get("total_equity") is not None else None,
+                    (annuals[i + 1].get("total_equity") or 0.0) + (annuals[i + 1].get("total_long_term_debt") or 0.0) + (annuals[i + 1].get("other_liabilities") or 0.0)
+                    if annuals[i + 1].get("total_equity") is not None else None,
+                ),
+            )
             for i in range(5)
-        ])
-        out["5y_avg_return_on_assets"] = avg5([
-            return_on_assets(annuals[i].get("net_income"), avg2(annuals[i].get("total_assets"), annuals[i + 1].get("total_assets")))
-            for i in range(5)
-        ])
+        ]) if len(annuals) >= 6 else None
+        if len(annuals) >= 6:
+            out["5y_avg_return_on_equity"] = avg5([
+                return_on_equity(annuals[i].get("net_income"), avg2(annuals[i].get("total_equity"), annuals[i + 1].get("total_equity")))
+                for i in range(5)
+            ])
+            out["5y_avg_return_on_assets"] = avg5([
+                return_on_assets(annuals[i].get("net_income"), avg2(annuals[i].get("total_assets"), annuals[i + 1].get("total_assets")))
+                for i in range(5)
+            ])
 
     # Historical Growth (Section 10.3)
     def _g1y(key: str) -> Optional[float]:
@@ -462,6 +589,7 @@ def compute_all_fundamental_metrics_bulk(
     ann_cur = con.execute(
         """
         SELECT * FROM fin_annual
+        WHERE period_months IS NULL OR period_months >= 10
         QUALIFY ROW_NUMBER() OVER (PARTITION BY symbol, statement_type ORDER BY fiscal_year_end DESC) <= 6
         ORDER BY symbol, statement_type, fiscal_year_end DESC
         """
@@ -497,16 +625,52 @@ def compute_all_fundamental_metrics_bulk(
 
     out: Dict[str, Dict[str, Any]] = {}
     for sym, (close_px, sh_out, is_fin_opt) in symbol_inputs.items():
-        if (sym, "consolidated") in ann_map:
-            stmt_used = "consolidated"
-            annuals = ann_map[(sym, "consolidated")]
-        elif (sym, "standalone") in ann_map:
-            stmt_used = "standalone"
-            annuals = ann_map[(sym, "standalone")]
-        else:
-            continue
+        stmt_used, annuals = _pick_statement_series(ann_map.get((sym, "consolidated"), []), ann_map.get((sym, "standalone"), []))
+        if not annuals:
+            # Allow quarterly-only fallback when quarterly XBRL was ingested before annual
+            if q_map.get((sym, "consolidated")):
+                stmt_used = "consolidated"
+            elif q_map.get((sym, "standalone")):
+                stmt_used = "standalone"
+            else:
+                continue
         is_fin = bool(is_fin_opt if is_fin_opt is not None else fin_flag_map.get(sym, False))
-        q_rows = q_map.get((sym, stmt_used), [])
+        q_rows = q_map.get((sym, stmt_used), []) or q_map.get((sym, "standalone" if stmt_used == "consolidated" else "consolidated"), [])
         out[sym] = _compute_fundamentals_from_rows(annuals, q_rows, stmt_used, close_px, sh_out, is_fin)
     return out
+
+
+def reingest_cached_xbrl_files(con) -> Dict[str, Any]:
+    """Re-parses already cached `data/raw/nse-xbrl/FIN_*.xml*` files cleanly using the v2 parser."""
+    from app.config import data_path, settings
+
+    xbrl_dir = data_path(settings()["data"]["raw_dir"]) / "nse-xbrl"
+    if not xbrl_dir.exists():
+        return {"status": "skip", "files": 0, "annual": 0, "quarterly": 0}
+
+    # Remove polluted < 10 month rows and stale legacy/cached rows for symbols being cleanly re-ingested
+    con.execute("DELETE FROM fin_annual WHERE (period_months IS NOT NULL AND period_months < 10) OR filing_url LIKE 'cache://%' OR parser_version IS NULL")
+    files = sorted(p for p in xbrl_dir.iterdir() if p.is_file() and p.name.startswith("FIN_"))
+    n_ann = 0
+    n_q = 0
+    n_err = 0
+    for p in files:
+        # Format: FIN_{SYMBOL}_{Annual|Quarterly}_{toDate}.xml__sha.bin
+        parts = p.name.split("_")
+        sym_hint = parts[1].upper() if len(parts) > 1 else None
+        period_hint = parts[2] if len(parts) > 2 else None
+        try:
+            res = ingest_financial_xbrl_bytes(
+                con,
+                p.read_bytes(),
+                symbol=sym_hint,
+                report_period=period_hint,
+                filing_url=f"cache://{p.name}",
+            )
+            n_ann += int(res.get("annual_rows", 0))
+            n_q += int(res.get("quarterly_rows", 0))
+        except Exception as exc:
+            n_err += 1
+            log.warning("Failed reingesting cached %s: %s", p.name, exc)
+    return {"status": "ok", "files": len(files), "annual": n_ann, "quarterly": n_q, "errors": n_err}
 

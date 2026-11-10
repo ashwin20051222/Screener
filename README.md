@@ -37,16 +37,17 @@ speculation.
 | `make sync-all` | resumable full pipeline (`weekly -> daily -> backfill -> shp -> quarterly -> deals -> snapshot -> coverage`, `UNIVERSE=nifty100\|nifty500\|all`) |
 | `make sync-daily` | previous published bhavcopies (NSE CM + FO, BSE CM), PR `mcap*.csv` shares, bulk deals, and vectorised technicals |
 | `make sync-weekly` | inbox first, equity/SME/ETF masters, F&O lots, 9 index lists, Nifty Total Market 754 industries, AMFI, manual FBIL rate check |
-| `make backfill` | resumable historical NSE CM (`DAYS=400\|1300`) + 10D FO bhavcopies + split/bonus adjustment + vectorised technicals |
+| `make backfill` | resumable historical NSE CM (`DAYS=400\|1300`, UDiFF + Legacy `< 2024-07-08`) + FO bhavcopies + technicals |
 | `make sync-shp` | Market Cap unblock via bulk PR MCAP + targeted resumable SHP shares extraction |
 | `make sync-quarterly` | targeted resumable 3Q SHP + 6Y/4Q Ind-AS XBRL filings ordered by `UNIVERSE`, refreshing `docs/DATA_COVERAGE.md` |
 | `make sync-deals` | bulk/block deals + 6 months (`DEAL_DAYS=183`) of SEBI PIT insider disclosures |
 | `make snapshot` | precompute full-market benchmarks, Quant Special scores & row JSON into `screener_snapshot` (`< 0.5s` GZip API) |
-| `make coverage` | audit per-filter DB coverage & unmapped industries into `docs/DATA_COVERAGE.md` |
+| `make coverage` | audit eligibility-aware DB coverage & missing symbols into `docs/DATA_COVERAGE.md` & `docs/DATA_MISSING_SYMBOLS.md` |
 | `make synkinbox` | process manual official drops in `data/inbox/` and refresh technicals + snapshot |
 | `make status` | print per-source as-of dates, security counts, `fin_quarantine`, and `ingest_progress` resume state |
 | `make web-build` | install/build production frontend bundle (`apps/web/dist`) |
 | `make test` | offline pytest suite (fixtures only, zero network) |
+| `.venv/bin/python scripts/sync_registry.py` | sync `registry/filters.yaml` -> `apps/web/src/data/filters.json` + regenerate `DATA_PROVIDER_MATRIX.md` |
 
 Official-site blocks? BSE's master API and FBIL download portal deny bots. The designed
 answer is the **manual-import inbox** — download the official file in your browser, drop it
@@ -55,20 +56,22 @@ in `data/inbox/`. Full route list + rationale in [`DATA_SOURCES.md`](DATA_SOURCE
 ## Layout
 
 ```
-registry/     filters.yaml — single source of truth for all 255 filters (with `feeds` tags) across 13 categories
+registry/     filters.yaml — single source of truth for all 255 filters (with `feeds`, sources, cadence & min history)
 config/       endpoints.yaml, settings.yaml, sector_map.yaml (22 NSE industries), scores.yaml
-app/          FastAPI app serving built SPA (/), /status, /health, /api/universes, /api/filters, /api/screener/dataset (snapshot + GZip + ETag), /api/scores/*
-              metrics/ (formulas, technicals, benchmarks, custom parser, quant scores)
-              query/ (DuckDB bulk loader, screener_snapshot builder/slicer & filter engine), universe/ (Excel upload & 5-tier matcher)
+app/          FastAPI app serving built SPA (/), /status, /health, /api/universes, /api/filters,
+              /api/screener/dataset, /api/coverage, /api/data/ensure, /api/data/jobs*, /api/providers,
+              jobs/ (on-demand ensure planner & background queue), providers/ (EOD + optional vendor/Groww),
+              metrics/ (formulas, technicals, benchmarks, custom parser, quant scores),
+              query/ (DuckDB bulk loader, atomic screener_snapshot & filter engine), universe/ (Excel upload & matcher)
 apps/web/     Vite + React 18 + TypeScript SPA (dist/ served directly by FastAPI)
-ingest/       http, udiff, nse, bse, amfi, fbil, inbox, adjuster, reconcile, fno_metrics,
+ingest/       http, udiff (UDiFF + Legacy CM), nse, bse, amfi, fbil, inbox, adjuster, reconcile, fno_metrics,
               ownership, xbrl, financials, technicals_job, backfill, master_enrichment, etf, sources
-scripts/      sync_all.py, sync_daily.py, sync_weekly.py, sync_shp.py, sync_quarterly.py, sync_deals.py,
-              backfill.py, sync_inbox.py, build_snapshot.py, coverage.py, db_info.py
-docs/         DATA_COVERAGE.md (live per-filter, per-feed, and sector/unmapped audit report)
-tests/        offline pytest suite (golden metrics, matcher, XBRL, F&O, ownership, technicals, quant scores, 6,500-stock perf)
+scripts/      sync_registry.py, sync_all.py, sync_daily.py, sync_weekly.py, sync_shp.py, sync_quarterly.py,
+              sync_deals.py, backfill.py, sync_inbox.py, build_snapshot.py, coverage.py, db_info.py
+docs/         DATA_COVERAGE.md, DATA_MISSING_SYMBOLS.md, DATA_PROVIDER_MATRIX.md
+tests/        offline pytest suite (golden metrics, matcher, XBRL, F&O, ownership, technicals, ensure jobs, matrix)
 data/         raw/<source>/ (official files, traceable), cache/, inbox/, processed/, screener.db (DuckDB)
-docs          README, DATA_SOURCES, DATA_AVAILABILITY, METRICS, ASSUMPTIONS, CHANGELOG, CHECKLIST, VISUAL_QA
+docs/root     README, DATA_SOURCES, DATA_AVAILABILITY, DATA_PROVIDER_MATRIX, DATA_SYNC_RUNBOOK, TOOLS, CHANGELOG
 ```
 
 ## Product stance
@@ -88,7 +91,7 @@ docs          README, DATA_SOURCES, DATA_AVAILABILITY, METRICS, ASSUMPTIONS, CHA
 
 ## Roadmap
 
-All build phases (Phases 0–5, [`CHECKLIST.md`](CHECKLIST.md)) and Fix Prompt #1 hardening (`Tasks A–H`) are **complete** and tagged `replica-v1.1`.
+All build phases (Phases 0–5), Fix Prompt #1 (`replica-v1.1`), and the Market-Data Ingestion, NSE MCP Tools & On-Demand Filter Sync upgrade are **complete**. See [`DATA_SYNC_RUNBOOK.md`](DATA_SYNC_RUNBOOK.md) and [`CHANGELOG.md`](CHANGELOG.md).
 
 ## Dev notes
 

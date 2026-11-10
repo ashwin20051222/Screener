@@ -251,3 +251,56 @@ def compute_scores_endpoint(req: ScoresComputeRequest):
         "scores": compute_all_quant_scores(req.stocks),
     }
 
+
+class EnsureFiltersRequest(BaseModel):
+    filter_ids: List[str] = Field(default_factory=list)
+    universe: Optional[str] = None
+
+
+@router.post("/data/ensure")
+def post_ensure_data(req: EnsureFiltersRequest):
+    """Checks capability/coverage for checked filters, computes derived metrics or queues background sync."""
+    from app.jobs.ensure_manager import ensure_filters
+    return ensure_filters(req.filter_ids, universe=req.universe)
+
+
+@router.get("/data/jobs")
+def get_data_jobs(limit: int = 20):
+    """Lists recent and active background data synchronization jobs."""
+    from app.jobs.ensure_manager import list_jobs
+    return {"jobs": list_jobs(limit=limit)}
+
+
+@router.get("/data/jobs/{job_id}")
+def get_data_job_status(job_id: str):
+    """Returns persistent status/progress of a background filter sync job."""
+    from app.jobs.ensure_manager import get_job
+    job = get_job(job_id)
+    if job is None:
+        raise HTTPException(status_code=404, detail=f"Job '{job_id}' not found")
+    return job
+
+
+@router.get("/coverage")
+def get_coverage(universe: Optional[str] = None, response: Response = None):
+    """Returns eligibility-aware non-null coverage, status pills, and provider SLA across all 255 filters."""
+    from scripts.coverage import compute_coverage_report
+    rep = compute_coverage_report(universe=universe)
+    if response is not None:
+        response.headers["Cache-Control"] = "no-store"
+    return rep
+
+
+@router.post("/data/rebuild")
+def post_data_rebuild():
+    """Recomputes technicals, F&O metrics, cached XBRLs, ETF tracking errors, and rebuilds snapshot atomically."""
+    from app.jobs.ensure_manager import rebuild_all
+    return rebuild_all()
+
+
+@router.get("/providers")
+def get_providers():
+    """Returns honest runtime health, cadence, and configuration state for all market-data providers."""
+    from app.providers.registry import get_provider_status_summary
+    return get_provider_status_summary()
+

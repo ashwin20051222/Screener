@@ -1,8 +1,11 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import filtersData from './data/filters.json';
 import {
+  DataEnsureJob,
+  FilterBackendStatus,
   FilterDefinition,
   FilterState,
+  ProviderSummary,
   StockRow,
   StockUniverse,
   SavedScreen,
@@ -273,6 +276,13 @@ export const App: React.FC = () => {
   const [selectedStock, setSelectedStock] = useState<StockRow | null>(null);
   const [visibleLimit, setVisibleLimit] = useState(20);
   const [liveSyncSourceLabel, setLiveSyncSourceLabel] = useState<string | null>(null);
+  const [backendCoverage, setBackendCoverage] = useState<Record<string, FilterBackendStatus>>({});
+  const [activeJobs, setActiveJobs] = useState<Record<string, DataEnsureJob>>({});
+  const [checkingFilters, setCheckingFilters] = useState<Set<string>>(new Set());
+  const [providerSummary, setProviderSummary] = useState<ProviderSummary | null>(null);
+  const [snapshotVersion, setSnapshotVersion] = useState<number | null>(null);
+  const pendingEnsureRef = useRef<Set<string>>(new Set());
+  const ensureTimerRef = useRef<number | null>(null);
 
   // Synchronous initialization from URL params for Visual QA
   const getInitialParam = (k: string) => {
@@ -283,13 +293,80 @@ export const App: React.FC = () => {
     }
   };
 
-  // Hydrate universes and live dataset from FastAPI + DuckDB backend
+  const activeUniverseParam = useMemo(() => {
+    const arr = Array.from(selectedIndexSlugs);
+    return arr.length > 0 ? arr.map(s => s.toUpperCase()).join(',') : 'ALL';
+  }, [selectedIndexSlugs]);
+
+  const applyDatasetPayload = (dData: any) => {
+    if (dData && dData.synced && Array.isArray(dData.rows) && dData.rows.length > 0) {
+      const parsedLiveRows: StockRow[] = dData.rows.map((r: Record<string, any>) => ({
+        name: r.name || r.nse_symbol || 'Unknown',
+        sub: r.sub_sector || 'Unclassified',
+        sector: r.sector || 'Unclassified',
+        nse_symbol: r.nse_symbol || undefined,
+        _provenance: r._provenance || undefined,
+        v: Object.fromEntries(
+          Object.entries(r).filter(([k, val]) => !k.startsWith('_') && (typeof val === 'number' || val === null))
+        ) as Record<string, number | null>,
+      }));
+      setLiveRows(parsedLiveRows);
+      setUniverseMembers(dData.universes || {});
+      setIsSynced(true);
+      if (typeof dData.version === 'number') {
+        setSnapshotVersion(dData.version);
+      }
+      const asOf = dData.as_of || {};
+      const parts = [
+        asOf.price ? `Price: ${asOf.price}` : null,
+        asOf.masters ? `Masters: ${asOf.masters}` : null,
+        asOf.filings ? `Filings: ${asOf.filings}` : null,
+        asOf.amfi ? `AMFI: ${asOf.amfi}` : null,
+      ].filter(Boolean);
+      setLiveSyncSourceLabel(
+        `Official DuckDB (${parsedLiveRows.length} stocks)${parts.length ? ' · ' + parts.join(' · ') : ''}`
+      );
+    }
+  };
+
+  const refreshLiveDataset = async (bustCache = false) => {
+    try {
+      const url = bustCache ? `/api/screener/dataset?v=${Date.now()}` : '/api/screener/dataset';
+      const r = await fetch(url, bustCache ? { cache: 'no-store' } : undefined);
+      if (r.ok) {
+        const dData = await r.json();
+        applyDatasetPayload(dData);
+      }
+    } catch {
+      // keep existing rows if network unreachable
+    }
+  };
+
+  const refreshCoverage = async (uParam: string) => {
+    try {
+      const q = uParam && uParam !== 'ALL' ? `?universe=${encodeURIComponent(uParam)}` : '';
+      const r = await fetch(`/api/coverage${q}`, { cache: 'no-store' });
+      if (r.ok) {
+        const cData = await r.json();
+        if (cData && cData.by_id) {
+          setBackendCoverage(cData.by_id);
+        }
+      }
+    } catch {
+      // backend optional in standalone fixture mode
+    }
+  };
+
+  // Hydrate universes, live dataset, coverage, provider status, and active jobs from FastAPI + DuckDB backend
   useEffect(() => {
     let cancelled = false;
     Promise.all([
       fetch('/api/universes').then((r) => (r.ok ? r.json() : null)).catch(() => null),
       fetch('/api/screener/dataset').then((r) => (r.ok ? r.json() : null)).catch(() => null),
-    ]).then(([uData, dData]) => {
+      fetch('/api/coverage', { cache: 'no-store' }).then((r) => (r.ok ? r.json() : null)).catch(() => null),
+      fetch('/api/providers').then((r) => (r.ok ? r.json() : null)).catch(() => null),
+      fetch('/api/data/jobs').then((r) => (r.ok ? r.json() : null)).catch(() => null),
+    ]).then(([uData, dData, cData, pData, jData]) => {
       if (cancelled) return;
       if (Array.isArray(uData) && uData.length > 0) {
         const allEntry = uData.find((u: UniverseMeta) => u.slug === 'ALL') || null;
@@ -297,36 +374,137 @@ export const App: React.FC = () => {
         setIndexUniverses(indices.length > 0 ? indices : FALLBACK_INDEX_UNIVERSES);
         setAllListedMeta(allEntry);
       }
-      if (dData && dData.synced && Array.isArray(dData.rows) && dData.rows.length > 0) {
-        const parsedLiveRows: StockRow[] = dData.rows.map((r: Record<string, any>) => ({
-          name: r.name || r.nse_symbol || 'Unknown',
-          sub: r.sub_sector || 'Unclassified',
-          sector: r.sector || 'Unclassified',
-          nse_symbol: r.nse_symbol || undefined,
-          _provenance: r._provenance || undefined,
-          v: Object.fromEntries(
-            Object.entries(r).filter(([k, val]) => !k.startsWith('_') && (typeof val === 'number' || val === null))
-          ) as Record<string, number | null>,
-        }));
-        setLiveRows(parsedLiveRows);
-        setUniverseMembers(dData.universes || {});
-        setIsSynced(true);
-        const asOf = dData.as_of || {};
-        const parts = [
-          asOf.price ? `Price: ${asOf.price}` : null,
-          asOf.masters ? `Masters: ${asOf.masters}` : null,
-          asOf.filings ? `Filings: ${asOf.filings}` : null,
-          asOf.amfi ? `AMFI: ${asOf.amfi}` : null,
-        ].filter(Boolean);
-        setLiveSyncSourceLabel(
-          `Official DuckDB (${parsedLiveRows.length} stocks)${parts.length ? ' · ' + parts.join(' · ') : ''}`
-        );
+      applyDatasetPayload(dData);
+      if (cData && cData.by_id) {
+        setBackendCoverage(cData.by_id);
+      }
+      if (pData && pData.active_price_mode) {
+        setProviderSummary(pData);
+      }
+      if (jData && Array.isArray(jData.jobs)) {
+        const jMap: Record<string, DataEnsureJob> = {};
+        for (const job of jData.jobs) {
+          if (job.status === 'queued' || job.status === 'running') {
+            jMap[job.job_id] = job;
+          }
+        }
+        if (Object.keys(jMap).length > 0) {
+          setActiveJobs(jMap);
+        }
       }
     });
     return () => {
       cancelled = true;
     };
   }, []);
+
+  // Re-fetch universe-scoped coverage when selected index universe changes
+  useEffect(() => {
+    if (!isSynced) return;
+    refreshCoverage(activeUniverseParam);
+  }, [activeUniverseParam, isSynced]);
+
+  // Poll running/queued data jobs every 2s and refresh table dataset automatically on completion without closing or re-adding filters
+  useEffect(() => {
+    const runningIds = Object.values(activeJobs)
+      .filter(j => j.status === 'queued' || j.status === 'running')
+      .map(j => j.job_id);
+    if (runningIds.length === 0) return;
+
+    let cancelled = false;
+    const tick = async () => {
+      let anyFinished = false;
+      const updates: Record<string, DataEnsureJob> = {};
+      for (const jid of runningIds) {
+        try {
+          const r = await fetch(`/api/data/jobs/${encodeURIComponent(jid)}`, { cache: 'no-store' });
+          if (!r.ok) continue;
+          const job: DataEnsureJob = await r.json();
+          updates[jid] = job;
+          if (job.status === 'completed' || job.status === 'partial' || job.status === 'blocked' || job.status === 'error') {
+            anyFinished = true;
+          }
+        } catch {
+          // ignore transient poll glitch
+        }
+      }
+      if (cancelled) return;
+      if (Object.keys(updates).length > 0) {
+        setActiveJobs(prev => ({ ...prev, ...updates }));
+      }
+      if (anyFinished) {
+        await refreshLiveDataset(true);
+        await refreshCoverage(activeUniverseParam);
+        const doneMsgs = Object.values(updates)
+          .filter(j => j.status === 'completed' || j.status === 'partial')
+          .map(j => j.message)
+          .filter(Boolean);
+        if (doneMsgs.length > 0) {
+          showToast(doneMsgs[0] || 'Data updated in place.');
+        }
+      }
+    };
+
+    const timer = window.setInterval(tick, 2000);
+    return () => {
+      cancelled = true;
+      window.clearInterval(timer);
+    };
+  }, [activeJobs, activeUniverseParam]);
+
+  const dispatchEnsureFilters = async (fids: string[]) => {
+    if (fids.length === 0) return;
+    setCheckingFilters(prev => {
+      const next = new Set(prev);
+      fids.forEach(f => next.add(f));
+      return next;
+    });
+    try {
+      const res = await fetch('/api/data/ensure', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ filter_ids: fids, universe: activeUniverseParam }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (Array.isArray(data.jobs) && data.jobs.length > 0) {
+          setActiveJobs(prev => {
+            const next = { ...prev };
+            for (const j of data.jobs) {
+              next[j.job_id] = j;
+            }
+            return next;
+          });
+        }
+        if (data.recomputed || (typeof data.snapshot_version === 'number' && data.snapshot_version !== snapshotVersion)) {
+          await refreshLiveDataset(true);
+        }
+        await refreshCoverage(activeUniverseParam);
+      }
+    } catch {
+      // backend optional in standalone fixture mode
+    } finally {
+      setCheckingFilters(prev => {
+        const next = new Set(prev);
+        fids.forEach(f => next.delete(f));
+        return next;
+      });
+    }
+  };
+
+  const queueEnsureFilter = (fid: string) => {
+    pendingEnsureRef.current.add(fid);
+    setCheckingFilters(prev => new Set([...prev, fid]));
+    if (ensureTimerRef.current !== null) {
+      window.clearTimeout(ensureTimerRef.current);
+    }
+    ensureTimerRef.current = window.setTimeout(() => {
+      const batch = Array.from(pendingEnsureRef.current);
+      pendingEnsureRef.current.clear();
+      ensureTimerRef.current = null;
+      dispatchEnsureFilters(batch);
+    }, 80);
+  };
 
   const initialModalParam = getInitialParam('modal');
   const catLookup: Record<string, string> = {
@@ -634,7 +812,7 @@ export const App: React.FC = () => {
     setIsDirty(true);
   };
 
-  // Add or remove filter from modal
+  // Add or remove filter from modal (initiating backend check / sync when enabled)
   const handleToggleFilter = (id: string, isChecked: boolean) => {
     if (isChecked) {
       if (!filters.some(f => f.id === id)) {
@@ -644,6 +822,7 @@ export const App: React.FC = () => {
         setColumns(prev => [...prev, id]);
       }
       setOpenSections(prev => new Set([...prev, 'f_' + id]));
+      queueEnsureFilter(id);
     } else {
       setFilters(prev => prev.filter(f => f.id !== id));
     }
@@ -1114,6 +1293,11 @@ export const App: React.FC = () => {
             const isOpen = openSections.has(secKey);
             const vals = getMetricValues(fState.id);
             const isRemovable = !DEFAULT_FILTER_IDS.includes(fState.id);
+            const bCov = backendCoverage[fState.id];
+            const fJob = Object.values(activeJobs).find(
+              j => (j.filter_ids.includes(fState.id) || (filterDef.sync_job && j.sync_job === filterDef.sync_job))
+                && (j.status === 'queued' || j.status === 'running' || j.status === 'blocked')
+            );
 
             return (
               <NumericFilterWidget
@@ -1127,6 +1311,10 @@ export const App: React.FC = () => {
                 onFilterChange={(min, max) => handleFilterChange(fState.id, min, max)}
                 onRemove={() => handleRemoveFilter(fState.id)}
                 isRemovable={isRemovable}
+                filterStatus={bCov}
+                activeJob={fJob}
+                isChecking={checkingFilters.has(fState.id)}
+                onRetrySync={fid => dispatchEnsureFilters([fid])}
               />
             );
           })}
@@ -1202,10 +1390,32 @@ export const App: React.FC = () => {
           <div className="sub-bar-right">
             <div
               className="update-time-info"
-              title={isSynced && liveSyncSourceLabel ? liveSyncSourceLabel : 'Offline sample mode: 15 fixture rows until sync'}
+              title={
+                isSynced && liveSyncSourceLabel
+                  ? `${liveSyncSourceLabel} · Price mode: ${providerSummary?.active_price_mode || 'EOD'}`
+                  : 'Offline sample mode: 15 fixture rows until sync'
+              }
             >
               <Clock size={13} />
-              <span>{isSynced ? (liveSyncSourceLabel || 'Official DuckDB synced') : 'Offline sample mode'}</span>
+              <span>
+                {isSynced
+                  ? `${providerSummary?.active_price_mode || 'EOD'} · ${liveSyncSourceLabel || 'Official DuckDB synced'}`
+                  : 'Offline sample mode'}
+              </span>
+              {Object.values(activeJobs).some(j => j.status === 'queued' || j.status === 'running') && (
+                <span
+                  style={{
+                    marginLeft: '6px',
+                    fontSize: '11px',
+                    color: '#0284c7',
+                    background: 'rgba(14, 165, 233, 0.12)',
+                    padding: '1px 6px',
+                    borderRadius: '3px',
+                  }}
+                >
+                  Syncing…
+                </span>
+              )}
             </div>
 
             <div style={{ position: 'relative' }}>
@@ -1345,19 +1555,25 @@ export const App: React.FC = () => {
                       const val = stock.v[colId];
                       const fDef = ALL_FILTERS_MAP.get(colId);
                       const prov = stock._provenance || {};
+                      const bCov = backendCoverage[colId];
                       const isBankOrInsurer = /bank|insur/i.test(`${stock.sector} ${stock.sub}`);
                       const isSectorNa = (val === null || val === undefined) && isBankOrInsurer && BANK_INSURER_INAPPLICABLE_IDS.has(colId);
+                      const isColSyncing = bCov?.status === 'queued' || bCov?.status === 'running' || checkingFilters.has(colId);
                       const cellTooltip = val === null || val === undefined
                         ? (
                           isSectorNa
                             ? `${fDef?.name || colId}: n/a for this sector`
-                            : (isSynced && fDef?.feeds === 'history' && (prov.px_days ?? 0) > 0
-                              ? `${fDef.name}: null — insufficient history (${prov.px_days} trading days stored)`
-                              : `${fDef?.name || colId}: ${formatMissingFeedReason(fDef?.feeds)}`)
+                            : isColSyncing
+                              ? `${fDef?.name || colId}: Syncing from official source…`
+                              : bCov?.status_reason
+                                ? `${fDef?.name || colId}: ${bCov.status_reason}`
+                                : (isSynced && fDef?.feeds === 'history' && (prov.px_days ?? 0) > 0
+                                  ? `${fDef.name}: null — insufficient history (${prov.px_days} trading days stored)`
+                                  : `${fDef?.name || colId}: ${formatMissingFeedReason(fDef?.feeds)}`)
                         )
                         : colId === 'market_cap'
-                          ? `Market Cap: ${formatIndianNumber(val)} Rs Cr | Shares: ${prov.shares_source || 'official'} (${prov.shares_as_of || 'n/a'}) | Price: ${prov.price_source || 'NSE'} (${prov.price_as_of || 'n/a'})`
-                          : `${fDef?.name || colId}: ${formatIndianNumber(val)} | Source: ${prov.price_source || fDef?.feeds || 'official'} | As of: ${prov.price_as_of || 'fixture'}`;
+                          ? `Market Cap: ${formatIndianNumber(val)} Rs Cr | Mode: ${providerSummary?.active_price_mode || 'EOD'} | Shares: ${prov.shares_source || 'official'} (${prov.shares_as_of || 'n/a'}) | Price: ${prov.price_source || 'NSE'} (${prov.price_as_of || 'n/a'})`
+                          : `${fDef?.name || colId}: ${formatIndianNumber(val)} | Source: ${fDef?.primary_source || prov.price_source || fDef?.feeds || 'official'} | Cadence: ${fDef?.refresh_cadence || 'EOD'} | As of: ${prov.price_as_of || 'fixture'}`;
                       return (
                         <td key={colId} title={cellTooltip}>
                           {isSectorNa ? 'n/a (sector)' : formatIndianNumber(val)}
@@ -1405,7 +1621,11 @@ export const App: React.FC = () => {
         activeFilterIds={filters.map(f => f.id)}
         loadedFilterIds={loadedFilterIds}
         filterCoverage={filterCoverage}
+        backendCoverage={backendCoverage}
+        activeJobs={activeJobs}
+        checkingFilters={checkingFilters}
         onToggleFilter={handleToggleFilter}
+        onRetryFilter={fid => dispatchEnsureFilters([fid])}
         onOpenCustomFilterBuilder={() => {
           setIsAddFilterModalOpen(false);
           setIsCustomFilterModalOpen(true);

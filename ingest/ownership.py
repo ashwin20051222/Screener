@@ -239,8 +239,15 @@ def ordered_universe_symbols(con, universe: str = "nifty100") -> List[str]:
                 FROM ref_index_constituent r
                 JOIN (SELECT MAX(as_of) AS max_dt FROM ref_index_constituent WHERE index_name = ?) m
                   ON r.as_of = m.max_dt
+                LEFT JOIN ref_security s ON s.nse_symbol = r.symbol
+                LEFT JOIN (
+                    SELECT symbol, close
+                    FROM px_daily
+                    WHERE source = 'NSE'
+                    QUALIFY ROW_NUMBER() OVER (PARTITION BY symbol ORDER BY date DESC) = 1
+                ) px ON px.symbol = r.symbol
                 WHERE r.index_name = ? AND r.symbol IS NOT NULL
-                ORDER BY r.symbol
+                ORDER BY (COALESCE(px.close, 0) * COALESCE(s.shares_outstanding, 0)) DESC, r.symbol ASC
                 """,
                 [idx_name, idx_name],
             ).fetchall()

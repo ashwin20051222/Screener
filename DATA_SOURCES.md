@@ -17,11 +17,9 @@ limiting, single request at a time). The machine-readable twin of this file live
 ## 1. Daily prices — exchange bhavcopies (UDiFF format)
 
 ### NSE cash market — `nsearchives.nseindia.com`
-- **URL pattern:** `https://nsearchives.nseindia.com/content/cm/BhavCopy_NSE_CM_0_0_0_YYYYMMDD_F_0000.csv.zip`
-- **Status: ✅ OK (verified 2026-10-25, HTTP 200** for trade date 2026-10-23; zip containing a
-  34-column UDiFF CSV, 3,730 rows).
-- Published after market close; fetched once per exchange day at 06:30 IST next morning
-  (walk-back skips weekends/holidays by the file simply being absent).
+- **UDiFF URL pattern (`>= 2024-07-08`):** `https://nsearchives.nseindia.com/content/cm/BhavCopy_NSE_CM_0_0_0_YYYYMMDD_F_0000.csv.zip` (34-column UDiFF CSV).
+- **Legacy CM URL pattern (`< 2024-07-08`):** `https://nsearchives.nseindia.com/content/historical/EQUITIES/{YYYY}/{MMM}/cm{DD}{MMM}{YYYY}bhav.csv.zip` (13-column CSV; transparent parser support in `ingest/udiff.py` + `ingest/backfill.py`, verified HTTP 200 live on `2024-07-01`).
+- Published after market close; fetched sequentially (`>= 5s` interval) and cached verbatim under `data/raw/nse/`.
 
 ### NSE F&O — same host
 - **URL pattern:** `https://nsearchives.nseindia.com/content/fo/BhavCopy_NSE_FO_0_0_0_YYYYMMDD_F_0000.csv.zip`
@@ -112,12 +110,15 @@ display in a local tool is the intended and compliant use). On **403/429 we stop
 - Every fetched file is kept byte-exact under `data/raw/<source>/` with a SHA-256 recorded in
   the `raw_files` table — any number shown in the UI is traceable to a dated official file.
 - Long backfill, SHP, and quarterly XBRL jobs checkpoint every item in `ingest_progress` (`job`,
-  `item_key`, `status: ok|holiday|skip|fail`, `updated_at`), can be stopped anytime and resumed via
-  `make backfill`, `make sync-shp`, `make sync-quarterly`, or `make sync-all`, and surface per-source
-  progress + `fin_quarantine` counts via `make status`.
-- Every job updates the precomputed DuckDB `screener_snapshot` table (`make snapshot`) so
-  `/api/screener/dataset` serves gzipped, ETag-cached rows cleanly in `< 0.5s` while `/api/meta/status`
-  surfaces per-source as-of dates in UI tooltips.
+  `item_key`, `status: ok|holiday|skip|fail`, `updated_at`) and track UI-initiated jobs in `data_jobs`.
+  Jobs can be stopped anytime and resumed via `make backfill`, `make sync-shp`, `make sync-quarterly`,
+  `make sync-all`, or `POST /api/data/ensure`, and surface per-source progress via `make status` & `GET /api/coverage`.
+- Every job atomically updates the versioned DuckDB `screener_snapshot` table (`make snapshot`) using
+  non-destructive `merge_rows()` on `ref_security` so BSE codes never overwrite NSE symbols/sectors/shares.
+- Official NSE MCP endpoints (`https://mcp.nseindia.com/bhavcopy/cm/mcp` & `https://mcp.nseindia.com/cmmkt/mcp`)
+  are registered solely for developer symbol lookup & verification (see `TOOLS.md`), subject to NSE non-redistribution rules.
+- Optional intraday price adapters (`app/providers/nse_live_vendor.py`, `app/providers/groww_quote.py`) remain
+  cleanly unconfigured by default; EOD/delayed vs Live status is surfaced truthfully via `GET /api/providers`.
 - Manual imports via `data/inbox/` are treated as first-class sources with the same
   provenance (`raw_files` rows marked "manual import").
 

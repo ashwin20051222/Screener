@@ -147,8 +147,13 @@ def status_page():
         locked = True
     px_rows = "".join(_row(f'{s.get("source")} bhavcopy', _badge(str(s.get("as_of"))))
                       for s in st.get("px_per_source", [])) or _EMPTY_PX
-    jobs = "".join(_row(str(j.get("kind")), _badge(str(j.get("finished_at") or "running"), ("running",)))
-                   for j in st.get("recent_jobs", [])[:6]) or _EMPTY_JOBS
+    jobs = "".join(
+        _row(
+            f"{j.get('job', 'unknown')} ({j.get('on', '')})",
+            _badge(str(j.get("status") or "ok"), ("ok", "partial", "fail", "skip")),
+        )
+        for j in st.get("recent_jobs", [])[:8]
+    ) or _EMPTY_JOBS
     return _PAGE.format(
         name=settings()["app"]["name"],
         note="⏳ sync in progress — the page will fill in when the running job finishes"

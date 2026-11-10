@@ -44,6 +44,18 @@ def get_universes_summary(con=None) -> List[Dict[str, Any]]:
             con = db.connect(read_only=True)
         except Exception as exc:
             log.warning("DuckDB busy during get_universes_summary: %s", exc)
+            try:
+                from app.query.snapshot import _load_sidecar_snapshot
+                sc = _load_sidecar_snapshot(fields="close_price")
+                if sc.get("synced"):
+                    u_map = sc.get("universes") or {}
+                    dt_m = (sc.get("as_of") or {}).get("masters")
+                    return [
+                        {"id": cid, "label": lbl, "slug": slug, "count": len(u_map.get(slug) or []), "as_of": dt_m}
+                        for cid, slug, lbl in CANONICAL_INDICES
+                    ] + [{"id": "all_listed", "label": "All NSE + BSE listed", "slug": "ALL", "count": int(sc.get("total_market_count") or 0), "as_of": dt_m}]
+            except Exception:
+                pass
             return [
                 {"id": cid, "label": lbl, "slug": slug, "count": 0, "as_of": None}
                 for cid, slug, lbl in CANONICAL_INDICES

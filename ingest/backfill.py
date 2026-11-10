@@ -13,18 +13,48 @@ from ingest import nse as nse_mod
 
 log = logging.getLogger(__name__)
 
+UDIFF_START_DATE = date(2024, 7, 8)
+
 
 def _find_cached_bhav(raw_dir: Path, prefix: str, d: date) -> Path | None:
     if not raw_dir.exists():
         return None
-    for pat in (
+    pats = [
         f"{prefix}_{d.strftime('%y%m%d')}*.zip",
         f"{prefix}_0_0_0_{d.strftime('%Y%m%d')}_F_0000*.zip",
-    ):
+    ]
+    if prefix == "BhavCopy_NSE_CM":
+        mon = d.strftime("%b").upper()
+        pats.append(f"cm{d.strftime('%d')}{mon}{d.strftime('%Y')}bhav*.zip")
+    for pat in pats:
         matches = sorted(raw_dir.glob(pat))
         if matches:
             return matches[-1]
     return None
+
+
+def _cm_url_and_save_name(eps: Dict[str, Any], d: date) -> tuple[str, str]:
+    """Selects UDiFF CM endpoint >= 2024-07-08 and Legacy CM endpoint prior to 2024-07-08."""
+    cm_ep = eps["nse_cm_bhavcopy"]
+    if d >= UDIFF_START_DATE:
+        return (
+            cm_ep["url_pattern"].format(yyyymmdd=d.strftime("%Y%m%d")),
+            f"BhavCopy_NSE_CM_{d.strftime('%y%m%d')}.zip",
+        )
+    leg_pat = cm_ep.get(
+        "legacy_url_pattern",
+        "https://nsearchives.nseindia.com/content/historical/EQUITIES/{yyyy}/{MMM}/cm{DD}{MMM}{YYYY}bhav.csv.zip",
+    )
+    mon = d.strftime("%b").upper()
+    return (
+        leg_pat.format(
+            yyyy=d.strftime("%Y"),
+            YYYY=d.strftime("%Y"),
+            MMM=mon,
+            DD=d.strftime("%d"),
+        ),
+        f"cm{d.strftime('%d')}{mon}{d.strftime('%Y')}bhav.csv.zip",
+    )
 
 
 def backfill_prices(
@@ -36,17 +66,30 @@ def backfill_prices(
     sync_actions: bool = True,
     run_technicals: bool = True,
     start_date: date | None = None,
+    max_network_fetches: int | None = None,
+    progress_cb=None,
 ) -> Dict[str, Any]:
-    """Backfills historical NSE CM bhavcopies (`trading_days`), recent NSE F&O (`fo_days`),
-    refreshes corporate actions, and runs the vectorised technicals pipeline.
+    """Backfills historical NSE CM bhavcopies (`trading_days`, UDiFF + pre-Jul-2024 legacy),
+    recent NSE F&O (`fo_days`), refreshes corporate actions, and runs technicals.
     Resumable via `ingest_progress`; skips weekends, cached raw files, and stored dates;
     marks 404 as holiday and aborts immediately on HTTP 403/429 with manual inbox guidance.
     """
     t0 = datetime.now()
     raw_dir = data_path(settings()["data"]["raw_dir"]) / "nse"
     eps = endpoints()["sources"]
-    cm_pat = eps["nse_cm_bhavcopy"]["url_pattern"]
     fo_pat = eps["nse_fo_bhavcopy"]["url_pattern"]
+
+    # Purge false 'holiday' markers written before pre-2024-07-08 legacy CM parser existed
+    try:
+        con.execute(
+            """
+            DELETE FROM ingest_progress
+            WHERE job = 'backfill_cm' AND status = 'holiday' AND item_key < ?
+            """,
+            [str(UDIFF_START_DATE)],
+        )
+    except Exception:
+        pass
 
     stored_cm = {
         r[0] for r in con.execute("SELECT DISTINCT date FROM px_daily WHERE source = 'NSE'").fetchall()
@@ -67,6 +110,7 @@ def backfill_prices(
     cm_cached = 0
     cm_holidays = 0
     blocked = False
+    budget_reached = False
     max_cal_days = int(cm_target * 1.7) + 30
 
     d = anchor
@@ -82,11 +126,12 @@ def backfill_prices(
             if d_str not in done_cm:
                 db.mark_progress(con, "backfill_cm", d_str, "ok", "already in px_daily")
             cm_collected += 1
+            if progress_cb:
+                progress_cb(cm_collected, cm_target, f"CM {d_str} already stored")
             d -= timedelta(days=1)
             continue
 
         if resume and d_str in done_cm:
-            # Previously confirmed holiday/skip — don't refetch
             d -= timedelta(days=1)
             continue
 
@@ -96,16 +141,22 @@ def backfill_prices(
             db.mark_progress(con, "backfill_cm", d_str, "ok", f"cache rows={res.get('rows', 0)}")
             cm_collected += 1
             cm_cached += 1
+            if progress_cb:
+                progress_cb(cm_collected, cm_target, f"Loaded cached CM {d_str}")
             d -= timedelta(days=1)
             continue
 
-        url = cm_pat.format(yyyymmdd=d.strftime("%Y%m%d"))
-        r = http.fetch(url, source="nse", save_name=f"BhavCopy_NSE_CM_{d.strftime('%y%m%d')}.zip")
+        if max_network_fetches is not None and cm_network >= max_network_fetches:
+            budget_reached = True
+            break
+
+        url, save_name = _cm_url_and_save_name(eps, d)
+        r = http.fetch(url, source="nse", save_name=save_name)
         if r.blocked() or (r.error or "").startswith("net:"):
             db.mark_progress(con, "backfill_cm", d_str, "fail", r.error or "blocked_or_net")
             log.error(
                 "Stopping NSE CM backfill cleanly at %s (%s). Do not hammer host.\n"
-                "Manual fallback: download BhavCopy_NSE_CM_0_0_0_YYYYMMDD_F_0000.csv.zip (or a bundle zip) into data/inbox/ and run `make synkinbox`.",
+                "Manual fallback: download CM bhavcopy zip into data/inbox/ and run `make synkinbox`.",
                 d_str, r.error or f"http:{r.status}",
             )
             blocked = r.blocked()
@@ -120,6 +171,8 @@ def backfill_prices(
             db.mark_progress(con, "backfill_cm", d_str, "ok", f"net rows={res.get('rows', 0)}")
             cm_collected += 1
             cm_network += 1
+            if progress_cb:
+                progress_cb(cm_collected, cm_target, f"Fetched CM {d_str} ({res.get('rows', 0)} rows)")
         else:
             db.mark_progress(con, "backfill_cm", d_str, "fail", r.error or "network error")
             break
@@ -205,13 +258,14 @@ def backfill_prices(
         snap_res = {"status": "fail", "error": str(exc)}
 
     summary = {
-        "status": "partial" if blocked else "ok",
+        "status": "partial" if (blocked or budget_reached) else "ok",
         "cm_days_ready": cm_collected,
         "cm_network_fetches": cm_network,
         "cm_cached_hits": cm_cached,
         "cm_holidays_marked": cm_holidays,
         "fo_days_ready": fo_collected,
         "blocked": blocked,
+        "budget_reached": budget_reached,
         "actions": actions_res,
         "fno_metrics": fno_res,
         "technicals": tech_res,

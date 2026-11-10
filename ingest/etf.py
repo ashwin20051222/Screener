@@ -107,7 +107,66 @@ def sync_amfi_nav_from_bytes(
         "rows": n,
         "notes": "ETF daily NAV",
     }], keys=["sha256"])
+    # Match ISINs to etf_meta so AMFI scheme codes populate cleanly
+    try:
+        con.execute(
+            """
+            UPDATE etf_meta AS m
+            SET scheme_code = COALESCE(m.scheme_code, n.scheme_code)
+            FROM (
+                SELECT isin, ANY_VALUE(scheme_code) AS scheme_code
+                FROM etf_nav_daily
+                WHERE isin IS NOT NULL AND scheme_code IS NOT NULL
+                GROUP BY isin
+            ) AS n
+            WHERE m.isin = n.isin AND m.scheme_code IS NULL
+            """
+        )
+        sync_etf_tracking_errors(con)
+    except Exception:
+        pass
     return {"status": "ok", "rows": n}
+
+
+def sync_etf_tracking_errors(con) -> Dict[str, Any]:
+    """Computes annualized tracking error for ETFs with >= 20 matched daily NAV & NIFTY50 observations."""
+    updated = 0
+    etfs = con.execute(
+        "SELECT symbol, isin, scheme_code, benchmark_index FROM etf_meta WHERE isin IS NOT NULL OR scheme_code IS NOT NULL"
+    ).fetchall()
+    bench_rows = con.execute(
+        "SELECT date, close FROM px_daily WHERE source = 'NSE-INDEX' AND symbol = 'NIFTY50' AND close IS NOT NULL ORDER BY date"
+    ).fetchall()
+    bench_map = {dt: float(cl) for dt, cl in bench_rows}
+    if len(bench_map) < 20:
+        return {"status": "skip", "updated": 0, "message": "insufficient benchmark history (< 20 days)"}
+    for sym, isin, scheme_code, _bench in etfs:
+        nav_rows = con.execute(
+            """
+            SELECT nav_date, AVG(nav)
+            FROM etf_nav_daily
+            WHERE (scheme_code = ? OR (? IS NOT NULL AND isin = ?)) AND nav IS NOT NULL
+            GROUP BY nav_date
+            ORDER BY nav_date
+            """,
+            [scheme_code or "", isin, isin or ""],
+        ).fetchall()
+        matched_navs: List[float] = []
+        matched_bench: List[float] = []
+        last_dt = None
+        for dt, nav in nav_rows:
+            if dt in bench_map and nav and bench_map[dt]:
+                matched_navs.append(float(nav))
+                matched_bench.append(bench_map[dt])
+                last_dt = dt
+        te = compute_tracking_error(matched_navs, matched_bench)
+        if te is not None and last_dt is not None:
+            con.execute(
+                "UPDATE etf_meta SET tracking_error = ?, te_as_of = ? WHERE symbol = ?",
+                [round(te, 4), last_dt, sym],
+            )
+            updated += 1
+    return {"status": "ok", "updated": updated}
 
 
 def parse_ter_csv_bytes(payload: bytes) -> List[Dict[str, Any]]:

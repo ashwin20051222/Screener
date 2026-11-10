@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { FilterDefinition } from '../types';
+import { DataEnsureJob, FilterBackendStatus, FilterDefinition } from '../types';
 import { Search, ChevronRight, Lock, BookOpen } from 'lucide-react';
 
 export interface FilterCoverageStats {
@@ -44,7 +44,11 @@ interface AddFiltersModalProps {
   activeFilterIds: string[];
   loadedFilterIds: Set<string>;
   filterCoverage?: Map<string, FilterCoverageStats>;
+  backendCoverage?: Record<string, FilterBackendStatus>;
+  activeJobs?: Record<string, DataEnsureJob>;
+  checkingFilters?: Set<string>;
   onToggleFilter: (id: string, isChecked: boolean) => void;
+  onRetryFilter?: (id: string) => void;
   onOpenCustomFilterBuilder: () => void;
   onOpenGlossary: (category: string) => void;
   initialCategory?: string;
@@ -74,7 +78,11 @@ export const AddFiltersModal: React.FC<AddFiltersModalProps> = ({
   activeFilterIds,
   loadedFilterIds,
   filterCoverage,
+  backendCoverage,
+  activeJobs,
+  checkingFilters,
   onToggleFilter,
+  onRetryFilter,
   onOpenCustomFilterBuilder,
   onOpenGlossary,
   initialCategory,
@@ -93,8 +101,8 @@ export const AddFiltersModal: React.FC<AddFiltersModalProps> = ({
   // Filter items based on search or category
   const filteredItems = searchQuery
     ? allFilters.filter(f =>
-        f.name.toLowerCase().includes(searchQuery.toLowerCase())
-      )
+      f.name.toLowerCase().includes(searchQuery.toLowerCase())
+    )
     : allFilters.filter(f => f.category === selectedCategory);
 
   const isYourFilters = !searchQuery && selectedCategory === 'Your Filters';
@@ -180,14 +188,77 @@ export const AddFiltersModal: React.FC<AddFiltersModalProps> = ({
                 filteredItems.map(filter => {
                   const isChecked = activeFilterIds.includes(filter.id);
                   const cov = filterCoverage?.get(filter.id);
-                  const nonNull = cov ? cov.nonNull : loadedFilterIds.has(filter.id) ? 1 : 0;
+                  const bCov = backendCoverage?.[filter.id];
+                  const isChecking = Boolean(checkingFilters?.has(filter.id));
+                  const matchingJob = Object.values(activeJobs || {}).find(
+                    j => (j.filter_ids.includes(filter.id) || (filter.sync_job && j.sync_job === filter.sync_job))
+                      && (j.status === 'queued' || j.status === 'running' || j.status === 'blocked')
+                  ) || bCov?.active_job || undefined;
+
+                  const nonNull = cov ? cov.nonNull : (bCov ? bCov.populated_count : (loadedFilterIds.has(filter.id) ? 1 : 0));
+                  const eligTotal = bCov ? bCov.eligible_count : (cov?.total || 0);
                   const hasData = nonNull > 0;
                   const isUnavailable = filter.availability === 'Unavailable' || filter.feeds === 'unavailable';
                   const isApprox = filter.availability === 'Approximate';
-                  const tooltip = cov && cov.nonNull > 0
-                    ? `Coverage: ${cov.pct.toFixed(1)}% (${cov.nonNull}/${cov.total}) — ${filter.formula || filter.name}`
-                    : (filter.formula || filter.name);
-                  const missingText = formatMissingFeedReason(filter.feeds);
+                  const statusKind = isChecking
+                    ? 'checking'
+                    : (matchingJob?.status === 'queued' || matchingJob?.status === 'running')
+                      ? matchingJob.status
+                      : (matchingJob?.status === 'blocked')
+                        ? 'blocked'
+                        : (bCov?.status || (isUnavailable ? 'unavailable' : (hasData ? 'available' : 'awaiting_sync')));
+
+                  const tooltip = [
+                    filter.name,
+                    bCov?.status_reason || (cov && cov.nonNull > 0 ? `Coverage: ${cov.pct.toFixed(1)}% (${cov.nonNull}/${cov.total})` : null),
+                    filter.primary_source ? `Source: ${filter.primary_source}` : null,
+                    filter.refresh_cadence ? `Cadence: ${filter.refresh_cadence}` : null,
+                    filter.formula ? `Formula: ${filter.formula}` : null,
+                  ].filter(Boolean).join(' · ');
+
+                  let pillText: string | null = null;
+                  let pillBg = 'var(--tag-bg)';
+                  let pillColor = 'var(--text-muted)';
+                  let showRetry = false;
+
+                  if (statusKind === 'checking') {
+                    pillText = 'Checking data…';
+                    pillBg = 'rgba(20, 184, 166, 0.14)';
+                    pillColor = 'var(--link-teal)';
+                  } else if (statusKind === 'queued' || statusKind === 'running') {
+                    const prog = matchingJob && matchingJob.total > 1
+                      ? ` ${matchingJob.processed}/${matchingJob.total}`
+                      : '';
+                    pillText = `Syncing${prog}…`;
+                    pillBg = 'rgba(14, 165, 233, 0.14)';
+                    pillColor = '#0284c7';
+                  } else if (statusKind === 'blocked') {
+                    pillText = 'Rate-limited (403/429)';
+                    pillBg = 'rgba(239, 68, 68, 0.12)';
+                    pillColor = '#dc2626';
+                    showRetry = true;
+                  } else if (statusKind === 'unavailable') {
+                    pillText = 'Not available from official sources';
+                    pillColor = '#6b7280';
+                  } else if (statusKind === 'not_applicable') {
+                    pillText = 'Not applicable in universe';
+                    pillColor = '#64748b';
+                  } else if (statusKind === 'manual_required') {
+                    pillText = 'Manual source required';
+                    pillBg = 'rgba(245, 158, 11, 0.14)';
+                    pillColor = '#b45309';
+                  } else if (statusKind === 'insufficient_history') {
+                    pillText = `Insufficient history (${filter.min_history_days || '?'}d)`;
+                    pillBg = 'rgba(245, 158, 11, 0.14)';
+                    pillColor = '#b45309';
+                    showRetry = Boolean(isChecked);
+                  } else if (hasData && statusKind === 'partial' && eligTotal > 0) {
+                    pillText = `Partial (${nonNull}/${eligTotal})`;
+                    pillBg = 'rgba(16, 185, 129, 0.12)';
+                    pillColor = '#047857';
+                  } else if (!hasData) {
+                    pillText = formatMissingFeedReason(filter.feeds);
+                  }
 
                   return (
                     <label key={filter.id} className="modal-filter-item">
@@ -211,31 +282,42 @@ export const AddFiltersModal: React.FC<AddFiltersModalProps> = ({
                           Approximate - computed locally
                         </span>
                       )}
-                      {isUnavailable ? (
+                      {pillText && (
                         <span
+                          title={bCov?.status_reason || pillText}
                           style={{
                             fontSize: '10px',
-                            color: '#6b7280',
-                            background: 'var(--tag-bg)',
+                            color: pillColor,
+                            background: pillBg,
                             padding: '2px 6px',
                             borderRadius: '3px',
+                            whiteSpace: 'nowrap',
                           }}
                         >
-                          Not available from official sources
+                          {pillText}
                         </span>
-                      ) : !hasData ? (
-                        <span
+                      )}
+                      {showRetry && onRetryFilter && (
+                        <button
+                          type="button"
+                          onClick={e => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            onRetryFilter(filter.id);
+                          }}
                           style={{
                             fontSize: '10px',
-                            color: 'var(--text-muted)',
-                            background: 'var(--tag-bg)',
                             padding: '2px 6px',
                             borderRadius: '3px',
+                            border: '1px solid var(--border)',
+                            background: 'var(--panel-bg)',
+                            color: 'var(--link-teal)',
+                            cursor: 'pointer',
                           }}
                         >
-                          {missingText}
-                        </span>
-                      ) : null}
+                          Retry
+                        </button>
+                      )}
                     </label>
                   );
                 })

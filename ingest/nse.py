@@ -155,39 +155,95 @@ def sync_equity_master(con) -> dict:
     if not r.ok():
         return {"status": "fail", "message": f"EQUITY_L.csv {r.error}"}
     out = _parse_equity_master(r.bytes)
-    n = db.upsert_rows(con, "ref_security", out, keys=["security_id"])
+    n = db.merge_rows(con, "ref_security", out, keys=["security_id"])
     _mark_bytes(con, "NSE", ep["url"], r.bytes, n, str(r.saved_path))
     return {"status": "ok", "rows": n}
 
 
 def sync_equity_master_from_bytes(con, payload: bytes) -> dict:
     out = _parse_equity_master(payload)
-    n = db.upsert_rows(con, "ref_security", out, keys=["security_id"])
+    n = db.merge_rows(con, "ref_security", out, keys=["security_id"])
     _mark_bytes(con, "NSE", "(manual EQUITY_L.csv)", payload, n, None)
     return {"status": "ok", "rows": n}
 
 
 def _parse_etf_master(payload: bytes) -> list[dict]:
     rows = list(csv.reader(io.StringIO(payload.decode("utf-8", "replace"))))
-    header = [h.strip().upper() for h in rows[0]]
+    if not rows:
+        return []
+    header = [h.strip().upper().replace(" ", "") for h in rows[0]]
     i_sym = header.index("SYMBOL") if "SYMBOL" in header else 0
-    i_name = header.index("NAME") if "NAME" in header else 1
-    i_isin = header.index("ISIN") if "ISIN" in header else (5 if len(header) > 5 else None)
+    i_name = (
+        header.index("SECURITYNAME") if "SECURITYNAME" in header
+        else (header.index("NAME") if "NAME" in header else 1)
+    )
+    i_isin = (
+        header.index("ISINNUMBER") if "ISINNUMBER" in header
+        else (header.index("ISIN") if "ISIN" in header else (5 if len(header) > 5 else None))
+    )
+    i_fv = header.index("FACEVALUE") if "FACEVALUE" in header else None
     out = []
     for row in rows[1:]:
         if len(row) < 2 or not row[i_sym].strip():
             continue
         sym = row[i_sym].strip()
         isin = row[i_isin].strip() if i_isin is not None and len(row) > i_isin else ""
+        sec_name = row[i_name].strip() if len(row) > i_name and row[i_name].strip() else sym
+        fv = None
+        if i_fv is not None and len(row) > i_fv and row[i_fv].strip():
+            try:
+                fv = float(row[i_fv].strip())
+            except ValueError:
+                fv = None
         out.append({
             "security_id": isin if isin else f"NSE:{sym}",
             "isin": isin or None,
             "nse_symbol": sym,
-            "name": row[i_name].strip() if len(row) > i_name else sym,
+            "name": sec_name,
+            "face_value": fv,
             "is_etf": True,
             "listing_status": "listed",
         })
     return out
+
+
+def _sync_etf_meta_benchmarks(con, payload: bytes) -> None:
+    rows = list(csv.reader(io.StringIO(payload.decode("utf-8", "replace"))))
+    if len(rows) < 2:
+        return
+    header = [h.strip().upper().replace(" ", "") for h in rows[0]]
+    i_sym = header.index("SYMBOL") if "SYMBOL" in header else 0
+    i_und = (
+        header.index("UNDERLYINGKEY") if "UNDERLYINGKEY" in header
+        else (header.index("UNDERLYINGASSET") if "UNDERLYINGASSET" in header else 1)
+    )
+    i_sec = header.index("SECURITYNAME") if "SECURITYNAME" in header else 2
+    i_isin = header.index("ISINNUMBER") if "ISINNUMBER" in header else (5 if len(header) > 5 else None)
+    records = []
+    for row in rows[1:]:
+        if len(row) <= i_sym or not row[i_sym].strip():
+            continue
+        sym = row[i_sym].strip()
+        records.append((
+            sym,
+            row[i_isin].strip() if i_isin is not None and len(row) > i_isin and row[i_isin].strip() else None,
+            row[i_sec].strip() if len(row) > i_sec and row[i_sec].strip() else sym,
+            row[i_und].strip() if len(row) > i_und and row[i_und].strip() else None,
+            "NSE eq_etfseclist.csv",
+        ))
+    if records:
+        con.executemany(
+            """
+            INSERT INTO etf_meta (symbol, isin, scheme_name, benchmark_index, source)
+            VALUES (?, ?, ?, ?, ?)
+            ON CONFLICT(symbol) DO UPDATE SET
+                isin = COALESCE(EXCLUDED.isin, etf_meta.isin),
+                scheme_name = COALESCE(EXCLUDED.scheme_name, etf_meta.scheme_name),
+                benchmark_index = COALESCE(EXCLUDED.benchmark_index, etf_meta.benchmark_index),
+                source = COALESCE(etf_meta.source, EXCLUDED.source)
+            """,
+            records,
+        )
 
 
 def sync_etf_master(con) -> dict:
@@ -196,14 +252,16 @@ def sync_etf_master(con) -> dict:
     if not r.ok():
         return {"status": "fail", "message": f"eq_etfseclist {r.error}"}
     out = _parse_etf_master(r.bytes)
-    n = db.upsert_rows(con, "ref_security", out, keys=["security_id"])
+    n = db.merge_rows(con, "ref_security", out, keys=["security_id"])
+    _sync_etf_meta_benchmarks(con, r.bytes)
     _mark_bytes(con, "NSE", ep["url"], r.bytes, n, str(r.saved_path))
     return {"status": "ok", "rows": n}
 
 
 def sync_etf_master_from_bytes(con, payload: bytes) -> dict:
     out = _parse_etf_master(payload)
-    n = db.upsert_rows(con, "ref_security", out, keys=["security_id"])
+    n = db.merge_rows(con, "ref_security", out, keys=["security_id"])
+    _sync_etf_meta_benchmarks(con, payload)
     _mark_bytes(con, "NSE", "(manual eq_etfseclist.csv)", payload, n, None)
     return {"status": "ok", "rows": n}
 
@@ -221,14 +279,14 @@ def sync_sme_master(con) -> dict:
     if not r.ok():
         return {"status": "fail", "message": f"SME_EQUITY_L.csv {r.error}"}
     out = _parse_sme_master(r.bytes)
-    n = db.upsert_rows(con, "ref_security", out, keys=["security_id"])
+    n = db.merge_rows(con, "ref_security", out, keys=["security_id"])
     _mark_bytes(con, "NSE", ep["url"], r.bytes, n, str(r.saved_path))
     return {"status": "ok", "rows": n}
 
 
 def sync_sme_master_from_bytes(con, payload: bytes) -> dict:
     out = _parse_sme_master(payload)
-    n = db.upsert_rows(con, "ref_security", out, keys=["security_id"])
+    n = db.merge_rows(con, "ref_security", out, keys=["security_id"])
     _mark_bytes(con, "NSE", "(manual SME_EQUITY_L.csv)", payload, n, None)
     return {"status": "ok", "rows": n}
 
@@ -245,14 +303,19 @@ def _parse_fno_lots(payload: bytes) -> list[dict]:
     today = date.today()
     out = []
     for row in rows[1:]:
-        if len(row) <= i_sym or not row[i_sym].strip():
+        if len(row) <= i_sym:
+            continue
+        sym = row[i_sym].strip()
+        if not sym or sym.upper() == "SYMBOL":
             continue
         try:
-            lot = int(float(row[i_lots].strip())) if row[i_lots].strip() else None
+            lot = int(float(row[i_lots].strip())) if len(row) > i_lots and row[i_lots].strip() else None
         except ValueError:
             lot = None
+        if lot is None:
+            continue
         out.append({
-            "symbol": row[i_sym].strip(),
+            "symbol": sym,
             "lot_size": lot,
             "sao": (row[i_sao].strip() or None) if 0 <= i_sao < len(row) else None,
             "as_of": today,

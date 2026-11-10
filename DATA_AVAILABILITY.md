@@ -88,15 +88,15 @@ Every filter in [`registry/filters.yaml`](registry/filters.yaml) (and `apps/web/
 
 | `feeds` Key | Target Sync Command | Filters | Notes |
 |---|---|---|---|
-| `weekly` | `make sync-weekly` | 2 | `face_value` (equity master) & Nifty Total Market 754 sector/industry map (`Unclassified` if unmapped/unlisted) |
-| `daily` | `make sync-daily` | 3 | EOD Close, Daily Volume, Market Cap (`close * shares_outstanding / 1e7` unblocked via NSE `PR.zip` `mcap*.csv`) |
-| `shp` | `make sync-shp` / `make sync-quarterly` | 17 | Promoter/DII/FII/MF/Retail/Insurance %, Pledge %, Shareholder count, 3M/6M deltas |
-| `xbrl` | `make sync-quarterly` | 137 | Consolidated-first Annual (6Y) & Quarterly (4Q) financials, profitability, growth, valuation & ratios (`fin_quarantine` validated) |
+| `weekly` | `make sync-weekly` | 2 | `face_value` (equity master), `lot_size` (F&O lots) & Nifty Total Market 754 sector/industry map (`Unclassified` if unmapped/unlisted) |
+| `daily` | `make sync-daily` | 4 | EOD Close, Daily Volume, VWAP, Market Cap (`close * shares_outstanding / 1e7` via NSE PR/XBRL/SHP) |
+| `shp` | `make sync-shp` / `make sync-quarterly` | 16 | Promoter/DII/FII/MF/Retail/Insurance %, Pledge %, Shareholder count, 3M/6M deltas |
+| `xbrl` | `make sync-quarterly` | 137 | Consolidated-first Annual (6Y, `period_months >= 10`) & Quarterly (4Q) financials, profitability, growth, valuation & ratios (`fin_quarantine` validated) |
 | `deals` | `make sync-deals` | 6 | 1M/3M/6M cumulative Bulk/Block deals & SEBI PIT insider trades (% of issued shares) |
-| `history` | `make backfill DAYS=400` | 49 | Multi-month/5Y returns (`DAYS=1300`), VWAP, SMA/EMA, RSI/ADX/MACD/SuperTrend/SAR (`"insufficient history"` until window filled) |
-| `fno` | `make sync-daily` / `make backfill FO_DAYS=10` | 24 | NSE/BSE F&O basis, rollover, PCR, OI/volume changes, top call/put strikes |
-| `amfi` | `make sync-weekly` | 2 | ETF Expense Ratio (TER) & Tracking Error (AMFI 6-month avg market cap kept separate as `amfi_avg_mcap_crs`) |
-| `manual` | `data/inbox/` | 3 | FBIL 3M MIBOR F&O Fair Value, Fair Value Spread & ETF TER CSV drops |
+| `history` | `make backfill DAYS=400` | 49 | Multi-month/5Y returns (`DAYS=1300`, UDiFF + Legacy CM `< 2024-07-08`), SMA/EMA, RSI/ADX/MACD/SuperTrend/SAR (`"Insufficient history"` until window filled) |
+| `fno` | `make sync-daily` / `make backfill FO_DAYS=10` | 24 | NSE F&O basis, rollover, PCR, OI/volume changes, top call/put strikes (eligible for F&O stocks only) |
+| `amfi` | `make sync-weekly` | 2 | ETF Expense Ratio (TER CSV via inbox) & Tracking Error (AMFI NAV vs benchmark, ETFs only) |
+| `manual` | `data/inbox/` | 3 | FBIL MIBOR F&O Fair Value, Fair Value Spread & Cash/Carry Profit (`data/inbox/` or 6.5% policy proxy) |
 | `unavailable` | N/A | 12 | Analyst sell-side consensus ratings & forward estimates (`"Not available from official sources"`) |
 
 - **Bank & Insurer Exclusions:** Ratios inapplicable to banking/insurance filings (`current_ratio`, `quick_ratio`, `debt_to_equity`, `long_term_debt_to_equity`, `working_capital_turnover_ratio`, `inventory_turnover_ratio`, `days_of_inventory_outstanding`, `days_of_sales_outstanding`, `days_payable_outstanding`, `cash_conversion_cycle`) display `"n/a for this sector"` / `"n/a (sector)"` rather than implying missing sync.

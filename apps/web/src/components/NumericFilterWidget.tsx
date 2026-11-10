@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { FilterDefinition } from '../types';
+import { DataEnsureJob, FilterBackendStatus, FilterDefinition } from '../types';
 import { DualRangeSlider } from './DualRangeSlider';
 import { ChevronDown, ChevronUp } from 'lucide-react';
 import { round2 } from '../utils/formatters';
@@ -14,6 +14,10 @@ interface NumericFilterWidgetProps {
   onFilterChange: (min: number | null, max: number | null) => void;
   onRemove: () => void;
   isRemovable: boolean;
+  filterStatus?: FilterBackendStatus;
+  activeJob?: DataEnsureJob;
+  isChecking?: boolean;
+  onRetrySync?: (fid: string) => void;
 }
 
 export const NumericFilterWidget: React.FC<NumericFilterWidgetProps> = ({
@@ -26,6 +30,10 @@ export const NumericFilterWidget: React.FC<NumericFilterWidgetProps> = ({
   onFilterChange,
   onRemove,
   isRemovable,
+  filterStatus,
+  activeJob,
+  isChecking,
+  onRetrySync,
 }) => {
   const [isHovered, setIsHovered] = useState(false);
 
@@ -108,8 +116,34 @@ export const NumericFilterWidget: React.FC<NumericFilterWidgetProps> = ({
       {isOpen && (
         <div className="filter-section-body">
           {!hasData ? (
-            <div style={{ color: 'var(--text-muted)', fontSize: '12px' }}>
-              No data loaded for this metric. Add a column named “{filter.name}” to your Excel.
+            <div style={{ color: 'var(--text-muted)', fontSize: '12px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+              <span>
+                {isChecking || activeJob?.status === 'queued' || activeJob?.status === 'running' || filterStatus?.status === 'queued' || filterStatus?.status === 'running'
+                  ? `Syncing ${filter.name}... ${activeJob?.message || filterStatus?.status_reason || ''}`
+                  : activeJob?.status === 'blocked' || filterStatus?.status === 'blocked'
+                    ? (activeJob?.error || filterStatus?.status_reason || 'Rate-limited by NSE host; retry later or drop official files into data/inbox/.')
+                    : filterStatus?.status === 'unavailable' || filter.feeds === 'unavailable'
+                      ? 'Unavailable from public official sources (requires commercial consensus vendor).'
+                      : (filterStatus?.status_reason || `Pending data from ${filter.primary_source || 'official source'}.`)}
+              </span>
+              {onRetrySync && filter.feeds !== 'unavailable' && filterStatus?.status !== 'not_applicable' && (
+                <button
+                  type="button"
+                  onClick={() => onRetrySync(filter.id)}
+                  style={{
+                    alignSelf: 'flex-start',
+                    fontSize: '11px',
+                    padding: '3px 8px',
+                    borderRadius: '4px',
+                    border: '1px solid var(--border)',
+                    background: 'var(--panel-secondary)',
+                    color: 'var(--link-teal)',
+                    cursor: 'pointer',
+                  }}
+                >
+                  {activeJob?.status === 'running' || activeJob?.status === 'queued' ? 'Sync running...' : 'Sync / Retry'}
+                </button>
+              )}
             </div>
           ) : (
             <>

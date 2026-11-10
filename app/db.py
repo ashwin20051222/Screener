@@ -51,6 +51,15 @@ def init_schema(con: duckdb.DuckDBPyConnection) -> None:
         "is_financial_institution BOOLEAN DEFAULT FALSE",
     ):
         con.execute(f"ALTER TABLE ref_security ADD COLUMN IF NOT EXISTS {col_def}")
+    for col_def in ("filing_url VARCHAR", "filing_date DATE", "parser_version VARCHAR"):
+        con.execute(f"ALTER TABLE fin_annual ADD COLUMN IF NOT EXISTS {col_def}")
+        con.execute(f"ALTER TABLE fin_quarterly ADD COLUMN IF NOT EXISTS {col_def}")
+    con.execute("ALTER TABLE screener_snapshot_meta ADD COLUMN IF NOT EXISTS version BIGINT DEFAULT 1")
+    # Clean legacy bug where 3M/6M/9M quarterly filings were inserted into fin_annual
+    try:
+        con.execute("DELETE FROM fin_annual WHERE period_months IS NOT NULL AND period_months < 10")
+    except Exception:
+        pass
 
 
 def _q(name: str) -> str:
@@ -128,6 +137,95 @@ def upsert_rows(
         [[r.get(c) for c in cols] for r in rows],
     )
     return _apply_stage(con, table, keys, len(rows))
+
+
+def merge_rows(
+    con: duckdb.DuckDBPyConnection,
+    table: str,
+    rows: Iterable[dict],
+    keys: list[str],
+    *,
+    preserve_existing: set[str] | None = None,
+) -> int:
+    """Non-destructive upsert: merges non-NULL incoming values without wiping existing columns.
+
+    Ideal for `ref_security` when secondary feeds (BSE bhavcopy, ETF list, SME list)
+    supply partial columns by ISIN/security_id without overwriting `nse_symbol`,
+    `shares_outstanding`, `sector`, `fno_eligible`, or `is_etf`.
+    """
+    raw_rows = [dict(r) for r in rows]
+    if not raw_rows:
+        log.info("merge_rows(%s): nothing to write", table)
+        return 0
+
+    # Deduplicate batch in memory by composite key, merging non-None fields cleanly
+    dedup: dict[tuple, dict] = {}
+    for r in raw_rows:
+        k_tup = tuple(r.get(k) for k in keys)
+        if any(x is None for x in k_tup):
+            continue
+        cur = dedup.get(k_tup)
+        if cur is None:
+            dedup[k_tup] = dict(r)
+        else:
+            for col, val in r.items():
+                if val is not None:
+                    cur[col] = val
+    merged_list = list(dedup.values())
+    if not merged_list:
+        return 0
+
+    cols = list(dict.fromkeys(c for r in merged_list for c in r.keys()))
+    types = _target_column_types(con, table, cols)
+    _create_stage(con, cols, types)
+    placeholders = ", ".join(["?"] * len(cols))
+    con.executemany(
+        f"INSERT INTO stage ({', '.join(_q(c) for c in cols)}) VALUES ({placeholders})",
+        [[r.get(c) for c in cols] for r in merged_list],
+    )
+
+    preserve = preserve_existing or set()
+    non_key_cols = [c for c in cols if c not in keys]
+    target_all_cols = {
+        r[0].lower()
+        for r in con.execute(
+            "SELECT column_name FROM information_schema.columns WHERE table_name = ?", [table]
+        ).fetchall()
+    }
+    join_sql = " AND ".join(f"tgt.{_q(k)} = src.{_q(k)}" for k in keys)
+    set_parts = []
+    for c in non_key_cols:
+        qc = _q(c)
+        if c in preserve:
+            set_parts.append(f"{qc} = COALESCE(tgt.{qc}, src.{qc})")
+        else:
+            set_parts.append(f"{qc} = COALESCE(src.{qc}, tgt.{qc})")
+    if "updated_at" in target_all_cols and "updated_at" not in non_key_cols:
+        set_parts.append("updated_at = current_timestamp")
+
+    col_list_sql = ", ".join(_q(c) for c in cols)
+    src_col_list_sql = ", ".join(f"src.{_q(c)}" for c in cols)
+    con.execute("BEGIN TRANSACTION")
+    try:
+        if set_parts:
+            con.execute(
+                f"UPDATE {table} AS tgt SET {', '.join(set_parts)} FROM stage AS src WHERE {join_sql}"
+            )
+        con.execute(
+            f"""
+            INSERT INTO {table} ({col_list_sql})
+            SELECT {src_col_list_sql}
+            FROM stage AS src
+            WHERE NOT EXISTS (SELECT 1 FROM {table} AS tgt WHERE {join_sql})
+            """
+        )
+        con.execute("COMMIT")
+    except Exception:
+        con.execute("ROLLBACK")
+        raise
+    finally:
+        con.execute("DROP TABLE IF EXISTS stage")
+    return len(merged_list)
 
 
 def upsert_df(

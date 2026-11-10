@@ -122,8 +122,9 @@ def sync_master_from_bhavcopy(con, payload: bytes | None = None) -> dict:
             "bse_code": code,
             "bse_series": series or None,
             "name": name,
+            "listing_status": "listed",
         })
-    n = db.upsert_rows(con, "ref_security", out, keys=["security_id"])
+    n = db.merge_rows(con, "ref_security", out, keys=["security_id"], preserve_existing={"name"})
     return {"status": "ok", "rows": n}
 
 
@@ -168,7 +169,7 @@ def sync_scrip_master_from_inbox_csv(con, path) -> dict:
         })
         if raw_ind:
             ind_pairs.append((code, raw_ind))
-    n = db.upsert_rows(con, "ref_security", out, keys=["security_id"])
+    n = db.merge_rows(con, "ref_security", out, keys=["security_id"], preserve_existing={"name"})
     cls_res = None
     if ind_pairs:
         from ingest.master_enrichment import classify_security_industries

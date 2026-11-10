@@ -284,6 +284,9 @@ CREATE TABLE IF NOT EXISTS fin_annual (
     net_change_cash             DOUBLE,
     source                      VARCHAR,
     raw_file_sha                VARCHAR,
+    filing_url                  VARCHAR,
+    filing_date                 DATE,
+    parser_version              VARCHAR,
     PRIMARY KEY (symbol, fiscal_year_end, statement_type)
 );
 
@@ -300,6 +303,9 @@ CREATE TABLE IF NOT EXISTS fin_quarterly (
     net_income_q               DOUBLE,
     eps_q                      DOUBLE,
     source                     VARCHAR,
+    filing_url                 VARCHAR,
+    filing_date                DATE,
+    parser_version             VARCHAR,
     PRIMARY KEY (symbol, quarter_end, statement_type)
 );
 
@@ -459,5 +465,23 @@ CREATE TABLE IF NOT EXISTS screener_snapshot_meta (
     etag           VARCHAR NOT NULL,
     universes_json VARCHAR NOT NULL,
     as_of_json     VARCHAR NOT NULL,
+    version        BIGINT DEFAULT 1,
     built_at       TIMESTAMP DEFAULT current_timestamp
+);
+
+CREATE TABLE IF NOT EXISTS data_jobs (
+    job_id           VARCHAR PRIMARY KEY,
+    sync_job         VARCHAR NOT NULL,
+    filter_ids_json  VARCHAR,
+    universe         VARCHAR,
+    status           VARCHAR NOT NULL,       -- queued | running | completed | partial | blocked | error
+    processed        INTEGER DEFAULT 0,
+    total            INTEGER DEFAULT 0,
+    progress_pct     DOUBLE DEFAULT 0.0,
+    message          VARCHAR,
+    error            VARCHAR,
+    snapshot_version BIGINT,
+    started_at       TIMESTAMP DEFAULT current_timestamp,
+    updated_at       TIMESTAMP DEFAULT current_timestamp,
+    finished_at      TIMESTAMP
 );

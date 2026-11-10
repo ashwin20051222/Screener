@@ -25,6 +25,7 @@ from datetime import date, datetime
 log = logging.getLogger(__name__)
 
 REQUIRED = ["TradDt", "TckrSymb", "SctySrs", "ClsPric"]
+LEGACY_CM_REQUIRED = ["SYMBOL", "SERIES", "CLOSE", "TIMESTAMP"]
 
 
 def _num(v: str):
@@ -54,8 +55,18 @@ def _dt(v: str):
     return None
 
 
+def _detect_layout(header: list[str]) -> str:
+    hset = set(header)
+    if all(c in hset for c in REQUIRED):
+        return "udiff"
+    if all(c in hset for c in LEGACY_CM_REQUIRED):
+        return "legacy_cm"
+    missing = [c for c in REQUIRED if c not in hset]
+    raise ValueError(f"Bhavcopy file missing columns: {missing}; got {header[:12]}...")
+
+
 def read_bhav_bytes(payload: bytes | str) -> list[list[str]]:
-    """Extract CSV rows from a UDiFF file (zip for NSE, plain CSV for BSE)."""
+    """Extract CSV rows from a UDiFF or Legacy NSE CM bhavcopy (zip or plain CSV)."""
     if isinstance(payload, str):
         payload = payload.encode("utf-8", "replace")
     if payload[:2] == b"PK":
@@ -66,11 +77,9 @@ def read_bhav_bytes(payload: bytes | str) -> list[list[str]]:
         text = payload.decode("utf-8", "replace")
     rows = list(csv.reader(io.StringIO(text)))
     if not rows:
-        raise ValueError("empty UDiFF file")
+        raise ValueError("empty bhavcopy file")
     header = [h.strip() for h in rows[0]]
-    missing = [c for c in REQUIRED if c not in header]
-    if missing:
-        raise ValueError(f"UDiFF file missing columns: {missing}; got {header[:12]}...")
+    _detect_layout(header)
     return rows
 
 
@@ -89,12 +98,51 @@ def parse_udiff(
     """
     rows = read_bhav_bytes(payload)
     header = [h.strip() for h in rows[0]]
+    layout = _detect_layout(header)
     idx = {c: i for i, c in enumerate(header)}
 
     px_rows: list[dict] = []
     fno_rows: list[dict] = []
     skipped = 0
     seen_series: dict[str, int] = {}
+
+    if layout == "legacy_cm":
+        if fo_mode:
+            raise ValueError("Legacy CM bhavcopy cannot be parsed in F&O mode")
+        for r in rows[1:]:
+            get = lambda c: (r[idx[c]] if c in idx and idx[c] < len(r) else "")
+            trad_dt = _dt(get("TIMESTAMP"))
+            symbol = get("SYMBOL").strip()
+            series = get("SERIES").strip()
+            cls_px = _num(get("CLOSE"))
+            if trad_dt is None or not symbol or cls_px is None:
+                skipped += 1
+                continue
+            seen_series[series] = seen_series.get(series, 0) + 1
+            if series_keep is not None and series not in series_keep:
+                skipped += 1
+                continue
+            volume = _int(get("TOTTRDQTY"))
+            turnover = _num(get("TOTTRDVAL"))
+            wap = round(turnover / volume, 4) if (volume and volume > 0 and turnover is not None) else None
+            px_rows.append({
+                "source": source,
+                "date": trad_dt,
+                "symbol": symbol,
+                "isin": get("ISIN").strip() or None,
+                "series": series or None,
+                "open": _num(get("OPEN")),
+                "high": _num(get("HIGH")),
+                "low": _num(get("LOW")),
+                "close": cls_px,
+                "prev_close": _num(get("PREVCLOSE")),
+                "last": _num(get("LAST")),
+                "volume": volume,
+                "turnover_rs": turnover,
+                "wap": wap,
+                "trades": _int(get("TOTALTRADES")),
+            })
+        return {"px_rows": px_rows, "fno_rows": [], "skipped": skipped, "series_counts": seen_series}
 
     for r in rows[1:]:
         get = lambda c: (r[idx[c]] if c in idx and idx[c] < len(r) else "")

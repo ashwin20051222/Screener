@@ -1,7 +1,7 @@
 # PROJECT_STATE.md — Continuity File
 
-> **Current Phase:** Fix Prompt #1 Complete (**Tasks A–H** done, tagged **`replica-v1.1`**).
-> **Last Updated:** 2026-11-10T12:02:45+05:30
+> **Current Phase:** Live Market-Data Ingestion, NSE MCP Tools & On-Demand Filter Sync Complete (**122 passed** offline + live verification).
+> **Last Updated:** 2026-11-10T13:25:00+05:30
 > **Tags:** `baseline-prototype`, `ui-replica-v1`, `replica-v1`, `replica-v1.1`.
 
 ---

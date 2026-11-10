@@ -14,11 +14,73 @@ export interface FilterDefinition {
   needs_official_source: boolean;
   availability: AvailabilityStatus;
   feeds?: string;
+  instrument_types?: string[];
+  applicable_sectors?: string;
+  primary_source?: string;
+  backup_source?: string;
+  required_tables?: string[];
+  calculation_function?: string;
+  lookback_periods?: string;
+  min_history_days?: number;
+  refresh_cadence?: string;
+  freshness_sla?: string;
+  sync_job?: string;
   formula?: string;
   frequency?: string;
   null_rule?: string;
   direction_of_goodness?: string;
   glossary?: string;
+}
+
+export type FilterCoverageStatus =
+  | 'available'
+  | 'partial'
+  | 'checking'
+  | 'queued'
+  | 'running'
+  | 'syncing'
+  | 'insufficient_history'
+  | 'not_applicable'
+  | 'manual_required'
+  | 'blocked'
+  | 'unavailable'
+  | 'awaiting_sync';
+
+export interface DataEnsureJob {
+  job_id: string;
+  sync_job: string;
+  filter_ids: string[];
+  universe: string | null;
+  status: 'queued' | 'running' | 'completed' | 'partial' | 'blocked' | 'error';
+  processed: number;
+  total: number;
+  progress_pct: number;
+  message?: string | null;
+  error?: string | null;
+  snapshot_version?: number | null;
+  updated_at?: string | null;
+}
+
+export interface FilterBackendStatus {
+  id: string;
+  eligible_count: number;
+  populated_count: number;
+  coverage_pct: number;
+  status: FilterCoverageStatus;
+  status_reason: string;
+  primary_source?: string;
+  refresh_cadence?: string;
+  freshness_sla?: string;
+  min_history_days?: number;
+  sync_job?: string;
+  active_job?: DataEnsureJob | null;
+}
+
+export interface ProviderSummary {
+  active_quote_provider: string;
+  active_price_mode: string;
+  is_realtime_active: boolean;
+  price_as_of: string | null;
 }
 
 export interface UniverseMeta {
