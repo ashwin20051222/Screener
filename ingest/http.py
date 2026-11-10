@@ -157,8 +157,8 @@ def bootstrap_nse_session() -> requests.Session:
     return s
 
 
-def fetch_json(url: str, *, source: str) -> dict | list | None:
-    r = fetch(url, source=source)
+def fetch_json(url: str, *, source: str, session: requests.Session | None = None) -> dict | list | None:
+    r = fetch(url, source=source, session=session)
     if not r.ok():
         return None
     try:

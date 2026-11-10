@@ -50,6 +50,37 @@ def sync_cm_bhavcopy_from_bytes(con, payload: bytes, d: date) -> dict:
     return res
 
 
+def fo_bhav_from_bytes(con, payload: bytes, d: date, url: str = "") -> dict:
+    parsed = parse_udiff(payload, source="BSE", fo_mode=True)
+    rows = parsed["fno_rows"]
+    for r in rows:
+        if not r.get("option_type"):
+            r["option_type"] = ""
+        if r.get("strike") is None:
+            r["strike"] = 0.0
+    n = db.upsert_rows(con, "fno_daily", rows,
+                       keys=["source", "underlying", "expiry", "instrument", "option_type", "strike", "date"])
+    return {"status": "ok", "date": str(d), "rows": n}
+
+
+def sync_fo_bhavcopy(con, d: date) -> dict:
+    ep = endpoints()["sources"]["bse_fo_bhavcopy"]
+    url = ep["url_pattern"].format(yyyymmdd=d.strftime("%Y%m%d"))
+    r = http.fetch(url, source="bse", save_name=f"BhavCopy_BSE_FO_{d.strftime('%y%m%d')}.CSV")
+    if not r.ok():
+        return {"status": "skip", "date": str(d), "message": f"no file ({r.error})"}
+    res = fo_bhav_from_bytes(con, r.bytes, d, url)
+    _mark(con, r.bytes, url, res, r.status)
+    res["raw"] = str(r.saved_path)
+    return res
+
+
+def sync_fo_bhavcopy_from_bytes(con, payload: bytes, d: date) -> dict:
+    res = fo_bhav_from_bytes(con, payload, d)
+    _mark(con, payload, "(manual BSE FO bhavcopy)", res, 0)
+    return res
+
+
 def _mark(con, payload: bytes, url: str, res: dict, http_code):
     db.upsert_rows(con, "raw_files", [{
         "sha256": hashlib.sha256(payload).hexdigest(),

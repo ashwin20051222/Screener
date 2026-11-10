@@ -38,6 +38,16 @@ def connect(*, read_only: bool = False, retries: int = 4, delay: float = 0.35) -
 def init_schema(con: duckdb.DuckDBPyConnection) -> None:
     schema_sql_path = Path(__file__).with_name("schema.sql")
     con.execute(schema_sql_path.read_text(encoding="utf-8"))
+    # Forward-compatible idempotent column migrations for existing DB files
+    for col_def in (
+        "shares_outstanding BIGINT",
+        "sector VARCHAR",
+        "sub_sector VARCHAR",
+        "industry VARCHAR",
+        "financial_template VARCHAR DEFAULT 'industrials'",
+        "is_financial_institution BOOLEAN DEFAULT FALSE",
+    ):
+        con.execute(f"ALTER TABLE ref_security ADD COLUMN IF NOT EXISTS {col_def}")
 
 
 def _q(name: str) -> str:
@@ -106,7 +116,7 @@ def upsert_rows(
     if not rows:
         log.info("upsert_rows(%s): nothing to write", table)
         return 0
-    cols = list(rows[0].keys())
+    cols = list(dict.fromkeys(k for r in rows for k in r.keys()))
     types = _target_column_types(con, table, cols)
     _create_stage(con, cols, types)
     placeholders = ", ".join(["?"] * len(cols))

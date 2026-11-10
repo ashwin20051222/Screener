@@ -66,10 +66,12 @@ def sync_cm_bhavcopy(con, d: date) -> dict:
 def fo_bhav_from_bytes(con, payload: bytes, d: date, url: str = "") -> dict:
     parsed = parse_udiff(payload, source="NSE", fo_mode=True)
     rows = parsed["fno_rows"]
-    # option_type is part of the PK (NOT NULL in DuckDB): futures persist with ''
+    # option_type and strike are part of the PK (NOT NULL in DuckDB): futures persist with '' and 0.0
     for r in rows:
         if not r.get("option_type"):
             r["option_type"] = ""
+        if r.get("strike") is None:
+            r["strike"] = 0.0
     n = db.upsert_rows(con, "fno_daily", rows,
                        keys=["source", "underlying", "expiry", "instrument", "option_type", "strike", "date"])
     return {"status": "ok", "date": str(d), "rows": n}
@@ -199,6 +201,31 @@ def sync_etf_master_from_bytes(con, payload: bytes) -> dict:
     return {"status": "ok", "rows": n}
 
 
+def _parse_sme_master(payload: bytes) -> list[dict]:
+    rows = _parse_equity_master(payload)
+    for r in rows:
+        r["is_sme"] = True
+    return rows
+
+
+def sync_sme_master(con) -> dict:
+    ep = endpoints()["sources"]["nse_sme_equity_master"]
+    r = http.fetch(ep["url"], source="nse", save_name="SME_EQUITY_L.csv")
+    if not r.ok():
+        return {"status": "fail", "message": f"SME_EQUITY_L.csv {r.error}"}
+    out = _parse_sme_master(r.bytes)
+    n = db.upsert_rows(con, "ref_security", out, keys=["security_id"])
+    _mark_bytes(con, "NSE", ep["url"], r.bytes, n, str(r.saved_path))
+    return {"status": "ok", "rows": n}
+
+
+def sync_sme_master_from_bytes(con, payload: bytes) -> dict:
+    out = _parse_sme_master(payload)
+    n = db.upsert_rows(con, "ref_security", out, keys=["security_id"])
+    _mark_bytes(con, "NSE", "(manual SME_EQUITY_L.csv)", payload, n, None)
+    return {"status": "ok", "rows": n}
+
+
 # ------------------------------------------------------------------ F&O lots
 
 def _parse_fno_lots(payload: bytes) -> list[dict]:
@@ -306,22 +333,20 @@ def sync_index_constituents(con, slugs: list[str] | None = None) -> dict:
     return results
 
 
-def sync_index_list_from_bytes(con, payload: bytes) -> dict:
+def sync_index_list_from_bytes(con, payload: bytes, filename_hint: str = "") -> dict:
+    import re as _re
     parsed = _parse_index_list(payload)
-    rows = list(csv.reader(io.StringIO(payload.decode("utf-8", "replace"))))
-    hdr = [h.strip() for h in rows[0]]
-    i_s = hdr.index("Symbol") if "Symbol" in hdr else 2
-    first = next((r for r in rows[1:] if len(r) > i_s and r[i_s].strip()), None)
-    slug_guess = "UNKNOWN"
-    if first:
-        # index name is not inside the file; detect from symbol membership against known slots is
-        # impossible here, so the caller's filename is authoritative -> caller passes it via symbol prefix
-        slug_guess = "NIFTY_LIST"
+    slug_guess = "NIFTY_LIST"
+    m = _re.search(r"ind_([a-z0-9]+)list", filename_hint, _re.I)
+    if m:
+        slug_guess = m.group(1).upper()
+    elif not parsed:
+        slug_guess = "UNKNOWN"
     today = date.today()
     rows_d = [dict(x, index_name=slug_guess, as_of=today) for x in parsed]
     n = db.upsert_rows(con, "ref_index_constituent", rows_d, keys=["index_name", "symbol", "as_of"])
-    _mark_bytes(con, "NSE-INDICES", "(manual index list)", payload, n, None)
-    return {"status": "ok", "rows": n, "note": "index_name set to NIFTY_LIST; rename via SQL if needed"}
+    _mark_bytes(con, "NSE-INDICES", f"(manual index list: {slug_guess})", payload, n, None)
+    return {"status": "ok", "rows": n, "index_name": slug_guess}
 
 
 # ------------------------------------------------------------------ corporate actions (session API)
@@ -333,7 +358,7 @@ def sync_corporate_actions(con, days_back: int = 45, days_fwd: int = 10) -> dict
     url = (endpoints()["sources"]["nse_api_session"]["base"]
            + "/api/corporates-corporateActions?index=equities"
            + f"&from_date={frm}&to_date={to_}")
-    data = fetch_json(url, source="nse-api")
+    data = fetch_json(url, source="nse-api", session=s)
     if not data:
         return {"status": "fail", "message": "corporateActions API returned no JSON (see DATA_SOURCES.md session notes)"}
     rows = _parse_corp_actions(data)

@@ -72,14 +72,16 @@ def _process_one(con, p: Path) -> dict:
             return res
         if name.lower() == "equity_l.csv":
             return nse_mod.sync_equity_master_from_bytes(con, p.read_bytes())
+        if name.lower() == "sme_equity_l.csv":
+            return nse_mod.sync_sme_master_from_bytes(con, p.read_bytes())
         if name.lower() == "eq_etfseclist.csv":
             return nse_mod.sync_etf_master_from_bytes(con, p.read_bytes())
         if name.lower() == "fo_mktlots.csv":
             return nse_mod.sync_fno_lots_from_bytes(con, p.read_bytes())
         if PAT_NIFTY.match(name):
-            return nse_mod.sync_index_list_from_bytes(con, p.read_bytes())
+            return nse_mod.sync_index_list_from_bytes(con, p.read_bytes(), filename_hint=name)
         if name.lower().startswith("averagemarketcapitalization") and name.lower().endswith(".xlsx"):
-            return amfi_mod.sync_categorisation_from_bytes(con, p.read_bytes())
+            return amfi_mod.sync_categorisation_from_bytes(con, p.read_bytes(), filename_hint=name)
         if name.lower().startswith("listofscripdata") and name.lower().endswith(".csv"):
             return bse_mod.sync_scrip_master_from_inbox_csv(con, p)
         if name.lower() == "fbil_mibor.json":
